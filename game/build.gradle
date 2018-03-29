@@ -1,0 +1,12 @@
+dependencies {
+ includeInJar 'org.freemarker:freemarker:2.3.26-incubating'
+ // https://mvnrepository.com/artifact/com.google.code.gson/gson
+
+ //compile 'org.fc.zippo:org.fc.zippo.psm:1.0.3'
+}
+jar {
+ manifest{
+  attributes( 'Import-Ignore':'scalaj.http,org.springframework,org.freemarker,freemarker,com.google.gson,io.jsonwebtoken')
+ }
+}
+

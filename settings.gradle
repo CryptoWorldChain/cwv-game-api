@@ -1,0 +1,5 @@
+include 'auth'//  系统api
+include 'common'//  通用api
+include 'game'//  游戏api
+
+rootProject.name = 'cwvservice'

@@ -1,0 +1,47 @@
+
+buildscript {
+
+	dependencies { 
+	classpath "onight.osgi:zpp-gradle:3.0.0"
+	 }
+}
+
+apply plugin: 'zippo'
+
+
+subprojects {
+	project.group='org.fc.cwv'
+	
+	apply plugin: 'eclipse'
+	apply plugin: 'zippo'
+    //if(project.name!='bms') {
+    //	dependencies {
+	//		compile ("org.fc.hzq:org.fc.hzq.sys:1.0.4")
+	//	}
+    //}
+    
+    //if(project.name=='bankface') {
+    //	dependencies {
+	//		compile group: 'commons-net', name: 'commons-net', version: '3.6'
+	//	}
+    //}
+    
+	buildscript {
+	
+		dependencies { 
+			//classpath "org.fc.cwv:org.fc.cwv.cwvdata:1.0.24" 
+		 }
+	}
+	
+
+	dependencies {
+		compile ("org.fc.zippo:org.fc.zippo.oapi:3.3.0")
+
+		//compile ("org.fc.tx:org.fc.cwv.cwvdata:1.0.24")
+		// compile group: 'commons-net', name: 'commons-net', version: '3.5'
+	}
+
+	version = '1.0.0'
+
+	jar { manifest.attributes provider: 'org.fc.cwv' }
+}
