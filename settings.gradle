@@ -1,5 +1,5 @@
 include 'auth'//  系统api
-include 'common'//  通用api
-include 'game'//  游戏api
+include 'common'//  通锟斤拷api
+include 'game'//  锟斤拷戏api
 
-rootProject.name = 'cwvservice'
+rootProject.name = 'cwv-game-api'

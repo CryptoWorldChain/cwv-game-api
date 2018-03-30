@@ -18,18 +18,18 @@ message PBGameCountry //GCS 获取游戏国家
 
 message PRetRefGameCountry //FCT查询所有币种，QDI
 {
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message BizCurrency
+	string ret_code = 1; //返回状态码，
+	string ret_msg = 2; //操作参数
+	message PRetCountry
 	{
-		string bizcurrencyid = 1;
-		string currencyname = 2; //币种名称
-		string currencycode = 3;//币种编码
-		string valuationcurrency = 4;//计价币种
-		string subscriptioncurrency = 5;//兑换币种
+		string domain_code = 1;//国际域名缩写
+		string regin_code = 2; //地区代码
+		string short_name = 3;//简称
+		string full_name = 4;//全称
+		string img_url = 5;//图片地址
+		string map_count = 6;//地图数量
 	}
-	repeated BizCurrency currencys = 3;
-	PageOut page = 9;//分页对象
+	repeated PRetCountry countries = 3;
 }
 
 message PBLatestDeal //LDS查询最新交易数据
