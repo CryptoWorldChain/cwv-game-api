@@ -29,7 +29,7 @@ subprojects {
 	buildscript {
 	
 		dependencies { 
-			//classpath "org.fc.cwv:org.fc.cwv.cwvdata:1.0.24" 
+			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.1" 
 		 }
 	}
 	
@@ -37,7 +37,7 @@ subprojects {
 	dependencies {
 		compile ("org.fc.zippo:org.fc.zippo.oapi:3.3.0")
 
-		//compile ("org.fc.tx:org.fc.cwv.cwvdata:1.0.24")
+		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.1")
 		// compile group: 'commons-net', name: 'commons-net', version: '3.5'
 	}
 
