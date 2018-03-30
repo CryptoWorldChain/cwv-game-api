@@ -1,549 +1,141 @@
 syntax = "proto3";
 
-package org.brewchain.cwv.service.game;
+package org.fc.tx.service.tps;
 
 enum PTPSModule {
-	GGA = 0;//game-game-api
+	NSD = 0;
 };
+
 enum PTPSCommand {
-	GCS = 0; //获取游戏国家-GameCountryService
-	LDS = 1; //查询最新交易数据-LatestDealService
-	ETS = 2; //查询委托交易-EntrustTransactionService
+	COL = 0; //获取国家列表-
+	COG = 1; //获取游戏国家-
+	GMP = 2; //获取游戏地图-
+	GMH = 3; //获取游戏房产-
+	SEH = 4; //购买房产-
+	//	COU = 5; //国家restful-
+	//	MAP = 6; //地图restful-
+	//	HOU = 7; //房产restful-
+	NTC = 8; //获取公告信息-
 };
 
-message PBGameCountry //GCS 获取游戏国家
+message PBCountryList //COL
 {
-	string shot_name = 1;//简称的模糊搜索
+	string short_name = 1; //简称的模糊搜索
 }
 
-message PRetRefGameCountry //FCT查询所有币种，QDI
+message PRetCountryList //COL
 {
-	string ret_code = 1; //返回状态码，
-	string ret_msg = 2; //操作参数
-	message PRetCountry
-	{
-		string domain_code = 1;//国际域名缩写
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
+	message Countries {
+		string domain_code = 1; //国际域名缩写
 		string regin_code = 2; //地区代码
-		string short_name = 3;//简称
-		string full_name = 4;//全称
-		string img_url = 5;//图片地址
-		string map_count = 6;//地图数量
+		string short_name = 3; //简称
+		string full_name = 4; //全称
+		string desc_en = 5; //英文描述
+		string phone_code = 6; //电话代码
 	}
-	repeated PRetCountry countries = 3;
+
+	repeated Countries countries = 3;
 }
 
-message PBLatestDeal //LDS查询最新交易数据
+message PBGameCountryList //COG
 {
-	string currencycode = 1;//币种编码
-	string count = 2;//个数
-	string reqresource = 3;//请求来源，1：PC，2：APP
-	string latetype = 4;//是否区分买入卖出类型，1：区分，2：不区分
-	string pageno = 5; //页码
-	string pagesize = 6; //条数
+	string short_name = 1; //简称的模糊搜索
 }
 
-message PRetLatestDeal //LDS
+message PRetGameCountryList //COG
 {
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message LatestDeal
-	{
-		string tradeid = 1;//交易id
-		string tradeprice = 2;//交易价格
-		string tradecount = 3;//交易数量
-		string tradetype = 4;//交易类型，1：买入，2：卖出
-		string tradetime = 5;//交易时间
-		string currencycode = 6;//币种
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
+	message Countries {
+		string domain_code = 1; //国际域名缩写
+		string regin_code = 2; //地区代码
+		string short_name = 3; //简称
+		string full_name = 4; //全称
+		string img_url = 5; //图片地址
 	}
-	repeated LatestDeal latestDeal = 3;
-	PageOut page = 9;//分页对象
+
+	repeated Countries countries = 3;
+	string map_count = 4; //地图数量
 }
 
-
-message PRetEntrustmentTransaction //ETS
+message PBGameMap //GMP
 {
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	string totalbuynum=3;//总买入数
-	string avebuyprice = 4;//平均买入价
-	string totalsellnum = 5;//总卖出数
-	string avesellprice = 6;//平均卖出数
-	message TradeDeatil
-	{
-		string entrusttime = 1;//委托时间
-		string tradetype = 2;//交易类型，1：买入，2：卖出
-		string tradecount = 3;//数量
-		string tradeprice = 4;//价格
-		string amount = 5;//金额
-		string volume = 6;//成交量
-		string transactionamount = 7;//成交金额
-		string brokerage = 8;//手续费
-		string avetransactionprice = 9 ;//平均成交价
-		string status = 10;//状态、操作
+	string country_id = 1; //所属国家
+	string map_name = 2; //简称的模糊搜索
+	int64 page_index = 3; //页索引
+	int64 page_size = 4; //页大小
+}
+
+message PRetGameMap //GMP
+{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
+	message Maps {
+		string map_id = 1; //地图编号
+		string map_name = 2; //地图名称
+		string country_id = 3; //所属国家
+		int64 property_count = 4; //房产总数
+		int64 property_sell_count = 5; //房产已出售数量
+		int64 average_price = 6; //已出售的房产的平均价格
+		string url = 7; //图片地址
 	}
-	repeated TradeDeatil tradeDeatil = 7;
-	string currencycode=8;//币种
-	PageOut page = 9;//分页对象
+
+	repeated Maps maps = 3;
+	int64 total_count = 4; //总条数
 }
 
-message PSLogin //LIN
+message PBGameHouseProperty //GMH
 {
-	string loginname = 1;
-	string pwd = 2;
-	string checkcode = 3;
-	string reqresource = 4;//请求来源，1：PC，2：APP
+	string map_id = 1; //所属地图
+	string property_name = 2; //资产名称的模糊搜索
+	string property_status = 3; //房产状态
+	string property_type = 4; //类型
+	int64 page_index = 5; //页索引
+	int64 page_size = 6; //页大小
 }
 
-message PRetLogin //LIN
+message PRetGameHouseProperty //GMH
 {
-	string err_code = 1;
-	string msg = 2;
-	message UserInfo
-	{
-		string userid = 1;//用户id
-		string mobile = 2;//手机号
-		string email = 3;//邮箱
-		string realname = 4;//真实姓名
-		string istrpwd = 5;//是否已设置交易密码
-		string valiidnumber = 6;//是否实名认证
-		string valiemail = 7;//是否验证邮箱
-		string valimobile = 8;//是否验证手机号
-		string status = 9;//状态
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
+	message Properties {
+		string property_id = 1; //房产编号
+		string property_name = 2; //房产名称
+		string map_id = 3; //所属国家
+		string appearance_type = 4; //外观
+		string property_type = 5; //类型
+		string property_status = 6; //房产状态
+		string url = 7; //图片地址
+		string bid = 8; //竞拍对象(只有property_status=4)
 	}
-	UserInfo userinfo=3;
-	string servertime = 4;
-	string smid = 5;
-	string loginname = 6;
+
+	repeated Properties properties = 3;
+	int64 total_count = 4; //总条数
 }
 
-
-
-
-message PRetAccountFunds //LAF
+message PBSellHouseProperty //SEH
 {
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message AccountFund
-	{
-		string currencyname = 1; //币种名称
-		string usablefund = 2;//可用资产
-		string frozenfund = 3;//冻结资产
-		string total = 4;//总量
-	}
-	repeated AccountFund accountFund = 3;
-	PageOut page = 9;//分页对象
+	string property_id = 1;
+	float price = 2; //购买价格
 }
 
-message PSAccountDetail
+message PRetSellHouseProperty //SEH
 {
-	string starttime = 1;//开始时间
-	string endtime = 2;//结束时间
-	string operation = 3; //操作类型
-	string reqresource = 4;//请求来源，1：PC，2：APP
-	string pageno = 6; //页码
-	string pagesize = 7; //条数
-	
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
 }
-message PRetAccountDetail //LAD
+
+message PBBulletinInformation //NTC
 {
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message AccountDetail
-	{
-		string tradetime = 1;//交易时间
-		string tradetype = 2;//交易类型，
-		string amount = 3;//金额
-		string servicecharge = 4;//手续费
-		string status = 5;//状态
-	}
-	repeated AccountDetail accountDetail = 3;
-	PageOut page = 9;//分页对象
-   
+	int64 page_index = 5; //页索引
+	int64 page_size = 6; //页大小
 }
 
-message PRetCurrencyDetail //FCD
+message PRetBulletinInformation //NTC
 {
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message CurrencyDetail
-	{
-		string currencyid = 1;//币种id
-		string currencyname = 2; //币种名称
-		string currencycode = 3;//币种编码
-		string high = 4;//最高价
-		string low =5;//最低价
-		string amount = 6;//成交量
-		string range =7;//涨跌幅
-		string open = 8;//开盘价
-		string curprice = 9;//当前价格
-		string count =10;//成交笔数
-		string close = 11;//收盘价,当K线为最晚的一根时，是最新成交价
-		string vol =12;//成交额，即 sum(每一笔成交价 * 该笔的成交量)
-		repeated string dayclose = 13; //趋势线
-		string tradecurrency = 14;//兑换币种
-	}
-	repeated CurrencyDetail currencyDetail = 3;
-	PageOut page = 9;//分页对象
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
 }
 
-
-message PSRegisterUser //RUS
-{
-	string loginname = 1;//登陆编码（手机号或者邮箱）
-	string checkcode = 2;//验证码
-	string msgcheckcode = 3;//回执验证码（手机号或者邮箱）
-	string password = 4;//密码
-	string confirmpassword = 5;//确认密码
-	string invitedcode = 6;//邀请码
-	string reqresource = 7;//请求来源，1：PC，2：APP
-}
-
-message PRetPersonInfo //PIS
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	string username = 3;//昵称
-	string uid = 4;//uid
-	string email = 5;//手机号
-	string mobile = 6;//邮箱
-	string estimatedfund = 7;//预估总资产
-}
-
-message PRetBaseInfo //LBI
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	string email = 3;//邮箱绑定
-	string emailset = 4;//邮箱绑定
-	string identityset = 5;//认证状态
-	string mobile = 6;//手机绑定
-	string mobileset = 7;//手机绑定
-	string googlecode = 8;//谷歌验证码
-	string googlecodeset = 9;//谷歌验证码
-	string loginpasswordset = 10;//登陆密码设置
-	string tradepasswordset = 11;//交易密码设置
-	string realname = 12;//真实姓名
-	string certificatetype = 13;//证件类型
-	string certificateno = 14; //证件号码
-	string idverifytime = 15;//实名认证时间
-	
-}
-
-
-message PRetInviteMember //LIM
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	string invitecode = 3; //推荐编码 
-	string invitelink = 4; //推广链接
-	message InviteMember
-	{
-		string memberuid = 1; //会员UID
-		string membername = 2; //会员姓名
-		string invitetime = 3; //推荐时间
-	}
-	repeated InviteMember inviteMember = 5;//会员信息
-	PageOut page = 9;//分页对象
-	
-}
-
-message PRetCommissionDetail //CMD
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	string invitecount = 3; //邀请人数 
-	string commissionamount = 4; //累计佣金
-	string unpaidcommission = 5; //未结算佣金
-	string settledcommission = 6; //已结算佣金
-	message CommissionDetail
-	{
-		string content = 1; //收益内容
-		string createtime = 2; //收益时间
-	}
-	repeated CommissionDetail commissionDetail = 7;//会员信息
-	
-}
-
-message PRetCommissionRankList //CRL
-{	
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message CommissionRank
-	{
-		string rankno = 1; //排名
-		string username = 2; //用户名
-		string commissionamount = 3; //收益金额
-	}
-	repeated CommissionRank commissionRank = 3;
-	
-}
-
-message PRetLoginRecord //LRS
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message LoginRecord
-	{
-		string logintime = 1; //登陆时间
-		string loginip = 2; //登陆IP
-	}
-	repeated LoginRecord loginRecord = 3;
-	PageOut page = 9;//分页对象
-}
-
-message PRetSecuritySetRecord //SSR
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message SecuritySetRecord
-	{
-		string logintime = 1; //登陆时间
-		string latestsetting = 2; //最近安全设置
-		string loginip = 3; //登陆IP
-	}
-	repeated SecuritySetRecord securitySetRecord = 3;
-	PageOut page = 9;//分页对象
-}
-
-
-message PRetIdentification //IDE
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	string realnamecheck = 3; //实名认证
-	string c2identitycheck = 4; //c2身份认证
-}
-
-message PSLogout
-{
-	string username = 1; //user_name
-	string reqresource = 2;//请求来源，1：PC，2：APP
-}
-message PRetLogout //
-{
-	string err_code = 1; //  0失败  1成功 
-	string msg = 2;  //返回信息	
-}
-
-message PSCommonIn //统一输入参数 LDS
-{
-	string id = 1; //查询id
-	string currencytype = 2; //币种
-	string starttime = 3; //开始时间
-	string endtime = 4; //币种
-	string resv_txt_1 = 5; // 预留字段
-	string pageno = 6; //页码
-	string pagesize = 7; //条数
-	string reqresource = 8;//请求来源，1：PC，2：APP
-	string status = 9;//状态
-	string tradecurrency = 10; //计价币种
-	string operate = 11; //操作类型
-	
-}
-
-message PRetStatusMsg //统一输出参数
-{
-	string err_code = 1; //  0失败  1成功 
-	string msg = 2;  //返回信息	
-   
-}
-
-message PSSendCode // SCS
-{
-	string verifystr = 1; //校验内容(邮箱，手机)
-	string reqresource = 2;//请求来源，1：PC，2：APP
-}
-
-message PSVerifyCenter // VCS
-{
-	string realname = 1;//真实姓名
-	string certificatetype = 2;  //证件类型
-	string certificateno = 3;  //证件号码
-	string region = 4; //地区
-	string email = 5;//邮箱
-	string mobile = 6;//手机
-	string mobilecode = 7;  //手机验证码
-	string mobileold = 8;//手机
-	string mobilecodeold = 9;  //手机验证码
-	string code = 10;  //验证码
-	string oldpwd= 11; //旧密码
-	string newpwd = 12;//新密码
-	string confirmpwd = 13;  //确认密码
-	string type = 14;//类型
-	string reqresource = 15;//请求来源，1：PC，2：APP 
-}
-
-message PSCreateEntrust // CES
-{
-	string entrusttype = 1;//委托类型，1：买入，2：卖出
-	string entrustcoin = 2;//委托币种
-	string tradecoin = 3;  //交易币种
-	string entrustnum = 4; //委托数量
-	string entrustprice = 5;//委托价格
-	string reqresource = 6;//请求来源，1：PC，2：APP 
-	string operate = 7;//操作，1:买入、2:卖出
-}
-message PSDuplicateUserCheck // DUC
-{
-	string username = 1; //校验内容(邮箱，手机)
-}
-
-message PSLatestEntrust // LES
-{
-	string count = 1; //查询条数
-	string coin = 2;//币种
-	string tradecoin = 3;//交易币种
-	string pageno = 4;//页码
-	string pagesize = 5;//数量
-}
-
-message PRetLatestEntrust // LES
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message LatestEntrust
-	{
-		string coin = 1;//币种
-		string price = 2;//委托价格
-		string count = 3;//委托数量
-		string operate = 4;//操作类型，1：买入，2：卖出
-		string tradecoin = 5;//币种
-		string totalcount = 6;//累计
-	}
-	repeated LatestEntrust latestEntrust = 3;
-	PageOut page = 9;//分页对象
-}
-
-message PRetDealManage //DMS ETS
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	string totalbuynum = 3;//总买入数
-	string avebuyprice = 4;//平均买入价
-	string totalsellnum = 5;//总卖出数
-	string avesellprice = 6;//平均卖出数
-	string currencycode = 7;//币种
-	message DealManage
-	{
-		string currencycode = 1;//币种
-		string tradeid = 2;//交易id
-		string tradetype = 3;//交易类型，1：买入，2：卖出
-		string entrusttime = 4;//委托时间
-		string tradetime = 5;//交易时间
-		string entrustcount = 6;//委托数量
-		string tradecount = 7;//交易数量
-		string tradeprice = 8;//交易价格
-		string entrustamount = 9;//金额
-		string tradeamount = 10;//金额
-		string charge = 11;//金额
-		string averageprice = 12;//金额
-		string status  = 13;//状态
-		string remaincount = 14;//剩余数量
-	}
-	repeated DealManage dealManage = 8;
-	PageOut page = 9;//分页对象
-}
-
-message PSwalletAdress // WAM
-{
-	string walletAdressId = 1;//ID
-	string coin = 2; //币种
-	string adress = 3;//钱包地址
-	string icon = 4;//图标
-	string status = 5; //状态(0:启用，1：删除)
-	string reqresource = 6;//请求来源，1：PC，2：APP
-	string msgcheckcode =7;//短信验证码
-	string transckcode = 8;//交易密码
-	string remark = 9;//描述
-	string pageno = 10;//页码
-	string pagesize = 11;//数量
-}
-message PRetWalletAdress // QWA
-{
-	string err_code = 1; //  0失败  1成功 
-	string msg = 2;  //返回信息	
-	message WalletAdress
-	{
-		string walletAdressId = 1;//钱包地址ID
-		string coin = 2; //币种
-		string adress = 3;//钱包地址
-		string icon = 4;//图标
-		string status = 5; //状态(0:启用，1：删除)
-		string creatTime = 6; //创建时间
-		string creatBy = 7; //创建人
-		string modifiedTime = 8; //变更时间
-		string modifiedBy = 9; //变更人
-		string userId = 10; //用户id
-	}
-	repeated WalletAdress walletAdress = 3;
-	PageOut page = 10; //分页
-}
-
-
-message PRetWallet //DMS ETS
-{
-	string requestNo = 1; //请求序号
-	string errCode = 2; //结果代码
-	string msg = 3;//返回的信息
-	message Addrs
-	{
-		string hexAddr = 1;//地址
-		string pki = 2;//私钥
-		string rpmdHash  = 3;//公钥hash
-		string alias = 4;//地址别名
-	}
-	Addrs addrs = 4;//JSON对象
-}
-message PRetAssets //ESA
-{
-	string err_code = 1; //  0失败  1成功 
-	string msg = 2;  //返回信息
-	string sumAmount = 3;//资产总价
-}
-	
-message PSEntrustEngine // EUE   交易引擎请求
-{
-	string coinID = 1;//原币种
-	string currencyCode = 2;//交易币种
-	string tradeWay = 3; //交易方式 1币币  2现金
-
-}
-message PRetEntrustEngine // EUE   交易引擎返回
-{
-	string err_code = 1; //  0失败  1成功
-	string msg = 2;  //返回信息
-}
-
-message PRetUserlLevel //QUL查询客户等级
-{
-	string err_code = 1; 
-	string msg = 2; //操作参数
-	message UserLevel
-	{
-		string userlevelid = 1;//用户等级ID
-		string levelname = 2; //用户等级名称
-		string brokerage = 3;//手续费,单位为%，计算中除以100
-		string status = 4;//状态(0:启用，1：停用)
-		string creattime = 5;//创建时间
-		string creatby = 6;//创建人
-		string modifiedtime = 7;//更新时间
-		string midifiedby = 8;//变更人
-	}
-	repeated UserLevel userlevel = 3;
-}
-
-message PageOut{
-	string pageno = 1;//页码
-	string pagesize = 2;//数量
-	string sum = 3;//总量
-}
-
-message PSWithdrawDeposit{
-	string addrs = 1;//提现地址id
-	string count = 2;//提现数量
-	string txpwd = 3;//交易密码
-	string smscode = 4;//短信验证码
-	string brokerage = 5;//手续费比率
-	string coin = 6;//币种
-	string reqresource = 7;//请求来源，1：PC，2：APP 
-}
