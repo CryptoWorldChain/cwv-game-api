@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:context="http://www.springframework.org/schema/context" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+
+		<bean id="cWVGameCityMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.game.mapper.CWVGameCityMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvgamecityDao" class="org.brewchain.cwv.dbgens.game.dao.CWVGameCityDao" >
+ 		<property name="mapper" ref="cWVGameCityMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	<bean id="cWVGameCountryMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.game.mapper.CWVGameCountryMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvgamecountryDao" class="org.brewchain.cwv.dbgens.game.dao.CWVGameCountryDao" >
+ 		<property name="mapper" ref="cWVGameCountryMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	<bean id="cWVGameMapMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.game.mapper.CWVGameMapMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvgamemapDao" class="org.brewchain.cwv.dbgens.game.dao.CWVGameMapDao" >
+ 		<property name="mapper" ref="cWVGameMapMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	<bean id="cWVGamePropertyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.game.mapper.CWVGamePropertyMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvgamepropertyDao" class="org.brewchain.cwv.dbgens.game.dao.CWVGamePropertyDao" >
+ 		<property name="mapper" ref="cWVGamePropertyMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	<bean id="cWVCommonCountryMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.common.mapper.CWVCommonCountryMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvcommoncountryDao" class="org.brewchain.cwv.dbgens.common.dao.CWVCommonCountryDao" >
+ 		<property name="mapper" ref="cWVCommonCountryMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	<bean id="cWVCommonSmsVerifyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.common.mapper.CWVCommonSmsVerifyMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvcommonsmsverifyDao" class="org.brewchain.cwv.dbgens.common.dao.CWVCommonSmsVerifyDao" >
+ 		<property name="mapper" ref="cWVCommonSmsVerifyMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	<bean id="cWVAuthRefreshTokenMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.auth.mapper.CWVAuthRefreshTokenMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvauthrefreshtokenDao" class="org.brewchain.cwv.dbgens.auth.dao.CWVAuthRefreshTokenDao" >
+ 		<property name="mapper" ref="cWVAuthRefreshTokenMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	<bean id="cWVAuthUserMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="org.brewchain.cwv.dbgens.auth.mapper.CWVAuthUserMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	 <bean id="cwvauthuserDao" class="org.brewchain.cwv.dbgens.auth.dao.CWVAuthUserDao" >
+ 		<property name="mapper" ref="cWVAuthUserMapper" />
+ 		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+ 	</bean>
+	
+	
+</beans>
