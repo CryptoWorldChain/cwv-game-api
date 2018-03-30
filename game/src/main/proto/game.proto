@@ -1,50 +1,22 @@
 syntax = "proto3";
 
-package org.fc.tx.service.tps;
+package org.brewchain.cwv.service.game;
 
 enum PTPSModule {
-	TPS = 0;
+	GGA = 0;//game-game-api
 };
 enum PTPSCommand {
-	FCT = 0; //查询所有币种-PFctProcess
+	GCS = 0; //获取游戏国家-GameCountryService
 	LDS = 1; //查询最新交易数据-LatestDealService
 	ETS = 2; //查询委托交易-EntrustTransactionService
-	LIN = 3; //登录-LoginService
-	FCD = 4; //查询所有币种当前价格详情-CurrencyDetailService
-	LAF = 5; //账户资产-AccountFundsService
-	LAD = 6; //账户明细-AccountDetailService
-	RUS = 7; //注册-RegisterUserService
-	PIS = 8; //个人信息-PersonInfoService
-	LBI = 9; //基本信息-BaseInfoService
-	LIM = 10; //会员推广明细-InviteMemberService
-	CMD = 11; //收益明细-CommissionDetailService
-	CRL = 12; //收益排行榜-CommissionRankListService
-	SSR = 14; //安全设置历史-SecuritySetRecordService
-	LOU = 16;//登出-PLogoutServer
-	SCS = 17;//发送验证码-SendCodeService
-	CCS = 18;//发送图片验证码-CaptchaCodeService
-	VCS = 19;//认证中心-VerifyCenterService
-	CES = 22;//创建委托-CreateEntrustService
-	DUC = 23;//用户重复校验-DuplicateUserCheckService
-	LES = 24;//查询最新委托记录（买卖5）-LatestEntrustService
-	DMS = 25;//个人交易管理,委托管理-DealManageService
-	LRS = 26;//登陆记录-LoginRecordService
-	CEO = 27;//撤销委托-CancelEntrustService
-	WAM = 28;//个人钱包管理-WalletAdrssManagerService
-	QWA = 29; //查询个人钱包-QueryWalletAdrssService
-	ESA = 30;//预估资产-EstimateAssetsService
-	QDI = 31;//查询字典列表-QueryDict
-	EUE = 32;//交易引擎-EntrustEngineService
-	CEOS = 33;//一键撤销委托-CancelEntrustOnekeyService
-	QUL = 34;//查询客户等级-QueryUserLevelService
-	WDS = 35;//提现-WithdrawDepositService
-	
-	TTS = 100;//测试URL-InitServer
-
 };
 
+message PBGameCountry //GCS 获取游戏国家
+{
+	string shot_name = 1;//简称的模糊搜索
+}
 
-message PRetRefCurrency //FCT查询所有币种，QDI
+message PRetRefGameCountry //FCT查询所有币种，QDI
 {
 	string err_code = 1; 
 	string msg = 2; //操作参数
