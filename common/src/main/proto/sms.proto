@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package org.brewchain.cwv.common.service;
+
+enum PTPSModule {
+	SMS = 0;
+};
+enum PTPSCommand {
+	AUT = 0; //短信验证码获取  SmsService
+	VER = 1; //短信验证码验证  SmsVerificationService
+	MSG = 2; //图片验证码获取  KaptchaCodeService
+	MSV = 3; //图片验证码验证  MsgVerificationService
+
+
+};
+
+
+message PBSmsDeal //AUT   短信验证码请求信息
+{
+	string country_code = 1;// 手机号所属国家代码
+	string phone = 2;// 手机号
+	string type = 3;//1:注册验证
+}
+
+message PRetSmsDeal //AUT  短信验证码返回信息
+{
+	string ret_code = 1;//状态码
+	string ret_msg = 2; //状态说明
+	string retobj = 3; //返回对象
+}
+
+message PBVerificationDeal //VER   短信验证码验证请求信息
+{
+	string phone = 1;//  手机号
+	string code = 2;// 验证码
+	}
+
+message PRetVerificationDeal //VER  短信验证码验证返回信息
+{
+	string ret_code = 1;//注册结果状态码  01.有效  02.无效
+	string ret_msg = 2; //状态说明
+}
+
+
+message PBMsgVerificationDeal //MSV   图片验证码验证请求信息
+{
+	string code = 1;// 验证码
+}
+
+message PRetMsgVerificationDeal //MSV  图片验证码验证返回信息
+{
+	string ret_code = 1;//注册结果状态码  01.有效  02.无效
+	string ret_msg = 2; //状态说明
+}
