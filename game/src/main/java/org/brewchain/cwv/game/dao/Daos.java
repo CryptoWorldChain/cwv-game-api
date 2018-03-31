@@ -3,7 +3,10 @@ package org.brewchain.cwv.game.dao;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonSmsVerify;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameCity;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +24,16 @@ import onight.tfw.ojpa.api.annotations.StoreDAO;
 public class Daos implements ActorService, IJPAClient{
 
 	@StoreDAO
-	public OJpaDAO<CWVGameCountry> cwvgamecountryDao;
+	public OJpaDAO<CWVGameCountry> gameCountryDao;
 	
+	@StoreDAO
+	public OJpaDAO<CWVGameCity> gameCityDao;
 	
+	@StoreDAO
+	public OJpaDAO<CWVGameMap> gameMapDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVGameProperty> gamePropertyDao;
 	
 	@Override
 	public void onDaoServiceAllReady() {
