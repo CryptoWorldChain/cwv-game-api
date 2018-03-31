@@ -7,13 +7,23 @@ enum PTPSModule {
 };
 enum PTPSCommand {
 	GCS = 0; //获取游戏国家-GameCountryService
-	GMS = 1; //获取游戏地图-GameMapService
-	GPS = 2; //获取游戏房产-GamePropertyService
+	GCC = 1; //获取游戏城市-GameCountryCityService
+	GCM = 2; //获取游戏地图-GameCityMapService
+	GMP = 3; //获取游戏房产-GameMapPropertyService
 };
+
+message PageOut{
+	string page_index = 1;//页码
+	string page_size = 2;//数量
+	string total_count = 3;//总量
+}
 
 message PBGameCountry //GCS 获取游戏国家
 {
 	string shot_name = 1;//简称的模糊搜索
+	string page_index = 2;//页索引
+	string page_size = 3;//页大小
+	string is_page = 4;//是否分页，0：不分页，1分页
 }
 
 message PRetRefGameCountry //GCS 获取游戏国家
@@ -22,23 +32,45 @@ message PRetRefGameCountry //GCS 获取游戏国家
 	string ret_msg = 2; //操作参数
 	message PRetCountry
 	{
-		string domain_code = 1;//国际域名缩写
-		string regin_code = 2; //地区代码
-		string short_name = 3;//简称
-		string full_name = 4;//全称
-		string img_url = 5;//图片地址
-		string map_count = 6;//地图数量
-		string country_id=7;//游戏国家id
+		string country_id = 1;//游戏国家编码
+		string country_name = 2; //国家名称
+		string map_number = 3;//地图数量
 	}
 	repeated PRetCountry countries = 3;
+	string total_count = 4;
+}
+
+message PBGameCity //GCC 获取游戏城市
+{
+	string shot_name = 1;//简称的模糊搜索
+	string country_id = 2;//游戏国家编码
+	string page_index = 3;//页索引
+	string page_size = 4;//页大小
+	string is_page = 5;//是否分页，0：不分页，1分页
+}
+
+message PRetRefGameCity //GCC 获取游戏城市
+{
+	string ret_code = 1; //返回状态码，
+	string ret_msg = 2; //操作参数
+	message PRetCountry
+	{
+		string city_id = 1;//游戏国家编码
+		string city_name = 2; //国家名称
+		string map_number = 3;//地图数量
+		string country_id = 4;//游戏国家编码
+	}
+	repeated PRetCountry countries = 3;
+	string total_count = 4;
 }
 
 message PBGameMap //GMS 获取游戏地图
 {
-	string country_id = 1;//简称的模糊搜索
+	string city_id = 1;//简称的模糊搜索
 	string page_index = 2;//页索引
 	string page_size = 3;//页大小
 	string map_name = 4;//简称的模糊搜索
+	string is_page = 5;//是否分页，0：不分页，1分页
 }
 
 message PRetRefGameMap //GMS 获取游戏地图
@@ -56,7 +88,7 @@ message PRetRefGameMap //GMS 获取游戏地图
 		string url=7;//图片地址
 	}
 	repeated PRetMap maps = 3;
-	string total_count = 4;//总条数
+	PageOut page = 4;//总条数
 }
 
 message PBGameProperty //GPS 获取游戏房产
@@ -67,6 +99,7 @@ message PBGameProperty //GPS 获取游戏房产
 	string property_name = 4;//房产名称的模糊搜索
 	string property_type = 5;//房产类型
 	string property_status = 6;//房产状态
+	string is_page = 7;//是否分页，0：不分页，1分页
 }
 
 message PRetRefGameProperty //GPS 获取游戏房产

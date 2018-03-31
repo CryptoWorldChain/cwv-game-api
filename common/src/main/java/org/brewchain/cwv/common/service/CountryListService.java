@@ -11,9 +11,9 @@ import org.brewchain.cwv.common.service.Country.PRetCountryList;
 import org.brewchain.cwv.common.service.Country.PRetCountryList.Countries;
 import org.brewchain.cwv.common.service.Country.PTNsdCommand;
 import org.brewchain.cwv.common.service.Country.PTNsdModule;
+import org.brewchain.cwv.common.util.PageUtil;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountryExample;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +57,17 @@ public class CountryListService extends SessionModules<PBCountryList> {
 		PRetCountryList.Builder ret = PRetCountryList.newBuilder();
 		try {
 			CWVCommonCountryExample example = new CWVCommonCountryExample();
+			CWVCommonCountryExample.Criteria criteria = example.createCriteria();
 			if (StringUtils.isNotBlank(pb.getShortName())) {
-				example.createCriteria().andShortNameLike("%" + pb.getShortName() + "%");
+				criteria.andShortNameLike("%" + pb.getShortName() + "%");
+			}
+			if(StringUtils.isNotBlank(pb.getIsPage())&&"1".equals(pb.getIsPage())){
+				ret.setTotalCount(sysDaos.cwvcommoncountryDao.countByExample(example)+"");
+				
+				PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
+				example.setLimit(page.getLimit());
+				example.setOffset(page.getOffset());
+				
 			}
 //			example.setOrderByClause("sort asc");
 			List<Object> list = sysDaos.cwvcommoncountryDao.selectByExample(example);
