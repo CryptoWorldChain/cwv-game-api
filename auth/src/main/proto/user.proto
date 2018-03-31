@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package org.fc.hzq.service.sys;
+
+enum PUSERModule {
+	USER = 0;
+};
+enum PUSERCommand {
+	REG = 0; //用户注册
+	LIN = 1; //登陆用户
+	RSP = 2; //重置密码
+	STP = 3; //设置交易密码
+	SNN = 4; //设置用户昵称
+	SIM = 5; //设置头像
+	LOUT = 6; //用户注销
+};
+
+message PSRegistry //REG 
+{
+	string user_name = 1; //⽤户名(可选，默认为手机号)
+	string nick_name = 2; //⽤户昵称(可选，默认为手机号)
+	string phone_code = 3; //电话代码 86
+	string phone = 4; //手机号
+	string password = 5; //用户密码
+	string phone_verify_code = 6; //短信验证码
+	string reg_verify_code = 7; //注册验证码
+	int32 country_id = 8; //国家
+}
+
+message PSLogin//LOGIN 
+{
+	string phone = 1; //手机号
+	string password = 2; //用户密码
+	string phone_verify_code = 3; //短信验证码
+}
+
+
+
+
+
+message PRetLogin //公共返回信息 REG LOGIN
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+	string token_type = 3; //token类型，默认为bearer
+	string access_token = 4;// 访问token
+	int64 expires_in = 5;// access_token有效期 秒
+	string refresh_token = 6;// 用于刷新access_token
+	UserInfo user_info = 7;// 用户信息对象
+}
+
+message UserInfo
+{
+	string uid = 8;//用户标识
+	string nick_name = 9; //昵称
+	string phone = 10; //手机号
+	string image_url = 11; //用户头像
+}
+
+
+message PSCommon{
+	
+}
+
+
+message PRetCommon //公共返回信息 REG
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+	string page_no = 9; //页码
+	string page_size = 10;// 数量
+	string image_url = 11;// 图片地址
+}
+
+
+
