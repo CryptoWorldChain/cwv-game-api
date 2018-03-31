@@ -55,7 +55,7 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 	String password = "f3arA7QX5o567f";
 
 	// 短信内容。长度不能超过536个字符。必填
-	String msg = "您的验证码是：%s";
+	String msg = "【%s】,您的验证码是：%s,请在5分钟内输入，请勿透露给他人";
 
 	// 手机号码，格式(区号+手机号码)，例如：8615800000000，其中86为中国的区号，区号前不使用00开头,15800000000为接收短信的真实手机号码。5-20位。必填
 	String mobile = "";
@@ -81,15 +81,15 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 		try {
 			
 			// 验证码生成
-			String fixVer = RandomUtill.auto6Number();
-			String strMsg = String.format(msg, fixVer);
+			String fixVer = RandomUtill.autoNumber(4);
+			String strMsg = String.format(msg, "加密世界",fixVer);
 			mobile = pb.getCountryCode() + pb.getPhone();
 			mobile = deleteStartZero(mobile.trim());
 		
 
 			// 验证码入库
 			CWVCommonSmsVerify cWVCommonSmsVerify = new CWVCommonSmsVerify();
-			cWVCommonSmsVerify.setVerifyId(2);
+			cWVCommonSmsVerify.setVerifyId(UUIDGenerator.generate());
 			cWVCommonSmsVerify.setIsVerify("0");
 			cWVCommonSmsVerify.setPhone(pb.getPhone());
 			cWVCommonSmsVerify.setVerifyCode(fixVer);

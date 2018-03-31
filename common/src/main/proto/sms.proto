@@ -15,6 +15,12 @@ enum PTPSCommand {
 };
 
 
+message PBMsgInfo //AUT   短信验证码请求信息
+{
+	string image_width = 1;//图片宽度
+	string image_height = 2;// 图片高度
+	string char_length = 3;// 验证码个数
+}
 message PBSmsDeal //AUT   短信验证码请求信息
 {
 	string country_code = 1;// 手机号所属国家代码
