@@ -61,6 +61,7 @@ public class CountryListService extends SessionModules<PBCountryList> {
 			if (StringUtils.isNotBlank(pb.getShortName())) {
 				criteria.andShortNameLike("%" + pb.getShortName() + "%");
 			}
+			ret.setTotalCount("0");
 			if(StringUtils.isNotBlank(pb.getIsPage())&&"1".equals(pb.getIsPage())){
 				ret.setTotalCount(sysDaos.cwvcommoncountryDao.countByExample(example)+"");
 				
