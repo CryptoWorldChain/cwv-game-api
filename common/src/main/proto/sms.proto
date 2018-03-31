@@ -39,7 +39,8 @@ message PBVerificationDeal //VER   短信验证码验证请求信息
 {
 	string phone = 1;//  手机号
 	string code = 2;// 验证码
-	}
+	string type = 3;// 类型
+}
 
 message PRetVerificationDeal //VER  短信验证码验证返回信息
 {
