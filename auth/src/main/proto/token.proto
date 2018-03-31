@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package org.fc.hzq.service.sys;
+
+enum PTOKENModule {
+	TOKEN = 0;
+};
+enum PTOKENCommand {
+	ATS = 0; //校验 access_token
+	RTS = 1; //刷新 refresh_token
+	
+};
+
+message PSAccessToken
+{
+	string access_token = 1;
+}
+
+message PRetAccessToken
+{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
+}
+
+message PSRefreshToken
+{
+	string refresh_token = 1;
+}
+
+message PRetRefreshToken
+{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //返回消息
+	string token_type = 3; //token类型
+	string access_token = 4; //⽤户标识
+	string expires_in = 5; //access_token的有效期，以秒为单位
+	string refresh_token = 6; //⽤于刷新access_token
+}
+
+
+
