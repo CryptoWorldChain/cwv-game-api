@@ -74,16 +74,16 @@ public class GameCountryService extends SessionModules<PBGameCountry> {
 		if(StringUtils.isNotBlank(pb.getShotName())){
 			criteria.andCountryNameEqualTo(pb.getShotName());
 		}
-		List<Object> countrys ;
+		
 		if(StringUtils.isNotBlank(pb.getIsPage())&&"1".equals(pb.getIsPage())){
 			PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 			countryExample.setLimit(page.getLimit());
 			countryExample.setOffset(page.getOffset());
-//			page.setTotalCount(daos.gameCountryDao.countByExample(countryExample)) ;
 			
 			ret.setTotalCount(daos.gameCountryDao.countByExample(countryExample)+"");
 		}
-		countrys = daos.gameCountryDao.selectByExample(criteria);
+		
+		List<Object> countrys = daos.gameCountryDao.selectByExample(countryExample);
 		for(Object coun : countrys){
 			CWVGameCountry country = (CWVGameCountry) coun;
 			PRetCountry.Builder pCountry = PRetCountry.newBuilder();
