@@ -141,8 +141,7 @@
 
 
 	ret_code  	状态码
-				
-	ret_msg   状态说明
+	ret_msg   	状态说明
 
 
 
@@ -205,7 +204,7 @@
 	ret_code  	状态码
 	ret_msg   	状态说明
 	countries	国家信息集合
-		domain_code 		国际域名缩写
+		domain_code		国际域名缩写
 		regin_code		地区代码
 		short_name		简称
 		full_name		全称
