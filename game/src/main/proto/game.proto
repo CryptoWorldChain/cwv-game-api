@@ -53,27 +53,27 @@ message PRetRefGameCity //GCC 获取游戏城市
 {
 	string ret_code = 1; //返回状态码，
 	string ret_msg = 2; //操作参数
-	message PRetCountry
+	message PRetCity
 	{
 		string city_id = 1;//游戏国家编码
 		string city_name = 2; //国家名称
 		string map_number = 3;//地图数量
 		string country_id = 4;//游戏国家编码
 	}
-	repeated PRetCountry countries = 3;
+	repeated PRetCity cities = 3;
 	string total_count = 4;
 }
 
-message PBGameMap //GMS 获取游戏地图
+message PBGameMap //GCM 获取游戏地图
 {
 	string city_id = 1;//简称的模糊搜索
 	string page_index = 2;//页索引
 	string page_size = 3;//页大小
-	string map_name = 4;//简称的模糊搜索
+	string shot_name = 4;//简称的模糊搜索
 	string is_page = 5;//是否分页，0：不分页，1分页
 }
 
-message PRetRefGameMap //GMS 获取游戏地图
+message PRetRefGameMap //GCM 获取游戏地图
 {
 	string ret_code = 1; //返回状态码，
 	string ret_msg = 2; //操作参数
@@ -81,17 +81,18 @@ message PRetRefGameMap //GMS 获取游戏地图
 	{
 		string map_id = 1;//地图编号
 		string map_name = 2; //地图名称
-		string country_id = 3;//所属国家
+		string city_id = 3;//所属国家
 		string property_count = 4;//房产总数
 		string property_sell_count = 5;//房产已售出数量
 		string average_price = 6;//已售出的房产平均价
 		string url=7;//图片地址
+		string tamplate=8;//模型
 	}
 	repeated PRetMap maps = 3;
-	PageOut page = 4;//总条数
+	string total_count = 4;//总条数
 }
 
-message PBGameProperty //GPS 获取游戏房产
+message PBGameProperty //GMP 获取游戏房产
 {
 	string map_id = 1;//所属地图
 	string page_index = 2;//页索引
@@ -102,7 +103,7 @@ message PBGameProperty //GPS 获取游戏房产
 	string is_page = 7;//是否分页，0：不分页，1分页
 }
 
-message PRetRefGameProperty //GPS 获取游戏房产
+message PRetRefGameProperty //GMP 获取游戏房产
 {
 	string ret_code = 1; //返回状态码，
 	string ret_msg = 2; //操作参数
