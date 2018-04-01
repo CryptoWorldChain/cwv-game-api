@@ -11,8 +11,9 @@ enum PUSERCommand {
 	RSP = 2; //重置密码
 	STP = 3; //设置交易密码
 	SNN = 4; //设置用户昵称
-	SIM = 5; //设置头像
+	SHI = 5; //设置头像
 	LOUT = 6; //用户注销
+	GHI = 7; //获取头像
 };
 
 message PSRegistry //REG 
@@ -59,7 +60,7 @@ message UserInfo
 
 
 message PSCommon{
-	
+	string filedata = 1;
 }
 
 
@@ -71,6 +72,7 @@ message PRetCommon //公共返回信息 REG
 	string page_size = 10;// 数量
 	string image_url = 11;// 图片地址
 }
+
 
 
 

@@ -51,8 +51,8 @@ public enum ReturnCodeMsgEnum {
 	/**
 	 * 设置头像
 	 */
-	SIM_SUCCESS("01","重置密码成功"),
-	SIM_EXCEPTION("99","未知异常"),
+	SHI_SUCCESS("01","重置密码成功"),
+	SHI_EXCEPTION("99","未知异常"),
 	
 	/**
 	 * 注销
@@ -64,19 +64,25 @@ public enum ReturnCodeMsgEnum {
 	/**
 	 * 校验token
 	 */
-	ATS_SUCCESS("01","重置密码成功"),
-	ATS_ERROR_TOKEN("02","refresh_token无效"),
+	ATS_SUCCESS("01","校验通过"),
+	ATS_ERROR_TOKEN("02","access_token无效"),
 	ATS_EXCEPTION("99","未知异常"),
 	
 	/**
 	 * 刷新token
 	 */
-	RTS_SUCCESS("01","刷新token成功"),
+	RTS_SUCCESS("01","刷新成功"),
 	RTS_ERROR_TOKEN("02","refresh_token无效"),
 	RTS_EXCEPTION("99","未知异常"),
 	
 	/**
-	 * 公共信息(设置交易密码，设置昵称，设置头像)
+	 * 设置头像
+	 */
+	SIS_SUCCESS("01","设置头像成功"),
+	SIS_EXCEPTION("99","未知异常"),
+	
+	/**
+	 * 公共信息
 	 */
 	SUCCESS("01","成功"),
 	SUCCESS_OPERATE("01","设置成功"),

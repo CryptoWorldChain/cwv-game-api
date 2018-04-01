@@ -202,6 +202,7 @@ public class TokenHelper implements ActorService {
 		if (!pb.getAccessToken().equals(redisToken)) {
 			ret.setRetCode(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetMsg());
+			return;
 		}
 
 		ret.setRetCode(ReturnCodeMsgEnum.ATS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.ATS_SUCCESS.getRetMsg());

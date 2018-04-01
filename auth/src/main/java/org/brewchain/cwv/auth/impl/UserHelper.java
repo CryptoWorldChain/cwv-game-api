@@ -1,14 +1,27 @@
 package org.brewchain.cwv.auth.impl;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.Md5Crypt;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.dao.Dao;
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.filter.SessionManager;
+import org.brewchain.cwv.auth.util.DateUtil;
 import org.brewchain.cwv.auth.util.ValidatorUtil;
 import org.brewchain.cwv.auth.util.ValidatorUtil.ValidateEnum;
 import org.brewchain.cwv.auth.util.jwt.Constant;
@@ -21,6 +34,7 @@ import org.brewchain.cwv.dbgens.user.entity.CWVUserTradeExample;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
+import org.fc.hzq.service.sys.User.PSCommon;
 import org.fc.hzq.service.sys.User.PSLogin;
 import org.fc.hzq.service.sys.User.PSRegistry;
 import org.fc.hzq.service.sys.User.UserInfo;
@@ -157,6 +171,21 @@ public class UserHelper implements ActorService {
 		String refreshToken = UUIDGenerator.generate();
 		tokenHelper.tokenSetting(pack, authUser, refreshToken);
 		// 5 登陆记录
+		// TODO
+
+		// 设置返回信息
+		ret.setTokenType(Constant.TOKEN_TYPE);
+		ret.setAccessToken(pack.getExtHead().getSMID());
+		ret.setExpiresIn(Constant.JWT_TTL / 1000l);
+		ret.setRefreshToken(refreshToken);
+		// set userInfo
+		UserInfo.Builder userInfo = UserInfo.newBuilder();
+		userInfo.setUid(authUser.getUserId() + "");
+		userInfo.setNickName(StringUtils.isEmpty(authUser.getNickName()) ? "" : authUser.getNickName());
+		userInfo.setPhone(authUser.getPhone());
+		//TODO 图片服务器返回URL 或者返回头像接口
+		userInfo.setImageUrl("/cwv/user/pbghi.do");
+		ret.setUserInfo(userInfo);
 		ret.setExpiresIn(Constant.JWT_TTL / 1000l);
 		ret.setRetCode(ReturnCodeMsgEnum.LIN_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_SUCCESS.getRetMsg());
 
@@ -185,8 +214,7 @@ public class UserHelper implements ActorService {
 
 		// 校验入参
 		if (StringUtils.isEmpty(pb.getNickName())) {
-			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
-					.setRetMsg("昵称不能为空");
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("昵称不能为空");
 			return;
 		}
 
@@ -208,40 +236,37 @@ public class UserHelper implements ActorService {
 	 * @param ret
 	 */
 	public void setTxPwd(FramePacket pack, PSLogin pb, Builder ret) {
-		
-		//校验参数
-		if(!ValidatorUtil.isPassword(pb.getPassword())) {
+
+		// 校验参数
+		if (!ValidatorUtil.isPassword(pb.getPassword())) {
 			throw new IllegalArgumentException(ValidateEnum.PASSWORD.getVerifyMsg());
 		}
-		//更新交易密码
-			//查询用户获取salt
-		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
-		CWVAuthUser authUser = new CWVAuthUser();
-		authUser.setUserId(model.getUid());
-		authUser = dao.userDao.selectByPrimaryKey(authUser);
-			//创建trade对象更新信息
-		CWVUserTrade  userTrade = new CWVUserTrade();
-		userTrade.setUserId(model.getUid());
+		// 更新交易密码
+		// 查询用户获取salt
+		CWVAuthUser authUser = this.getCurrentUser(pack);
+		// 创建trade对象更新信息
+		CWVUserTrade userTrade = new CWVUserTrade();
+		userTrade.setUserId(authUser.getUserId());
 		userTrade.setCreatedTime(new Date());
 		String tradePwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
 		userTrade.setTradePassword(tradePwdMd5);
-		
-			// 查询原有交易密码
+
+		// 查询原有交易密码
 		CWVUserTradeExample example = new CWVUserTradeExample();
 		CWVUserTradeExample.Criteria criteria = example.createCriteria();
-		criteria.andUserIdEqualTo(model.getUid());
+		criteria.andUserIdEqualTo(authUser.getUserId());
 		List<Object> listTrade = dao.tradeDao.selectByExample(example);
 		if (listTrade == null || listTrade.isEmpty()) {
 			userTrade.setCreatedTime(new Date());
 			dao.tradeDao.insert(userTrade);
 		} else {
 			CWVUserTrade old = (CWVUserTrade) listTrade.get(0);
-			userTrade.setTradeId(old.getTradeId());;
+			userTrade.setTradeId(old.getTradeId());
+			;
 			dao.tradeDao.updateByPrimaryKeySelective(userTrade);
 		}
-		
-		ret.setRetCode(ReturnCodeMsgEnum.STP_SUCCESS.getRetCode())
-		.setRetMsg(ReturnCodeMsgEnum.STP_SUCCESS.getRetMsg());
+
+		ret.setRetCode(ReturnCodeMsgEnum.STP_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.STP_SUCCESS.getRetMsg());
 	}
 
 	/**
@@ -262,10 +287,7 @@ public class UserHelper implements ActorService {
 		}
 		// 1.2校验电话与当前用户是否一致
 
-		CWVAuthUser authUser = new CWVAuthUser();
-		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
-		authUser.setUserId(model.getUid());
-		authUser = dao.userDao.selectByPrimaryKey(authUser);
+		CWVAuthUser authUser = getCurrentUser(pack);
 
 		if (!authUser.getPhone().equals(pb.getPhone())) {
 
@@ -292,7 +314,7 @@ public class UserHelper implements ActorService {
 
 		// 2 更新密码
 		CWVAuthUser authUserUpdate = new CWVAuthUser();
-		authUserUpdate.setUserId(model.getUid());
+		authUserUpdate.setUserId(authUser.getUserId());
 		authUserUpdate.setPassword(pwdMd5);
 		dao.userDao.updateByPrimaryKeySelective(authUserUpdate);
 
@@ -325,4 +347,119 @@ public class UserHelper implements ActorService {
 				.setRetMsg(ReturnCodeMsgEnum.LOUT_SUCCESS.getRetMsg());
 
 	}
+
+	public void setIconName(FramePacket pack, PSCommon pb, PRetCommon.Builder ret) {
+		if (StringUtils.isEmpty(pb.getFiledata())) {
+			throw new IllegalArgumentException("文件不能为空");
+		}
+
+		//
+
+		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
+		String filePath = invokeImageService(model.getUid(), pb.getFiledata());
+
+		if (StringUtils.isEmpty(filePath)) {
+			throw new IllegalArgumentException("图片上传异常");
+		}
+		CWVAuthUser authUser = new CWVAuthUser();
+		authUser.setUserId(model.getUid());
+		authUser.setImageUrl(filePath);
+		dao.userDao.updateByPrimaryKeySelective(authUser);
+		ret.setRetCode(ReturnCodeMsgEnum.SHI_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SHI_SUCCESS.getRetMsg());
+		ret.setImageUrl("/cwv/user/pbghi.do");
+	}
+
+	/**
+	 * 调取图片服务器
+	 * 
+	 * @param userId
+	 * @param fileData
+	 * @return 图片地址
+	 */
+	private String invokeImageService(int userId, String fileDataBase64) {
+		String base64 = fileDataBase64;
+		String fileInfo = base64.substring(0, base64.indexOf(",") + 1);
+		String base64Image = base64.substring(base64.indexOf(",") + 1);
+		String imageType = fileInfo.substring(fileInfo.lastIndexOf("/") + 1, fileInfo.lastIndexOf(";"));
+		byte[] imageBytes = Base64.decodeBase64(base64Image);
+		ByteArrayInputStream imageStream = new ByteArrayInputStream(imageBytes);
+
+		String imageUrl = null;
+		try {
+
+			BufferedImage image = ImageIO.read(imageStream);
+			String relativeFilePath = "auth/fileUpload/icon/" + userId + "_" + DateUtil.getNowDate() + "." + imageType;
+			File imageFile = new File(relativeFilePath);
+			if (imageFile.exists()) {
+				ImageIO.write(image, imageType, imageFile);// 可以相对路径也可绝对路径
+			} else {
+				if (!imageFile.getParentFile().exists()) {
+					if (!imageFile.getParentFile().mkdirs()) {
+						throw new IllegalArgumentException("生成头像失败");
+					} else {
+						if (imageFile.createNewFile()) {
+							ImageIO.write(image, imageType, imageFile);// 可以相对路径也可绝对路径
+						} else {
+							throw new IllegalArgumentException("生成头像失败");
+						}
+					}
+				}
+			}
+			imageUrl = "" + relativeFilePath;
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new IllegalArgumentException("图片上传异常");
+		}
+
+		return imageUrl;
+	}
+
+	/**
+	 * 获取头像
+	 * 
+	 * @param pack
+	 * @param pb
+	 * @param ret
+	 */
+	public void getHeadImage(FramePacket pack, PSCommon pb, Builder ret) {
+		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
+		HttpServletRequest request = pack.getHttpServerletRequest();
+		HttpServletResponse response = pack.getHttpServerletResponse();
+
+		// 将验证码输入到session中，用来验证
+		CWVAuthUser authUser = getCurrentUser(pack);
+		try {
+
+			if (StringUtils.isEmpty(authUser.getImageUrl())) {
+				response.getOutputStream().close();
+				return;
+			}
+
+			FileInputStream fis = new FileInputStream(authUser.getImageUrl()); // 创建输入流
+			String imageType = authUser.getImageUrl().substring(authUser.getImageUrl().lastIndexOf(".") + 1);
+			response.setContentType("image/" + imageType);
+			byte[] byt = new byte[fis.available()];
+			// StringBuilder str = new StringBuilder();// 不建议用String
+			fis.read(byt); // 从输入流中读取一定数量的字节，并将其存储在缓冲区数组 b 中。以整数形式返回实际读取的字节数。
+			// for (byte bs : byt) {
+			// str.append(Integer.toBinaryString(bs));
+			//
+			// }
+			response.getOutputStream().write(byt);
+			response.getOutputStream().close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private CWVAuthUser getCurrentUser(FramePacket pack) {
+		CWVAuthUser authUser = new CWVAuthUser();
+		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
+		authUser.setUserId(model.getUid());
+		authUser = dao.userDao.selectByPrimaryKey(authUser);
+		return authUser;
+	}
+
 }

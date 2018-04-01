@@ -1,13 +1,27 @@
-
-
+****
+# 目录
+* [发送验证码](#发送验证码)
+* [获取图片验证码（Kaptcha）](#获取图片验证码（Kaptcha）)
+* [短信验证码验证接口](#短信验证码验证接口)
+* [图片验证码验证接口](#图片验证码验证接口)
+* [获取国家列表](#获取国家列表)
+* [用户注册](#用户注册)
+* [用户登陆](#用户登陆)
+* [重置登陆密码](#重置登陆密码)
+* [设置交易密码](#设置交易密码)
+* [设置用户昵称](#设置用户昵称)
+* [设置用户头像](#设置用户头像)
+* [校验access_token](#校验access_token)
+* [刷新access_token](#刷新access_token)
+* [用户注销](#用户注销)
 
 -----------
-# 发送验证码
-## URL
+## 发送验证码
+### URL
 	cwv/sms/pbaut.do
-## HTTP请求方式
+### HTTP请求方式
 	POST
-## 输入参数
+### 输入参数
 	     
 
 	{
@@ -25,7 +39,7 @@
 				 4:修改信息验证[需传递用户身份]
 
 
-## 输出参数
+### 输出参数
 
 
 	{
@@ -48,12 +62,12 @@
 -----------
 
 
-# 获取图片验证码（Kaptcha）
-## URL
+## 获取图片验证码（Kaptcha）
+### URL
 	cwv/sms/pbmsg.do
-## HTTP请求方式
+### HTTP请求方式
 	POST
-## 输入参数
+### 输入参数
 	     
 
 	{
@@ -68,16 +82,16 @@
 	char_length		验证码个数
 
 
-## 输出参数
+### 输出参数
 -----------
 
 
-# 短信验证码验证接口
-## URL
+## 短信验证码验证接口
+### URL
 	cwv/sms/pbver.do
-## HTTP请求方式
+### HTTP请求方式
 	POST
-## 输入参数
+### 输入参数
 	     
 
 	{
@@ -88,7 +102,7 @@
 	phone 	手机号
 	code		验证码
 
-## 输出参数
+### 输出参数
 
 
 	{
@@ -111,12 +125,12 @@
 -----------
 
 
-# 图片验证码验证接口
-## URL
+## 图片验证码验证接口
+### URL
 	cwv/sms/pbmsv.do
-## HTTP请求方式
+### HTTP请求方式
 	POST
-## 输入参数
+### 输入参数
 	     
 
 	{
@@ -125,7 +139,7 @@
 
 	code		验证码
 
-## 输出参数
+### 输出参数
 
 
 	{
@@ -147,12 +161,12 @@
 
 -----------	  
 
-# 获取国家列表
-## URL
+## 获取国家列表
+### URL
 	cwv/nsd/pbcol.do
-## HTTP请求方式
+### HTTP请求方式
 	POST
-## 输入参数
+### 输入参数
 	     
 
 	{
@@ -167,7 +181,7 @@
 	page_size		页大小
 	is_page			是否分页 0:不分页 1:分页
 
-## 输出参数
+### 输出参数
 
 
 	{
@@ -211,6 +225,334 @@
 		desc_en			英文描述
 		phone_code		电话代码
 	total_count	总条数 is_page值为0时，返回值为0
+	
+	
+-----------	
+
+## 用户注册
+### 接口说明
+	空
+### URL
+	/cwv/user/pbreg.do
+### HTTP请求方式
+	POST
+### 输入参数
+     
+|参数|类型|说明|示例|
+|:----|:----|:----|:----|
+|user_name|string|用户名(可选，默认为手机号)||
+|nick_name|string|用户昵称(可选，默认为手机号)||
+|phone_code|string|电话代码|86|
+|phone|string|手机号|18512345678|
+|password|string|用户密码||
+|phone_verify_code|string|短信验证码|1234|
+|reg_verify_code|string|注册验证码||
+|country_id|number|国家编码||
+
+	{
+		"user_name":"test01",
+		"phone_code":"86",
+		"phone":"13161531208",
+		"password":"123456",
+		"phone_verify_code":"123456",
+		"reg_verify_code":"123456",
+		"country_id": 10001
+	}
+	
+### 输出参数
+
+|参数|类型|说明|示例|
+|:----|:----|:----|:----|
+|ret_code|string|注册结果状态码<br/>01.注册成功<br/>02.手机号已注册<br/>03.验证码错误<br/>04.短信验证码错误<br/>80.校验类错误信息<br/>90.注册调用过于频繁<br/>99.未知异常|[01]|
+|ret_msg|string|注册结果说明|成功|
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "注册成功"
+	}
+
+-----------
+     
+## 用户登陆
+### 接口说明
+	用户登录成功后，应在本地存储access_token和refresh_token。前端可以依据expires_in判断access_token是否失效。access_token可以使用refresh_token重新获取。
+	每次请求是，应在HTTP Header中增加Authorization节点，格式为<token_type> <access_token>。
+
+### URL
+	/cwv/user/pblin.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+|参数|类型|说明|示例|
+|:----|:----|:----|:----|
+|phone|string|手机号|18512345678|
+|password|string|登录密码||
+|phone_verify_code|string|登录验证码|1234|
+
+	{
+		"phone":"13161531208",
+		"password":"123456",
+		"phone_verify_code":"123456"
+	}
+
+### 输出参数
+
+|参数|类型|说明|示例|
+|:----|:----|:----|:----|
+|ret_code|string|登录结果状态码<br/>01.登录成功<br/>02.手机号或密码错误<br/>03.验证码错误<br/>99.未知异常|[01]|
+|ret_msg|string|登录结果说明||
+|token_type|string|token类型，默认为bearer||
+|access_token|string|用户标识||
+|expires_in|number|access_token的有效期，以秒为单位|3600|
+|refresh_token|string|用于刷新access_token||
+|user_info|Object|||
+|uid|string|用户标识||
+|nick_name|string|昵称||
+|phone|string|手机号||
+|image_url|string|用户头像||
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "登录成功",
+	    "token_type": "JWT",
+	    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI1MjM2QSIsInN1YiI6IntcInVpZFwiOjEsXCJ1dHlcIjpcImthZWxcIn0iLCJpYXQiOjE1MjI1OTkwNTgsImV4cCI6MTUyMjU5OTY1OH0.ql3MZht8KyJFpODLqcQSDEKN03_1Pgae44QjZatMwDg",
+	    "expires_in": 600,
+	    "refresh_token": "40288a8400002d14016281f9db410001",
+	    "user_info": {
+	        "uid": "1",
+	        "nick_name": "kael",
+	        "phone": "13161531208",
+	        "image_url": "/cwv/user/pbghi.do"
+	    }
+	}
 
 
------------	     
+## 重置登陆密码
+### 接口说明
+	空
+
+### URL
+	/cwv/user/pbrsp.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+phone|string|手机号|18512345678
+password|string|新登录密码|
+phone_verify_code|String|手机验证码|1234
+
+	{
+		"phone":"13161531208",
+		"password":"123456",
+		"phone_verify_code":"123456"
+	}
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.重置密码成功<br/>02.验证码无效<br/>03 手机号无效<br/>04.次数超限<br/>80.校验类错误<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "重置密码成功"
+	}
+	
+## 设置交易密码
+### 接口说明
+	空
+
+### URL
+	/cwv/user/pbstp.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+password|string|交易密码|
+
+	{
+		"password":"123456"
+	}
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.设置交易密码成功<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "设置交易密码成功"
+	}	
+	
+## 设置用户昵称
+### 接口说明
+	空
+
+### URL
+	/cwv/user/pbsnn.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+nick_name|string|昵称|
+
+	{
+		"password":"123456"
+	}
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.设置昵称成功<br/>80.校验类错误信息<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "设置昵称成功"
+	}	
+	
+## 设置用户头像
+### 接口说明
+	空
+
+### URL
+	/cwv/user/pbshi.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+filedata|string|图片数据|base64编码
+
+	{
+		"password":"123456"
+	}
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.设置昵称成功<br/>80.校验类错误信息<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+image_url|string|用户头像地址|
+
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "设置头像成功"
+	}	
+	
+
+## 校验access_token
+### 接口说明
+	空
+
+### URL
+	/cwv/user/pbats.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+access_token|string|用户标识|
+
+	{
+		"access_token":"eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI1MjM2QSIsInN1YiI6IntcInVpZFwiOjEsXCJ1dHlcIjpcImthZWxcIn0iLCJpYXQiOjE1MjI1NTE5NTksImV4cCI6MTUyMjU1MjU1OX0.97YIW-IGIQ26Ekz4nChXli8qLc-C_VICXk3wCGJMHrU"
+	}
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.校验通过<br/>02.access_token无效<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+image_url|string|用户头像地址|
+
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "校验通过"
+	}	
+
+## 刷新access_token
+### 接口说明
+	当用户的access_token失效后(未失效时也可刷新)，应使用refresh_token重新获取access_token和refresh_token，并更新本地存储。
+	如果重新获取仍失败(ret_code=02)，则应重新登录。
+	一旦刷新access_token，原有的access_token和refresh_token立即失效。
+
+### URL
+	/cwv/user/pbrts.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+refresh_token|string|登录时获取的refresh_token|
+
+	{
+		"refresh_token": "40288a84000051f40162816a7bcc0002"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.刷新token成功<br/>02.refresh_token无效<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+token_type|string|token类型|
+access_token|string|用户标识|
+expires_in|number|access_token的有效期，以秒为单位|3600
+refresh_token|string|用于刷新access_token|
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "刷新token成功",
+	    "token_type": "JWT",
+	    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI1MjM2QSIsInN1YiI6IntcInVpZFwiOjEsXCJ1dHlcIjpcImthZWxcIn0iLCJpYXQiOjE1MjI1OTQyMzYsImV4cCI6MTUyMjU5NDgzNn0.MCJbjfvdEVK7lYORx75qHsYzvkB-YH_80npGJeIAlZ8",
+	    "expires_in": "600",
+	    "refresh_token": "40288a84000051f4016281b048f60005"
+	}
+	
+## 用户注销
+### 接口说明
+	注销成功后，access_token和refresh_token立即失效。
+
+### URL
+	/cwv/user/pblout.do
+### HTTP请求方式
+	POST
+### 输入参数
+	空
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.设置昵称成功<br/>80.校验类错误信息<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "注销成功"
+	}	
+	
+	
