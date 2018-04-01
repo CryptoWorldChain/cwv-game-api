@@ -84,10 +84,10 @@ public class CountryListService extends SessionModules<PBCountryList> {
 				ret.addCountries(countries);
 			}
 
-			ret.setRetCode("01");
+			ret.setRetCode("00");
 			ret.setRetMsg("success");
 		} catch (Exception e) {
-			ret.setRetCode("99");
+			ret.setRetCode("-1");
 			ret.setRetMsg("fails");
 		}
 		// 返回给客户端

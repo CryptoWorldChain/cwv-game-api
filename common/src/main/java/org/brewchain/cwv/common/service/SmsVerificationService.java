@@ -85,7 +85,7 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 						// 设置成已验证
 						cWVCommonSmsVerify.setIsVerify("1");
 					}
-					ret.setRetCode("01");
+					ret.setRetCode("00");
 					ret.setRetMsg("验证码验证成功！");
 				}
 			}
@@ -95,7 +95,7 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 			}
 
 		} catch (Exception e) {
-			ret.setRetCode("99");
+			ret.setRetCode("-1");
 			ret.setRetMsg("验证码验证失败！");
 			log.warn("SmsVerificationService onPBPacket error...", e);
 		}

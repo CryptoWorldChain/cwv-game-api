@@ -126,7 +126,9 @@ public class KaptchaCodeService extends SessionModules<PBMsgInfo> {
 			try {
 				out.flush();
 			} finally {
-				out.close();
+				if(out != null) {
+					out.close();
+				}
 			}
 			// response.getOutputStream().close();
 		} catch (Exception e) {

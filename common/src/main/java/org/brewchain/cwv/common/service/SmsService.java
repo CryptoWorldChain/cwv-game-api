@@ -120,11 +120,11 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 
 			log.info("状态码:" + code + ",状态码说明:" + error + ",消息id:" + msgid);
 
-			ret.setRetCode("01");
+			ret.setRetCode("00");
 			ret.setRetMsg("success");
 		} catch (Exception e) {
-			ret.setRetCode("99");
-			ret.setRetMsg("fail");
+			ret.setRetCode("-1");
+			ret.setRetMsg("fails");
 			log.warn("SmsService onPBPacket error...", e);
 		}
 

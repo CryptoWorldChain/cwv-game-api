@@ -57,10 +57,10 @@ public class MsgVerificationService extends SessionModules<PBMsgVerificationDeal
 
 			// 校验验证码是否正确
 			if (StringUtils.isBlank(pb.getCode()) || !StringUtils.equals(kaptchaExpected, pb.getCode())) {
-				ret.setRetCode("02");
+				ret.setRetCode("-1");
 				ret.setRetMsg("无效");
 			} else {
-				ret.setRetCode("01");
+				ret.setRetCode("00");
 				ret.setRetMsg("有效");
 			}
 			//删除
