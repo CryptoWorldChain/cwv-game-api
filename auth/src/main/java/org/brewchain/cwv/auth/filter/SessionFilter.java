@@ -42,7 +42,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 		{
 			add("/user/pbreg.do");
 			add("/user/pblin.do");
-			add("/user/pblout.do");
+			add("/user/pblou.do");
 			add("/token/pbrts.do");//刷新token
 		}
 	}; // 可配置
