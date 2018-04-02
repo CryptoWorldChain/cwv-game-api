@@ -3,7 +3,7 @@ syntax = "proto3";
 package org.fc.hzq.service.sys;
 
 enum PUSERModule {
-	USER = 0;
+	USR = 0;
 };
 enum PUSERCommand {
 	REG = 0; //用户注册
@@ -12,7 +12,7 @@ enum PUSERCommand {
 	STP = 3; //设置交易密码
 	SNN = 4; //设置用户昵称
 	SHI = 5; //设置头像
-	LOUT = 6; //用户注销
+	LOU = 6; //用户注销
 	GHI = 7; //获取头像
 };
 

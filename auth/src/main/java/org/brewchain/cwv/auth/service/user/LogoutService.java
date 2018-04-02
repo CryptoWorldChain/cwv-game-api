@@ -33,12 +33,12 @@ public class LogoutService extends SessionModules<PSLogin> {
 
 	@Override
 	public String[] getCmds() {
-		return new String[] { PUSERCommand.LOUT.name() };
+		return new String[] { PUSERCommand.LOU.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PUSERModule.USER.name();
+		return PUSERModule.USR.name();
 	}
 
 	@Override
@@ -50,8 +50,8 @@ public class LogoutService extends SessionModules<PSLogin> {
 		try {
 			userHelper.logout(pack, pb, ret);
 		} catch (Exception e) {
-			ret.setRetCode(ReturnCodeMsgEnum.LOUT_EXCEPTION.getRetCode())
-			.setRetMsg(ReturnCodeMsgEnum.LOUT_EXCEPTION.getRetMsg());
+			ret.setRetCode(ReturnCodeMsgEnum.LOU_EXCEPTION.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.LOU_EXCEPTION.getRetMsg());
 			e.printStackTrace();
 		}
 

@@ -37,7 +37,7 @@ public class SetHeadImageService extends SessionModules<PSCommon> {
 
 	@Override
 	public String getModule() {
-		return PUSERModule.USER.name();
+		return PUSERModule.USR.name();
 	}
 
 	@Override

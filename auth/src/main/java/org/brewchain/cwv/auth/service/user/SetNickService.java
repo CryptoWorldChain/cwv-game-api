@@ -36,7 +36,7 @@ public class SetNickService extends SessionModules<UserInfo> {
 
 	@Override
 	public String getModule() {
-		return PUSERModule.USER.name();
+		return PUSERModule.USR.name();
 	}
 
 	@Override

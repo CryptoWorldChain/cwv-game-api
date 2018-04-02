@@ -36,7 +36,7 @@ public class RegisterUserService extends SessionModules<PSRegistry> {
 
 	@Override
 	public String getModule() {
-		return PUSERModule.USER.name();
+		return PUSERModule.USR.name();
 	}
 
 	@Override

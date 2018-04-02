@@ -58,8 +58,8 @@ public enum ReturnCodeMsgEnum {
 	 * 注销
 	 */
 	
-	LOUT_SUCCESS("01","注销成功"),
-	LOUT_EXCEPTION("99","未知异常"),
+	LOU_SUCCESS("01","注销成功"),
+	LOU_EXCEPTION("99","未知异常"),
 	
 	/**
 	 * 校验token

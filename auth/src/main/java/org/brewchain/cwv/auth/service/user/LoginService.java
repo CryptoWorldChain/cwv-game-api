@@ -38,7 +38,7 @@ public class LoginService extends SessionModules<PSLogin> {
 
 	@Override
 	public String getModule() {
-		return PUSERModule.USER.name();
+		return PUSERModule.USR.name();
 	}
 
 	@Override
