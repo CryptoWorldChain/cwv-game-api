@@ -1,5 +1,14 @@
 package org.brewchain.cwv.game.service;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
+import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
+import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Game.PBGameCountry;
 import org.brewchain.cwv.service.game.Game.PBGameMap;
 import org.brewchain.cwv.service.game.Game.PBGameProperty;
@@ -10,12 +19,14 @@ import org.brewchain.cwv.service.game.Game.PRetRefGameCountry.PRetCountry;
 import org.brewchain.cwv.service.game.Game.PRetRefGameMap;
 import org.brewchain.cwv.service.game.Game.PRetRefGameMap.PRetMap;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty;
+import org.brewchain.cwv.service.game.Game.PRetRefGameProperty.PRetProperty;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.oapi.scala.commons.SessionModules;
 import onight.osgi.annotation.NActorProvider;
 import onight.tfw.async.CompleteHandler;
+import onight.tfw.ntrans.api.annotation.ActorRequire;
 import onight.tfw.otransio.api.PacketHelper;
 import onight.tfw.otransio.api.beans.FramePacket;
 
@@ -29,8 +40,8 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-//	@ActorRequire
-//	Daos sysDaos;
+	@ActorRequire
+	Daos daos;
 	
 	@Override
 	public String[] getCmds() {
@@ -63,6 +74,42 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 		ret.setRetCode("01");
 		ret.setRetMsg("SUCCESS");
 		
+		CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
+		CWVGamePropertyExample.Criteria criteria = propertyExample.createCriteria();
+		criteria.andIsDisplayEqualTo("1").andGameMapIdEqualTo(Integer.parseInt(pb.getMapId()));
+		
+		if(StringUtils.isNotBlank(pb.getPropertyName())){
+			criteria.andPropertyNameEqualTo(pb.getPropertyName());
+		}
+		
+		if(StringUtils.isNotBlank(pb.getPropertyStatus())){
+			criteria.andPropertyNameEqualTo(pb.getPropertyStatus());
+		}
+		
+		if(StringUtils.isNotBlank(pb.getPropertyType())){
+			criteria.andPropertyTypeEqualTo(pb.getPropertyType());
+		}
+		
+		if(StringUtils.isNotBlank(pb.getIsPage())&&"1".equals(pb.getIsPage())){
+			PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
+			propertyExample.setLimit(page.getLimit());
+			propertyExample.setOffset(page.getOffset());
+			
+			ret.setTotalCount(daos.gamePropertyDao.countByExample(propertyExample)+"");
+		}
+		
+		List<Object> properties = daos.gamePropertyDao.selectByExample(propertyExample);
+		for(Object coun : properties){
+			CWVGameProperty property = (CWVGameProperty) coun;
+			PRetProperty.Builder pProperty = PRetProperty.newBuilder();
+			pProperty.setMapId(property.getGameMapId()+"");
+			pProperty.setPropertyId(property.getPropertyId()+"");
+			pProperty.setPropertyName(property.getPropertyName());
+			pProperty.setPropertyStatus(property.getPropertyStatus());
+			pProperty.setPropertyType(property.getPropertyType());
+			pProperty.setAppearanceType("1");
+			ret.addProperties(pProperty);
+		}
 		
 	}
 	

@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package org.brewchain.cwv.service.game.notice;
+
+enum GNPSModule {
+	GNA = 0;//game-game-api
+};
+enum GNPSCommand {
+	GNI = 0;//添加消息 - GameNoticeInService
+	GNO = 1;//获取消息 - GameNoticeOutService
+};
+
+message PageOut{
+	string page_index = 1;//页码
+	string page_size = 2;//数量
+	string total_count = 3;//总量
+}
+
+message PBGameNoticeIn //GNI 添加消息
+{
+	string user_id = 1;//用户id
+	string notice_type = 2;//消息类型
+	string user_name = 3;//用户名称
+	string notice_content = 4;//消息内容
+}
+
+message PRetGameNoticeIn //GNI 添加消息
+{
+	string ret_code = 1;
+	string ret_msg = 2;
+	string notice_id = 3;
+}
+
+message PBGameNoticeOut //GNO 获取消息
+{
+	string notice_type = 1;//消息类型
+	string page_index = 2;//页索引
+	string page_size = 3;//页大小
+	string is_page = 4;//是否分页，0：不分页，1分页
+}
+
+message PRetGameNoticeOut //GNO 获取消息
+{
+	string ret_code = 1;
+	string ret_msg = 2;
+	message PRetNoticeOut
+	{
+		string notice_type = 1;//消息类型
+		string notice_content = 2;//消息内容
+		string notice_id = 3;//消息id
+	}
+	repeated PRetNoticeOut notices = 3;//消息
+	string total_count = 4;//总条数
+}
+
+
+

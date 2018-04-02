@@ -10,6 +10,7 @@ enum PTPSCommand {
 	GCC = 1; //获取游戏城市-GameCountryCityService
 	GCM = 2; //获取游戏地图-GameCityMapService
 	GMP = 3; //获取游戏房产-GameMapPropertyService
+	
 };
 
 message PageOut{
@@ -127,3 +128,4 @@ message Bid //GPS 获取游戏房产
 	string bid_id=1;
 	string property_id=2;
 }
+
