@@ -182,7 +182,7 @@ public class UserHelper implements ActorService {
 		userInfo.setNickName(StringUtils.isEmpty(authUser.getNickName()) ? "" : authUser.getNickName());
 		userInfo.setPhone(authUser.getPhone());
 		//TODO 图片服务器返回URL 或者返回头像接口
-		userInfo.setImageUrl("/cwv/user/pbghi.do");
+		userInfo.setImageUrl("/cwv/usr/pbghi.do");
 		ret.setUserInfo(userInfo);
 		ret.setExpiresIn(Constant.JWT_TTL / 1000l);
 		ret.setRetCode(ReturnCodeMsgEnum.LIN_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_SUCCESS.getRetMsg());
@@ -364,7 +364,7 @@ public class UserHelper implements ActorService {
 		authUser.setImageUrl(filePath);
 		dao.userDao.updateByPrimaryKeySelective(authUser);
 		ret.setRetCode(ReturnCodeMsgEnum.SHI_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SHI_SUCCESS.getRetMsg());
-		ret.setImageUrl("/cwv/user/pbghi.do");
+		ret.setImageUrl("/cwv/usr/pbghi.do");
 	}
 
 	/**
