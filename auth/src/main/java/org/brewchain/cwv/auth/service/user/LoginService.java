@@ -2,10 +2,8 @@ package org.brewchain.cwv.auth.service.user;
 
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.impl.UserHelper;
-import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetLogin;
 import org.fc.hzq.service.sys.User.PSLogin;
-import org.fc.hzq.service.sys.User.PSRegistry;
 import org.fc.hzq.service.sys.User.PUSERCommand;
 import org.fc.hzq.service.sys.User.PUSERModule;
 

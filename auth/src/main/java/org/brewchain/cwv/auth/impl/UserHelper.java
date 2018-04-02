@@ -328,8 +328,15 @@ public class UserHelper implements ActorService {
 	 * @param ret
 	 */
 	public void logout(FramePacket pack, PSLogin pb, PRetCommon.Builder ret) {
+		
+		
 		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
 
+		if(model == null){
+			ret.setRetCode(ReturnCodeMsgEnum.LOU_SUCCESS.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.LOU_SUCCESS.getRetMsg());
+			return;
+		}
 		// 设置access_token无效
 
 		tokenHelper.destroyAccessToken(pack.getExtHead().getSMID());

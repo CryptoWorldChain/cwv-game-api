@@ -116,9 +116,12 @@ public class TokenHelper implements ActorService {
 	 */
 	public SubjectModel getUserSub(String token) {
 		CheckResult checkResult = TokenMgr.validateJWT(token);
-		return getUserSubByCheck(checkResult);
+		if(checkResult.isSuccess())
+			return getUserSubByCheck(checkResult);
+		else
+			return null;
 	}
-
+	
 	/**
 	 * 根据校验结果查询 model
 	 * @param checkResult
