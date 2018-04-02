@@ -1,11 +1,9 @@
 package org.brewchain.cwv.auth.impl;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -329,7 +327,7 @@ public class UserHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void logout(FramePacket pack, PSLogin pb, org.fc.hzq.service.sys.User.PRetLogin.Builder ret) {
+	public void logout(FramePacket pack, PSLogin pb, PRetCommon.Builder ret) {
 		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
 
 		// 设置access_token无效
@@ -343,8 +341,8 @@ public class UserHelper implements ActorService {
 		criteria.andUserIdEqualTo(model.getUid());
 		dao.tokenDao.deleteByExample(refreshTokenExample);
 
-		ret.setRetCode(ReturnCodeMsgEnum.LOUT_SUCCESS.getRetCode())
-				.setRetMsg(ReturnCodeMsgEnum.LOUT_SUCCESS.getRetMsg());
+		ret.setRetCode(ReturnCodeMsgEnum.LOU_SUCCESS.getRetCode())
+				.setRetMsg(ReturnCodeMsgEnum.LOU_SUCCESS.getRetMsg());
 
 	}
 

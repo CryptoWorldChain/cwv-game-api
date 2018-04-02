@@ -40,10 +40,17 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 	public final static int SES_TIMTOUT = 60 * 20;// session超时时间
 	public final static HashSet<String> noLoginUrlList = new HashSet<String>() {
 		{
-			add("/user/pbreg.do");
-			add("/user/pblin.do");
-			add("/user/pblou.do");
-			add("/token/pbrts.do");//刷新token
+			add("/usr/pbreg.do");//注册
+			add("/usr/pblin.do");//登陆
+			add("/usr/pblou.do");//注销
+			add("/tkn/pbrts.do");//刷新token
+			add("/tkn/pbats.do");//校验token
+			
+			//murphy
+			add("/gga/pbgcs.do");
+			add("/gga/pbgcc.do");
+			add("/gga/pbgcm.do");
+			add("/gga/pbgmp.do");
 		}
 	}; // 可配置
 

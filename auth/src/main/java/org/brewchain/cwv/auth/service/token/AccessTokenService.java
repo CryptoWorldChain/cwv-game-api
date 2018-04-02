@@ -36,7 +36,7 @@ public class AccessTokenService extends SessionModules<PSAccessToken> {
 
 	@Override
 	public String getModule() {
-		return PTOKENModule.TOKEN.name();
+		return PTOKENModule.TKN.name();
 	}
 
 	@Override

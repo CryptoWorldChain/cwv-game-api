@@ -45,7 +45,7 @@ public class LogoutService extends SessionModules<PSLogin> {
 	public void onPBPacket(final FramePacket pack, final PSLogin pb, final CompleteHandler handler) {
 
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetLogin.Builder ret = PRetLogin.newBuilder();
+		PRetCommon.Builder ret = PRetCommon.newBuilder();
 
 		try {
 			userHelper.logout(pack, pb, ret);

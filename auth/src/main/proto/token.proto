@@ -3,7 +3,7 @@ syntax = "proto3";
 package org.fc.hzq.service.sys;
 
 enum PTOKENModule {
-	TOKEN = 0;
+	TKN = 0;
 };
 enum PTOKENCommand {
 	ATS = 0; //校验 access_token

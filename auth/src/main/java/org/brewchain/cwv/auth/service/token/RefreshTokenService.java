@@ -36,7 +36,7 @@ public class RefreshTokenService extends SessionModules<PSRefreshToken> {
 
 	@Override
 	public String getModule() {
-		return PTOKENModule.TOKEN.name();
+		return PTOKENModule.TKN.name();
 	}
 
 	@Override
