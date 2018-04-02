@@ -14,6 +14,10 @@
 * [校验access_token](#校验access_token)
 * [刷新access_token](#刷新access_token)
 * [用户注销](#用户注销)
+* [获取游戏国家](#获取游戏国家)
+* [获取游戏城市](#获取游戏城市)
+* [获取游戏地图](#获取游戏地图)
+* [获取游戏房产](#获取游戏房产)
 
 -----------
 ## 发送验证码
@@ -233,7 +237,7 @@
 ### 接口说明
 	空
 ### URL
-	/cwv/user/pbreg.do
+	/cwv/usr/pbreg.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -279,7 +283,7 @@
 	每次请求是，应在HTTP Header中增加Authorization节点，格式为<token_type> <access_token>。
 
 ### URL
-	/cwv/user/pblin.do
+	/cwv/usr/pblin.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -333,7 +337,7 @@
 	空
 
 ### URL
-	/cwv/user/pbrsp.do
+	/cwv/usr/pbrsp.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -368,7 +372,7 @@ ret_msg|string|返回消息|
 	空
 
 ### URL
-	/cwv/user/pbstp.do
+	/cwv/usr/pbstp.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -399,7 +403,7 @@ ret_msg|string|返回消息|
 	空
 
 ### URL
-	/cwv/user/pbsnn.do
+	/cwv/usr/pbsnn.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -430,7 +434,7 @@ ret_msg|string|返回消息|
 	空
 
 ### URL
-	/cwv/user/pbshi.do
+	/cwv/usr/pbshi.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -463,7 +467,7 @@ image_url|string|用户头像地址|
 	空
 
 ### URL
-	/cwv/user/pbats.do
+	/cwv/usr/pbats.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -497,7 +501,7 @@ image_url|string|用户头像地址|
 	一旦刷新access_token，原有的access_token和refresh_token立即失效。
 
 ### URL
-	/cwv/user/pbrts.do
+	/cwv/usr/pbrts.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -536,7 +540,7 @@ refresh_token|string|用于刷新access_token|
 	注销成功后，access_token和refresh_token立即失效。
 
 ### URL
-	/cwv/user/pblout.do
+	/cwv/usr/pblout.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -554,5 +558,261 @@ ret_msg|string|返回消息|
 	    "ret_code": "01",
 	    "ret_msg": "注销成功"
 	}	
+
+## 获取游戏国家
+### 接口说明
+	国家界面获取国家列表。
+
+### URL
+	/cwv/gga/pbgcs.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+shot_name|string|简称的模糊搜索|
+page_index|string|页索引|
+page_size|string|页大小|
+is_page|string|是否分页，0：不分页，1分页|
+
+	{
+		"shot_name": "USA",
+		"page_index": "1",
+		"page_size": "10",
+		"is_page": "1"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+total_count|string|总条数|
+countries|array||
+country_id|string|游戏国家编码||
+country_name|string|国家名称|
+map_number|string|地图数量||
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "获取成功",
+	    "total_count": "16",
+	    "countries": [{
+	    		"country_id": "1",
+			    "country_name": "USA",
+			    "map_number": "1780"
+	    },
+	    ...
+	    ,
+	    {
+	    		"country_id": "2",
+			    "country_name": "CHINA",
+			    "map_number": "1920"
+	    }]
+	    
+	}
+
+## 获取游戏城市
+### 接口说明
+	城市界面获取城市列表。
+
+### URL
+	/cwv/gga/pbgcc.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+shot_name|string|简称的模糊搜索|
+page_index|string|页索引|
+page_size|string|页大小|
+is_page|string|是否分页，0：不分页，1分页|
+country_id|string|国家编码|
+
+	{
+		"shot_name": "New",
+		"page_index": "1",
+		"page_size": "10",
+		"is_page": "1",
+		"country_id": "1"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+total_count|string|总条数|
+cities|array||
+country_id|string|游戏国家编码|
+city_id|string|游戏城市编码|
+city_name|string|城市名称|
+map_number|string|地图数量||
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "获取成功",
+	    "total_count": "16",
+	    "countries": [{
+	    		"country_id": "1",
+	    		"city_id": "1",
+			   "country_name": "New York",
+			   "map_number": "80"
+	    },
+	    ...
+	    ,
+	    {
+	    		"country_id": "1",
+	    		"city_id": "2",
+			   "country_name": "New XXX",
+			   "map_number": "90"
+	    }]
+	    
+	}
 	
+## 获取游戏地图
+### 接口说明
+	地图界面获取地图列表。
+
+### URL
+	/cwv/gga/pbgcm.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+shot_name|string|简称的模糊搜索|
+page_index|string|页索引|
+page_size|string|页大小|
+is_page|string|是否分页，0：不分页，1分页|
+city_id|string|城市编码|
+
+	{
+		"shot_name": "高层",
+		"page_index": "1",
+		"page_size": "10",
+		"is_page": "1",
+		"city_id": "1"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+total_count|string|总条数|
+maps|array||
+city_id|string|游戏城市编码|
+map_id|string|地图编号|
+map_name|string|地图名称|
+property_count|string|房产总数|
+property_sell_count|string|房产已售出数量|
+average_price|string|已售出的房产平均价|
+tamplate|string|模型||
+		
+	{
+	    "ret_code": "01",
+	    "ret_msg": "获取成功",
+	    "total_count": "16",
+	    "countries": [{
+	    		"city_id": "1",
+	    		"map_id": "1",
+			   "map_name": "高层住宅2031",
+			   "property_count": "100",
+			   "property_sell_count": "80",
+			   "average_price": "5000000",
+			   "tamplate": "1"
+	    },
+	    ...
+	    ,
+	    {
+	    		"city_id": "1",
+	    		"map_id": "2",
+			   "map_name": "高层住宅2032",
+			   "property_count": "100",
+			   "property_sell_count": "80",
+			   "average_price": "5000000",
+			   "tamplate": "1"
+	    }]
+	    
+	}
+
+## 获取游戏房产
+### 接口说明
+	房产界面获取房产列表。
+
+### URL
+	/cwv/gga/pbgmp.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+page_index|string|页索引|
+page_size|string|页大小|
+is_page|string|是否分页，0：不分页，1分页|
+map_id|string|所属地图|
+property_name|string|房产名称的模糊搜索|
+property_type|string|房产类型，1：价值房产，2：功能型房产，3：标志性房产|
+property_status|string|房产状态，0：未出售，1：竞拍中，2：出售中，3：已出售|
+
+	{
+		"page_index": "1",
+		"page_size": "10",
+		"is_page": "1",
+		"map_id": "1",
+		"property_name": "帝国",
+		"property_type": "1",
+		"property_status": "1"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+total_count|string|总条数|
+properties|array||
+map_id|string|地图编码|
+property_id|string|房产编号|
+property_name|string|房产名称|
+property_type|string|房产类型|
+property_status|string|房产状态|
+appearance_type|string|外观||
 	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "获取成功",
+	    "total_count": "16",
+	    "countries": [{
+	    		"map_id": "1",
+	    		"property_id": "1",
+			   "property_name": "帝国大厦1",
+			   "property_type": "1",
+			   "property_status": "1",
+			   "appearance_type": "1"
+	    },
+	    ...
+	    ,
+	    {
+	    		"map_id": "1",
+	    		"property_id": "2",
+			   "property_name": "帝国大厦2",
+			   "property_type": "1",
+			   "property_status": "1",
+			   "appearance_type": "1"
+	    }]
+	    
+	}
