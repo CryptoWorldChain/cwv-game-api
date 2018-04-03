@@ -54,6 +54,6 @@ public class GetHeadImageService extends SessionModules<PSCommon> {
 			e.printStackTrace();
 		}
 		// 返回给客户端
-//		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
+		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 	}
 }

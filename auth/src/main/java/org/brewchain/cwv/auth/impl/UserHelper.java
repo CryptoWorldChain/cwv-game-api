@@ -451,7 +451,6 @@ public class UserHelper implements ActorService {
 			//
 			// }
 			response.getOutputStream().write(byt);
-			response.getOutputStream().close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
