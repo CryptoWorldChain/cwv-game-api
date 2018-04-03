@@ -122,6 +122,7 @@ public class KaptchaCodeService extends SessionModules<PBMsgInfo> {
 			BufferedImage bi = captchaProducer.createImage(capText);
 
 			ServletOutputStream out = response.getOutputStream();
+			
 			// write the data out
 			ImageIO.write(bi, "jpg", out);
 			// ImageIO.write(bi, CAPTCHA_IMAGE_FORMAT, out);
