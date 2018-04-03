@@ -279,8 +279,11 @@
      
 ## 用户登陆
 ### 接口说明
-	用户登录成功后，应在本地存储access_token和refresh_token。前端可以依据expires_in判断access_token是否失效。access_token可以使用refresh_token重新获取。
-	每次请求是，应在HTTP Header中增加Authorization节点，格式为<token_type> <access_token>。
+	本接口文档中所有access_token传入 更名为_smid
+	
+	用户登录成功后，返回access_token（_smid需要登陆的接口使用）,refresh_token（刷新_smid）,expires_in(_smid有效时间参考，具体以服务器为准)
+	前端可以依据expires_in判断_smid(access_token)是否失效，失效时，可以使用refresh_token重新获取_smid(access_token)。
+	需要校验登陆的请求，应在HTTP Header中增加Cookie节点， 格式为<_smid>=<token值>。
 
 ### URL
 	/cwv/usr/pblin.do
@@ -464,7 +467,10 @@ image_url|string|用户头像地址|
 
 ## 校验access_token
 ### 接口说明
-	空
+	前端校验token方式：
+		范围：需要登陆验证token的接口
+		方式：请求头header中加入Cookie键值对：<_smid>=<token>
+		举例：_smid=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI1MjM2QSIsInN1YiI6IntcInVpZFwiOjEsXCJ1dHlcIjpcImthZWxcIn0iLCJpYXQiOjE1MjI2NDMxODksImV4cCI6MTUyMjY0Mzc4OX0.WyRmJiNHpfUm75r89vw1N0BSEYViWkUAvVboTA65-Kc
 
 ### URL
 	/cwv/usr/pbats.do
