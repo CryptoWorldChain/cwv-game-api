@@ -79,7 +79,7 @@ public class CountryListService extends SessionModules<PBCountryList> {
 				countries.setReginCode(record.getRegionCode());// 地区代码
 				countries.setShortName(record.getShortName());// 简称
 				countries.setFullName(record.getFullName());// 全称
-				countries.setDescEn(record.getFullName());// 英文描述
+				countries.setDescEn(record.getShortName());// 英文描述
 				countries.setPhoneCode(record.getPhoneCode());// 电话代码
 				ret.addCountries(countries);
 			}
