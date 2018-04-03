@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.brewchain.cwv.common.service.Sms.PBMsgInfo;
 import org.brewchain.cwv.common.service.Sms.PBMsgVerificationDeal;
+import org.brewchain.cwv.common.service.Sms.PRetMsgVerificationDeal;
 import org.brewchain.cwv.common.service.Sms.PTPSCommand;
 import org.brewchain.cwv.common.service.Sms.PTPSModule;
 
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import onight.oapi.scala.commons.SessionModules;
 import onight.osgi.annotation.NActorProvider;
 import onight.tfw.async.CompleteHandler;
+import onight.tfw.otransio.api.PacketHelper;
 import onight.tfw.otransio.api.beans.FramePacket;
 
 /**
@@ -55,6 +57,7 @@ public class KaptchaCodeService extends SessionModules<PBMsgInfo> {
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		HttpServletRequest request = pack.getHttpServerletRequest();
 		HttpServletResponse response = pack.getHttpServerletResponse();
+		PRetMsgVerificationDeal.Builder ret = PRetMsgVerificationDeal.newBuilder();
 		try {
 			// // Set to expire far in the past.
 			// response.setDateHeader("Expires", 0);
@@ -127,13 +130,15 @@ public class KaptchaCodeService extends SessionModules<PBMsgInfo> {
 				out.flush();
 			} finally {
 				if(out != null) {
-					out.close();
+//					out.close();
 				}
 			}
 			// response.getOutputStream().close();
 		} catch (Exception e) {
 			log.warn("KaptchaCodeService onPBPacket error...", e);
 		}
+		
+		handler.onFinished(PacketHelper.toPBReturn(pack,ret.build()));
 	}
 
 }
