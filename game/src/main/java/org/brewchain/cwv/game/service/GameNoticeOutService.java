@@ -1,5 +1,11 @@
 package org.brewchain.cwv.game.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +55,7 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
 	
-	private final String NOTICE_OUT_URL = "http:/localhost/api/msg/subcription";
+	private final String NOTICE_OUT_URL = "http:/54.169.102.90:80/api/msg/subcription";
 	
 	public String[] getCmds() {
 		return new String[] { GNPSCommand.GNO.name() };
@@ -100,6 +106,7 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 			notice.setNoticeType(coun.get("topic"));
 			ret.addNotices(notice);
 		}
+		
 	}
 	
 }

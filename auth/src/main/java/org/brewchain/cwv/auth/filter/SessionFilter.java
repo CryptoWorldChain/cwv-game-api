@@ -158,7 +158,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 
 		String method = pack.getHttpServerletRequest().getMethod();
 		String pathUrl = pack.getHttpServerletRequest().getRequestURI();
-
+		pack.getHttpServerletResponse().setHeader("Access-Control-Allow-Origin", "*");
 		pack.getExtHead().append(STR_REQUEST_METHOD, method);
 
 		// 首先判断是否登录请求,如果是登录请求直接返回，进入登录流程

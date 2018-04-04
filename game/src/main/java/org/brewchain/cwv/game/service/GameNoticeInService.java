@@ -1,8 +1,15 @@
 package org.brewchain.cwv.game.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
@@ -49,7 +56,7 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
 	
-	private final String NOTICE_IN_URL = "http:/localhost/api/msg/publication";
+	private final String NOTICE_IN_URL = "http://54.169.102.90:80/api/msg/publication";
 	
 	
 	@Override
@@ -81,17 +88,56 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 	 */
 	private void baffle(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
 		Map<String,String> jsonMap = new HashMap<>();
-		jsonMap.put("user_id", "1");
+		jsonMap.put("userid", pb.getUserId());
 		jsonMap.put("topic", pb.getNoticeType());
 		jsonMap.put("content", pb.getNoticeContent());
 		String jsonStr = JsonSerializer.formatToString(jsonMap);
 		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", NOTICE_IN_URL);
-	
 		val yearMeasureRet = sender.send(pp,30000);
-		Object jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()), List.class);
-		
 		ret.setRetCode("01");
 		ret.setRetMsg("SUCCESS");
+		
+		
+//		String res = "";
+//		PrintWriter out = null;
+//		BufferedReader in = null;
+//		try {
+//			URL realUrl = new URL(NOTICE_IN_URL);
+//			HttpURLConnection conn = (HttpURLConnection) realUrl.openConnection();
+//			conn.setRequestProperty("accept", "*/*");
+//			conn.setRequestProperty("connection", "Keep-Alive");
+//			conn.setDoOutput(true);
+//			conn.setDoInput(true);
+//			out = new PrintWriter(conn.getOutputStream());
+//			StringBuffer sb = new StringBuffer();
+//			int i = 0;
+//			out.print(jsonStr);
+//			out.flush();
+//			int httpStatus = conn.getResponseCode();
+//			if (httpStatus == 200) {
+//				in = new BufferedReader(new InputStreamReader(conn.getInputStream(),"UTF-8"));
+//				String line;
+//				while ((line = in.readLine()) != null) {
+//					res += line;
+//				}
+//			} else {
+//				ret = null;
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			ret = null;
+//		} finally {
+//			try {
+//				if (out != null) {
+//					out.close();
+//				}
+//				if (in != null) {
+//					in.close();
+//				}
+//			} catch (IOException ex) {
+//				ex.printStackTrace();
+//			}
+//		}
 	}
 	
 }
