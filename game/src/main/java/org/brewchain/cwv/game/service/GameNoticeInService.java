@@ -94,8 +94,15 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		String jsonStr = JsonSerializer.formatToString(jsonMap);
 		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", NOTICE_IN_URL);
 		val yearMeasureRet = sender.send(pp,30000);
-		ret.setRetCode("01");
-		ret.setRetMsg("SUCCESS");
+		Map<String,String> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()), Map.class);
+		if(jsonRet.get("errcode").equals("000")){
+			ret.setRetCode("01");
+			ret.setRetMsg("SUCCESS");
+		}else{
+			ret.setRetCode("99");
+			ret.setRetMsg("FAILD");
+		}
+		
 		
 		
 //		String res = "";

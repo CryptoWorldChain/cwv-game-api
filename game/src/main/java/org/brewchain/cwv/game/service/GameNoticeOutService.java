@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -55,7 +56,7 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
 	
-	private final String NOTICE_OUT_URL = "http:/54.169.102.90:80/api/msg/subcription";
+	private final String NOTICE_OUT_URL = "http://54.169.102.90:80/api/msg/subcription";
 	
 	public String[] getCmds() {
 		return new String[] { GNPSCommand.GNO.name() };
@@ -85,27 +86,54 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 	 */
 	private void baffle(PBGameNoticeOut pb,PRetGameNoticeOut.Builder ret){
 		
-		Map<String,String> jsonMap = new HashMap<>();
-		jsonMap.put("user_id", "1");
-		jsonMap.put("topic", pb.getNoticeType());
-		jsonMap.put("pagesize", pb.getPageSize());
-		jsonMap.put("pageidx", pb.getPageIndex());
-		jsonMap.put("pagenum", pb.getPageNum());
-		String jsonStr = JsonSerializer.formatToString(jsonMap);
-		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "GET", NOTICE_OUT_URL);
-	
+//		Map<String,String> jsonMap = new HashMap<>();
+//		jsonMap.put("userid", pb.getUserId());
+//		jsonMap.put("topic", pb.getNoticeType());
+//		jsonMap.put("pagesize", pb.getPageSize());
+//		jsonMap.put("pageidx", pb.getPageIndex());
+//		jsonMap.put("pagenum", pb.getPageNum());
+//		String jsonStr = JsonSerializer.formatToString(jsonMap);
+		StringBuffer url = new StringBuffer();
+		url.append(NOTICE_OUT_URL);
+		url.append("?");
+		url.append("userid="+pb.getUserId());
+		url.append("&");
+		url.append("topic="+pb.getNoticeType());
+		url.append("&");
+		url.append("pagesize="+pb.getPageSize());
+		url.append("&");
+		url.append("pageidx="+pb.getPageIndex());
+		url.append("&");
+		url.append("pagenum="+pb.getPageNum());
+		
+		FramePacket pp = PacketHelper.buildUrlForGet(url.toString());
 		val yearMeasureRet = sender.send(pp,30000);
-		List<Map<String,String>> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()), List.class);
-		
-		ret.setRetCode("01");
-		ret.setRetMsg("SUCCESS");
-		
-		for(Map<String,String> coun : jsonRet){
-			PRetNoticeOut.Builder notice = PRetNoticeOut.newBuilder();
-			notice.setNoticeContent(coun.get("content"));
-			notice.setNoticeType(coun.get("topic"));
-			ret.addNotices(notice);
+		Map<String, Object> jsonRet;
+		try {
+			jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody(),"utf-8"), Map.class);
+			if(jsonRet.get("errcode").equals("000")){
+				ret.setRetCode("01");
+				ret.setRetMsg("SUCCESS");
+				
+				List<String> chunk =  (List<String>) jsonRet.get("data");
+				
+				for(String jsonChunk : chunk){
+					Map<String,String> coun = JsonSerializer.getInstance().deserialize(jsonChunk, Map.class);
+					PRetNoticeOut.Builder notice = PRetNoticeOut.newBuilder();
+					notice.setNoticeContent(coun.get("content"));
+					notice.setNoticeType(coun.get("topic"));
+					ret.addNotices(notice);
+				}
+			}else{
+				ret.setRetCode("99");
+				ret.setRetMsg("FAILD");
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
 		}
+		
+		
+		
 		
 	}
 	

@@ -37,6 +37,7 @@ message PBGameNoticeOut //GNO 获取消息
 	string page_index = 2;//页索引
 	string page_size = 3;//页大小
 	string page_num = 4;//是否分页，0：不分页，1分页
+	string user_id= 5;
 }
 
 message PRetGameNoticeOut //GNO 获取消息

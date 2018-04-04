@@ -51,6 +51,8 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			add("/gga/pbgcc.do");
 			add("/gga/pbgcm.do");
 			add("/gga/pbgmp.do");
+			add("/gna/pbgni.do");
+			add("/gna/pbgno.do");
 			
 			//leo
 			add("/sms/pbaut.do");
