@@ -53,7 +53,7 @@ public class SetTxPwdService extends SessionModules<PSLogin> {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg(ValidateEnum.PASSWORD.getVerifyMsg());
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.STP_EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetMsg());
-			e.printStackTrace();
+			log.warn("GetHeadImageService onPBPacket error...",e);
 		}
 		
 		// 返回给客户端

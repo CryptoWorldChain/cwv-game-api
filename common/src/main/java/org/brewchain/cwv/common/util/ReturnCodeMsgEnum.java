@@ -1,4 +1,4 @@
-package org.brewchain.cwv.auth.enums;
+package org.brewchain.cwv.common.util;
 
 import lombok.Data;
 
@@ -82,11 +82,30 @@ public enum ReturnCodeMsgEnum {
 	SIS_EXCEPTION("99","未知异常"),
 	
 	/**
-	 * 设置头像
+	 * 验证码
 	 */
 	MSV_SUCCESS("01","有效"),
 	MSV_ERROR("02","无效"),
 	MSV_EXCEPTION("99","未知异常"),
+	
+	/**
+	 * 短信验证码
+	 */
+	VER_SUCCESS("01","验证码验证成功！"),
+	VER_ERROR_EMPTY("02","没有短信验证记录，请重新发起短信验证！"),
+	VER_ERROR_DUPLICATE("03","有多条短信验证记录,请重新发起短信验证！"),
+	VER_ERROR_EXPIRED("04","验证码已过期，请重新发起短信验证！"),
+	VER_ERROR("05","无效"),
+	VER_EXCEPTION("99","未知异常"),
+	
+	
+	/**
+	 * 发送短信验证码
+	 */
+	AUT_SUCCESS("01","发送成功！"),
+	AUT_ERROR("02","短信发送失败"),
+	AUT_EXCEPTION("99","未知异常"),
+	
 	
 	/**
 	 * 公共信息

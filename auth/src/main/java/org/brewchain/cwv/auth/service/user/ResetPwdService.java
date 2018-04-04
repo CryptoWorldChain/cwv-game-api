@@ -51,7 +51,7 @@ public class ResetPwdService extends SessionModules<PSLogin> {
 			
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.RSP_EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetMsg());
-			e.printStackTrace();
+			log.warn("GetHeadImageService onPBPacket error...",e);
 		}
 
 		// 返回给客户端

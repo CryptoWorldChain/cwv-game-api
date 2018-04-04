@@ -54,7 +54,7 @@ public class RegisterUserService extends SessionModules<PSRegistry> {
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetCode())
 			.setRetMsg(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetMsg());
-			e.printStackTrace();
+			log.warn("GetHeadImageService onPBPacket error...",e);
 		}
 
 		// 返回给客户端

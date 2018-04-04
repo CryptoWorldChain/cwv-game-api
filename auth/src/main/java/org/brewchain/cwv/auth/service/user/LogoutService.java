@@ -50,7 +50,7 @@ public class LogoutService extends SessionModules<PSLogin> {
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.LOU_EXCEPTION.getRetCode())
 			.setRetMsg(ReturnCodeMsgEnum.LOU_EXCEPTION.getRetMsg());
-			e.printStackTrace();
+			log.warn("GetHeadImageService onPBPacket error...",e);
 		}
 
 		// 返回给客户端

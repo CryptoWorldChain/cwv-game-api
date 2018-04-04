@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Date;
 import java.util.List;
 
@@ -42,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
 import onight.tfw.ntrans.api.annotation.ActorRequire;
+import onight.tfw.otransio.api.IPacketSender;
 import onight.tfw.otransio.api.beans.FramePacket;
 import onight.tfw.outils.serialize.UUIDGenerator;
 
@@ -65,6 +67,9 @@ public class UserHelper implements ActorService {
 
 	@ActorRequire
 	TokenHelper tokenHelper;
+
+	@ActorRequire(name = "http", scope = "global")
+	IPacketSender sender;
 
 	// 防止相互引用死循环
 	@Override
@@ -97,6 +102,22 @@ public class UserHelper implements ActorService {
 
 		// 1.2 短信验证码 前端调取 common by leo 验证码校验接口
 
+		// 注册验证码
+		String retCode = CheckCode.checkCode(pb.getRegVerifyCode(), sender);
+
+		if (!retCode.equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
+			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetMsg());
+			return;
+		}
+		
+		
+		String commonMsg = CheckCode.checkMsgCode(pb.getPhone(), pb.getPhoneVerifyCode(), "1" , sender);
+		
+		if(!commonMsg.equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
+			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
+			return;
+		}
+		
 		// 1.3 用户重复性校验
 		CWVAuthUser authUser = getUserByPhone(pb.getPhone());
 		if (authUser != null) {
@@ -138,33 +159,31 @@ public class UserHelper implements ActorService {
 	 * @param ret
 	 */
 	public void login(FramePacket pack, PSLogin pb, PRetLogin.Builder ret) {
-
+		pack.getHttpServerletRequest().getSession();
 		// 1 校验入参
 		if (!ValidatorUtil.isMobile(pb.getPhone())) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetMsg());
-			return;
+				return;
 		}
-
-		// TODO 校验验证码 调取 common by leo
-		// 暂时去掉
-		// if (false) {
-		// ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_CODE.getRetCode())
-		// .setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_CODE.getRetMsg());
-		// return;
-		// }
 
 		// 2 用户查询 及 密码校验
 		CWVAuthUser authUser = getUserByPhone(pb.getPhone());
 
-		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
-
-		if (authUser == null || !pwdMd5.equals(authUser.getPassword())) {
+		if (authUser == null ) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetMsg());
 			return;
 		}
+		
+		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
 
+		if ( !pwdMd5.equals(authUser.getPassword())) {
+			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetMsg());
+			return;
+		}
+		
 		// 3 设置token
 		String refreshToken = UUIDGenerator.generate();
 		tokenHelper.tokenSetting(pack, authUser, refreshToken);
@@ -328,13 +347,12 @@ public class UserHelper implements ActorService {
 	 * @param ret
 	 */
 	public void logout(FramePacket pack, PSLogin pb, PRetCommon.Builder ret) {
-		
-		
+
 		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
 
-		if(model == null){
+		if (model == null) {
 			ret.setRetCode(ReturnCodeMsgEnum.LOU_SUCCESS.getRetCode())
-			.setRetMsg(ReturnCodeMsgEnum.LOU_SUCCESS.getRetMsg());
+					.setRetMsg(ReturnCodeMsgEnum.LOU_SUCCESS.getRetMsg());
 			return;
 		}
 		// 设置access_token无效
@@ -348,8 +366,7 @@ public class UserHelper implements ActorService {
 		criteria.andUserIdEqualTo(model.getUid());
 		dao.tokenDao.deleteByExample(refreshTokenExample);
 
-		ret.setRetCode(ReturnCodeMsgEnum.LOU_SUCCESS.getRetCode())
-				.setRetMsg(ReturnCodeMsgEnum.LOU_SUCCESS.getRetMsg());
+		ret.setRetCode(ReturnCodeMsgEnum.LOU_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LOU_SUCCESS.getRetMsg());
 
 	}
 

@@ -12,6 +12,7 @@ import org.brewchain.cwv.common.service.Sms.PRetVerificationDeal;
 import org.brewchain.cwv.common.service.Sms.PTPSCommand;
 import org.brewchain.cwv.common.service.Sms.PTPSModule;
 import org.brewchain.cwv.common.util.DateUtil;
+import org.brewchain.cwv.common.util.ReturnCodeMsgEnum;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonSmsVerify;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonSmsVerifyExample;
 
@@ -61,23 +62,23 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 			List<Object> list = sysDaos.cwvcommonsmsverifyDao.selectByExample(example);
 			if (list == null || list.isEmpty()) {
 				// 没有验证记录
-				ret.setRetCode("02");
-				ret.setRetMsg("没有短信验证记录，请重新发起短信验证！");
+				ret.setRetCode(ReturnCodeMsgEnum.VER_ERROR_EMPTY.getRetCode());
+				ret.setRetMsg(ReturnCodeMsgEnum.VER_ERROR_EMPTY.getRetMsg());
 			} else if (list.size() > 1) {
 				for (Object record : list) {
 					CWVCommonSmsVerify cWVCommonSmsVerify = (CWVCommonSmsVerify) record;
 					cWVCommonSmsVerify.setIsVerify("1");
 				}
-				ret.setRetCode("03");
-				ret.setRetMsg("有多条短信验证记录,请重新发起短信验证！");
+				ret.setRetCode(ReturnCodeMsgEnum.VER_ERROR_DUPLICATE.getRetCode());
+				ret.setRetMsg(ReturnCodeMsgEnum.VER_ERROR_DUPLICATE.getRetMsg());
 			} else {
 				CWVCommonSmsVerify cWVCommonSmsVerify = (CWVCommonSmsVerify) list.get(0);
 				Date expiresDate = cWVCommonSmsVerify.getExpires();
 				int num = DateUtil.compare(new Date(), expiresDate);
 				if (num == 1) {
 					cWVCommonSmsVerify.setIsVerify("1");
-					ret.setRetCode("04");
-					ret.setRetMsg("验证码已过期，请重新发起短信验证！");
+					ret.setRetCode(ReturnCodeMsgEnum.VER_ERROR_EXPIRED.getRetCode());
+					ret.setRetMsg(ReturnCodeMsgEnum.VER_ERROR_EXPIRED.getRetMsg());
 				} else {
 					// 获取对应用户的手机验证码
 					String strSmsVer = cWVCommonSmsVerify.getVerifyCode();
@@ -85,8 +86,8 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 						// 设置成已验证
 						cWVCommonSmsVerify.setIsVerify("1");
 					}
-					ret.setRetCode("00");
-					ret.setRetMsg("验证码验证成功！");
+					ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
+					ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
 				}
 			}
 			
@@ -95,8 +96,8 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 			}
 
 		} catch (Exception e) {
-			ret.setRetCode("-1");
-			ret.setRetMsg("验证码验证失败！");
+			ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
 			log.warn("SmsVerificationService onPBPacket error...", e);
 		}
 		// 返回给客户端

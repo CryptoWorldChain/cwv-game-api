@@ -50,7 +50,7 @@ public class SetNickService extends SessionModules<UserInfo> {
 			
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.SNN_EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetMsg());
-			e.printStackTrace();
+			log.warn("GetHeadImageService onPBPacket error...",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

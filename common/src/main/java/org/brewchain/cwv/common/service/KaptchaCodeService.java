@@ -1,6 +1,7 @@
 package org.brewchain.cwv.common.service;
 
 import java.awt.image.BufferedImage;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
@@ -9,10 +10,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.brewchain.cwv.common.service.Sms.PBMsgInfo;
-import org.brewchain.cwv.common.service.Sms.PBMsgVerificationDeal;
 import org.brewchain.cwv.common.service.Sms.PRetMsgVerificationDeal;
 import org.brewchain.cwv.common.service.Sms.PTPSCommand;
 import org.brewchain.cwv.common.service.Sms.PTPSModule;
+import org.brewchain.cwv.common.util.RandomUtill;
 
 import com.google.code.kaptcha.Constants;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
@@ -116,8 +117,11 @@ public class KaptchaCodeService extends SessionModules<PBMsgInfo> {
 			String capText = captchaProducer.createText();
 
 			// store the text in the session
-			request.getSession().setAttribute(Constants.KAPTCHA_SESSION_KEY, capText);
-
+//			request.getSession().setAttribute(Constants.KAPTCHA_SESSION_KEY, capText);
+			
+			//modified by Moon 暂时存放集合中校验过后删除，待修改（同一Session）
+			RandomUtill.codeMap.put(capText,new Date().getTime());
+			
 			// create the image with the text
 			BufferedImage bi = captchaProducer.createImage(capText);
 

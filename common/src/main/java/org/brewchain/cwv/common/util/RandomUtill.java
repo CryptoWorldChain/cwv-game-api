@@ -1,5 +1,10 @@
 package org.brewchain.cwv.common.util;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.apache.commons.lang3.RandomUtils;
 
 /**
@@ -8,6 +13,8 @@ import org.apache.commons.lang3.RandomUtils;
  *
  */
 public class RandomUtill {
+	
+	public static HashMap<String, Long> codeMap = new HashMap<String,Long>();
 	
 	/**
 	 * 随机生成六位数，每一位都在0-9之间的数
@@ -40,5 +47,23 @@ public class RandomUtill {
 //		msg = String.format(msg, str);
 //		System.out.println(msg);
 //	}
+
+	/**
+	 * 调取删除过期code
+	 */
+	public static void updateCodeMap() {
+		Iterator iter = codeMap.entrySet().iterator();
+		while (iter.hasNext()) {
+			Map.Entry<String, Long> entry = (Map.Entry) iter.next();
+			String key = entry.getKey();
+			Long val = entry.getValue();
+			long now = new Date().getTime();
+			val = val+(60*1000);
+			if(now>val){
+				iter.remove();
+			}
+		}
+			
+	}
 
 }
