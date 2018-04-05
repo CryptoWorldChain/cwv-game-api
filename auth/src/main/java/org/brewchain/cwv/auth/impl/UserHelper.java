@@ -148,7 +148,7 @@ public class UserHelper implements ActorService {
 
 		this.dao.userDao.insert(authUser);
 		ret.setRetCode(ReturnCodeMsgEnum.REG_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_SUCCESS.getRetMsg());
-
+		
 	}
 
 	/**
@@ -429,7 +429,7 @@ public class UserHelper implements ActorService {
 			}
 			imageUrl = "" + relativeFilePath;
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.warn("UserHelper invokeImageService error...",e);
 			throw new IllegalArgumentException("图片上传异常");
 		}
 
@@ -470,7 +470,7 @@ public class UserHelper implements ActorService {
 			response.getOutputStream().write(byt);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.warn("UserHelper getHeadImage error...",e);
 		}
 
 	}

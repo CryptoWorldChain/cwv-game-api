@@ -51,7 +51,7 @@ public class SetHeadImageService extends SessionModules<PSCommon> {
 			
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.SIS_EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SIS_EXCEPTION.getRetMsg());
-			log.warn("GetHeadImageService onPBPacket error...",e);
+			log.warn("SetHeadImageService onPBPacket error...",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
