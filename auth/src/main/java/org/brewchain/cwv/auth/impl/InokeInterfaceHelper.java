@@ -25,19 +25,26 @@ public class InokeInterfaceHelper {
 
 		return send(jsonMap, sender, Constant.URL_VERIFY_CODE);
 	}
-
-	public static String checkMsgCode(String phone, String code, String type, IPacketSender sender) {
-		Map<String,String> jsonMap = new HashMap<>();
-		jsonMap.put("phone", phone);
-		jsonMap.put("code", code);
-		jsonMap.put("type", type);
-		String url = "http://localhost:8000/cwv/sms/pbver.do";
-		Map<String, Object> jsonRet = send(sender,url,jsonMap);
-		String retCode =jsonRet.get("ret_code") == null? ReturnCodeMsgEnum.MSV_ERROR.getRetCode() : jsonRet.get("ret_code").toString();
-		return retCode;
+	
+	/**
+	 * 校验短信验证码
+	 * @param jsonMap
+	 * @param sender
+	 * @return
+	 */
+	public static HashMap<String,String> checkMsgCode(HashMap<String, String> jsonMap, IPacketSender sender) {
+		
+		return send(jsonMap, sender, Constant.URL_VERIFY_PHONE_CODE);
+		
 	}
 	
-	private static Map<String, Object> send(IPacketSender sender,String url,Map<String,String> jsonMap){
+	/**
+	 * 获取短信验证码
+	 * @param jsonMap
+	 * @param sender
+	 * @return
+	 */
+	public static HashMap<String,String> getMsgCode(HashMap<String, String> jsonMap, IPacketSender sender) {
 		
 		return send(jsonMap, sender, Constant.URL_GET_PHONE_CODE);
 	}
