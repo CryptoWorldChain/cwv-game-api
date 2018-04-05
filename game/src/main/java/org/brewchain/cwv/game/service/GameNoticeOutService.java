@@ -73,6 +73,7 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetGameNoticeOut.Builder ret = PRetGameNoticeOut.newBuilder();
 		try{
+			checkParam(pb);
 			baffle(pb, ret);
 		}catch(Exception e){
 			ret.setRetCode("99");
@@ -81,6 +82,8 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 	}
+	
+	
 	/**
 	 * 挡板
 	 */
@@ -96,8 +99,10 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		StringBuffer url = new StringBuffer();
 		url.append(NOTICE_OUT_URL);
 		url.append("?");
-		url.append("userid="+pb.getUserId());
-		url.append("&");
+		if(StringUtils.isNotBlank(pb.getUserId())){
+			url.append("userid="+pb.getUserId());
+			url.append("&");
+		}
 		url.append("topic="+pb.getNoticeType());
 		url.append("&");
 		url.append("pagesize="+pb.getPageSize());
@@ -132,9 +137,25 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 			e.printStackTrace();
 		}
 		
-		
-		
-		
+	}
+	
+	private void checkParam(PBGameNoticeOut pb){
+		if(StringUtils.isBlank(pb.getPageIndex())){
+			throw new IllegalArgumentException("页索引不能为空");
+		}
+		if(StringUtils.isBlank(pb.getPageSize())){
+			throw new IllegalArgumentException("页大小不能为空");
+		}
+		if(StringUtils.isBlank(pb.getPageNum())){
+			throw new IllegalArgumentException("页数不能为空");
+		}
+		if(StringUtils.isBlank(pb.getNoticeType())){
+			throw new IllegalArgumentException("消息类型不能为空");
+		}else{
+			if(!pb.getNoticeType().equals("announcement")){
+				throw new IllegalArgumentException("目前公告类型只支持announcement类型");
+			}
+		}
 	}
 	
 }

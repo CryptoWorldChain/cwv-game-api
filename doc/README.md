@@ -18,6 +18,7 @@
 * [获取游戏城市](#获取游戏城市)
 * [获取游戏地图](#获取游戏地图)
 * [获取游戏房产](#获取游戏房产)
+* [获取公告消息](#获取公告消息)
 
 -----------
 ## 发送验证码
@@ -811,6 +812,59 @@ appearance_type|string|外观||
 			   "property_type": "1",
 			   "property_status": "1",
 			   "appearance_type": "1"
+	    }]
+	    
+	}
+	
+## 获取公告消息
+### 接口说明
+	公告栏展示公告消息。
+
+### URL
+	/cwv/gns/pbgno.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+page_index|string|页索引|
+page_size|string|页大小|
+page_num|string|页数|
+user_id|string|用户id（暂时可不传）|
+notice_type|string|公告类型（目前只支持announcement类型）|announcement
+
+	{
+		"page_index": "1",
+		"page_size": "10",
+		"page_num": "1",
+		"user_id": "1",
+		"notice_type": "announcement"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+notices|array||
+notice_type|string|消息类型|
+notice_content|string|消息内容||
+	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "获取成功",
+	    "notices": [{
+	    		"notice_type": "announcement",
+	    		"notice_content": "XXXXXX"
+	    },
+	    ...
+	    ,
+	    {
+	    		"notice_type": "announcement",
+	    		"notice_content": "XXXXXX"
 	    }]
 	    
 	}
