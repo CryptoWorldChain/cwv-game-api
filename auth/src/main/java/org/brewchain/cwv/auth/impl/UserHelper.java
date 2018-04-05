@@ -5,9 +5,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -34,8 +35,10 @@ import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
 import org.fc.hzq.service.sys.User.PSCommon;
+import org.fc.hzq.service.sys.User.PSCommonOrBuilder;
 import org.fc.hzq.service.sys.User.PSLogin;
 import org.fc.hzq.service.sys.User.PSRegistry;
+import org.fc.hzq.service.sys.User.PSSendMsgCode;
 import org.fc.hzq.service.sys.User.UserInfo;
 
 import lombok.Data;
@@ -103,21 +106,28 @@ public class UserHelper implements ActorService {
 		// 1.2 短信验证码 前端调取 common by leo 验证码校验接口
 
 		// 注册验证码
-		String retCode = CheckCode.checkCode(pb.getRegVerifyCode(), sender);
+		HashMap<String, String> jsonMap = new HashMap<>();
+		jsonMap.put("code", pb.getRegVerifyCode());
+		jsonMap = InokeInterfaceHelper.checkCode(jsonMap, sender);
 
-		if (!retCode.equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetMsg());
+		if(!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals( jsonMap.get("ret_code"))) {
+				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetMsg());
 			return;
 		}
-		
-		
-		String commonMsg = CheckCode.checkMsgCode(pb.getPhone(), pb.getPhoneVerifyCode(), "1" , sender);
-		
-		if(!commonMsg.equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
+
+		HashMap<String, String> jsonMapPhone = new HashMap<>();
+		jsonMapPhone.put("phone", pb.getPhone());
+		jsonMapPhone.put("code", pb.getPhoneVerifyCode());
+		jsonMapPhone.put("type", "1");
+		jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
+
+		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals( jsonMapPhone.get("ret_code"))) {
+			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
 			return;
 		}
-		
+
 		// 1.3 用户重复性校验
 		CWVAuthUser authUser = getUserByPhone(pb.getPhone());
 		if (authUser != null) {
@@ -148,7 +158,7 @@ public class UserHelper implements ActorService {
 
 		this.dao.userDao.insert(authUser);
 		ret.setRetCode(ReturnCodeMsgEnum.REG_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_SUCCESS.getRetMsg());
-		
+
 	}
 
 	/**
@@ -164,26 +174,26 @@ public class UserHelper implements ActorService {
 		if (!ValidatorUtil.isMobile(pb.getPhone())) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetMsg());
-				return;
+			return;
 		}
 
 		// 2 用户查询 及 密码校验
 		CWVAuthUser authUser = getUserByPhone(pb.getPhone());
 
-		if (authUser == null ) {
+		if (authUser == null) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetMsg());
 			return;
 		}
-		
+
 		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
 
-		if ( !pwdMd5.equals(authUser.getPassword())) {
+		if (!pwdMd5.equals(authUser.getPassword())) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetMsg());
 			return;
 		}
-		
+
 		// 3 设置token
 		String refreshToken = UUIDGenerator.generate();
 		tokenHelper.tokenSetting(pack, authUser, refreshToken);
@@ -200,7 +210,7 @@ public class UserHelper implements ActorService {
 		userInfo.setUid(authUser.getUserId() + "");
 		userInfo.setNickName(StringUtils.isEmpty(authUser.getNickName()) ? "" : authUser.getNickName());
 		userInfo.setPhone(authUser.getPhone());
-		//TODO 图片服务器返回URL 或者返回头像接口
+		// TODO 图片服务器返回URL 或者返回头像接口
 		userInfo.setImageUrl("/cwv/usr/pbghi.do");
 		ret.setUserInfo(userInfo);
 		ret.setExpiresIn(Constant.JWT_TTL / 1000l);
@@ -298,15 +308,15 @@ public class UserHelper implements ActorService {
 		// 1 校验入参
 		// 1.1 格式校验
 		if (!ValidatorUtil.isMobile(pb.getPhone())) {
-			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetMsg());
+			ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_PHONE.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.RSP_ERROR_PHONE.getRetMsg());
 			return;
 		}
 		// 1.2校验电话与当前用户是否一致
 
-		CWVAuthUser authUser = getCurrentUser(pack);
+		CWVAuthUser authUser = getUserByPhone(pb.getPhone());
 
-		if (!authUser.getPhone().equals(pb.getPhone())) {
+		if (authUser == null) {
 
 			// TODO 次数限制 +1
 			ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_PHONE.getRetCode())
@@ -320,14 +330,25 @@ public class UserHelper implements ActorService {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("无法更新相同密码");
 			return;
 		}
-		// 1.3校验短信验证码
-		// if(StringUtils.isEmpty(pb.getPhoneVerifyCode())){
-		// ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetCode())
-		// .setRetMsg(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetMsg());
-		// return;
-		// }else {
-		// // TODO 调取common by leo 校验短信验证码
-		// }
+		 //1.3校验短信验证码
+		
+		 if(StringUtils.isEmpty(pb.getPhoneVerifyCode())){
+			 ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetCode())
+		 	.setRetMsg(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetMsg());
+		 	return;
+		 }else {
+		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
+			jsonMapPhone.put("phone", pb.getPhone());
+			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
+			jsonMapPhone.put("type", "1");
+			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
+
+			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
+				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
+				return;
+			}
+		 }
 
 		// 2 更新密码
 		CWVAuthUser authUserUpdate = new CWVAuthUser();
@@ -429,7 +450,7 @@ public class UserHelper implements ActorService {
 			}
 			imageUrl = "" + relativeFilePath;
 		} catch (IOException e) {
-			log.warn("UserHelper invokeImageService error...",e);
+			log.warn("UserHelper invokeImageService error...", e);
 			throw new IllegalArgumentException("图片上传异常");
 		}
 
@@ -469,8 +490,7 @@ public class UserHelper implements ActorService {
 			// }
 			response.getOutputStream().write(byt);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			log.warn("UserHelper getHeadImage error...",e);
+			log.warn("UserHelper getHeadImage error...", e);
 		}
 
 	}
@@ -481,6 +501,40 @@ public class UserHelper implements ActorService {
 		authUser.setUserId(model.getUid());
 		authUser = dao.userDao.selectByPrimaryKey(authUser);
 		return authUser;
+	}
+
+	public void sendMsgCode(FramePacket pack, PSSendMsgCode pb, PRetCommon.Builder ret) {
+		// 校验类型
+		// 修改密码 校验用户手机号
+		if ("2".equals(pb.getType()) && !existsPhone(pb.getPhone())) {// 修改密码
+			ret.setRetCode(ReturnCodeMsgEnum.SMC_ERROR_PHONE.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.SMC_ERROR_PHONE.getRetMsg());
+			return;
+		}
+		HashMap<String, String> jsonMap = new HashMap<>();
+		jsonMap.put("phone", pb.getPhone());
+		jsonMap.put("country_code", pb.getCountryCode());
+		jsonMap.put("type", "2");
+
+		jsonMap = InokeInterfaceHelper.getMsgCode(jsonMap, sender);
+
+		ret.setRetCode(jsonMap.get("ret_code"));
+		ret.setRetMsg(jsonMap.get("ret_msg"));
+	}
+
+	/**
+	 * 手机号是否存在
+	 * 
+	 * @param phone
+	 * @return
+	 */
+	private boolean existsPhone(String phone) {
+		CWVAuthUserExample example = new CWVAuthUserExample();
+		example.createCriteria().andPhoneEqualTo(phone);
+		List<Object> list = dao.userDao.selectByExample(example);
+		if (list != null && !list.isEmpty())
+			return true;
+		return false;
 	}
 
 }

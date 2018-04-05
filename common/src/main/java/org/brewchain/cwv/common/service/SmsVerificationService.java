@@ -82,7 +82,7 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 				} else {
 					// 获取对应用户的手机验证码
 					String strSmsVer = cWVCommonSmsVerify.getVerifyCode();
-					if (StringUtils.equals(strSmsVer, pb.getCode())) {
+					if (StringUtils.equals(strSmsVer, pb.getCode()) && !StringUtils.equals("2", pb.getType())) {
 						// 设置成已验证
 						cWVCommonSmsVerify.setIsVerify("1");
 					}

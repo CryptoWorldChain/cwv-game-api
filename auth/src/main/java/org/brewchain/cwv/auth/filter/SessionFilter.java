@@ -43,8 +43,10 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			add("/usr/pbreg.do");//注册
 			add("/usr/pblin.do");//登陆
 			add("/usr/pblou.do");//注销
+			add("/usr/pbrsp.do");//重置密码
 			add("/tkn/pbrts.do");//刷新token
 			add("/tkn/pbats.do");//校验token
+			add("/usr/pbsmc.do");
 			
 			//murphy
 			add("/gga/pbgcs.do");

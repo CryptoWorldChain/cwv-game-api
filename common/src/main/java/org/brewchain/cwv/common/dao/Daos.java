@@ -1,9 +1,9 @@
 package org.brewchain.cwv.common.dao;
 
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonSmsVerify;
-
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,8 @@ public class Daos implements ActorService, IJPAClient{
 	@StoreDAO
 	public OJpaDAO<CWVCommonCountry> cwvcommoncountryDao;
 	
+	@StoreDAO
+	public OJpaDAO<CWVAuthUser> userDao;
 	
 	@Override
 	public void onDaoServiceAllReady() {

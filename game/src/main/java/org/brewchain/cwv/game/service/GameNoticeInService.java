@@ -1,32 +1,13 @@
 package org.brewchain.cwv.game.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample.Criteria;
 import org.brewchain.cwv.game.dao.Daos;
-import org.brewchain.cwv.game.util.PageUtil;
-import org.brewchain.cwv.service.game.Game.PBGameCountry;
-import org.brewchain.cwv.service.game.Game.PRetRefGameCountry;
-import org.brewchain.cwv.service.game.Game.PTPSCommand;
-import org.brewchain.cwv.service.game.Game.PTPSModule;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSModule;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeIn;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeIn;
-import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeOut.PRetNoticeOut;
-import org.brewchain.cwv.service.game.Game.PRetRefGameCountry.PRetCountry;
 
 import lombok.Data;
 import lombok.val;
@@ -75,10 +56,11 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetGameNoticeIn.Builder ret = PRetGameNoticeIn.newBuilder();
 		try{
-			baffle(pb, ret);
+			noticeIn(pb, ret);
 		}catch(Exception e){
 			ret.setRetCode("99");
 			ret.setRetMsg(e.getMessage());
+			log.warn("GameNoticeInService noticeIn  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
@@ -86,7 +68,7 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 	/**
 	 * 挡板
 	 */
-	private void baffle(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
+	private void noticeIn(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
 		Map<String,String> jsonMap = new HashMap<>();
 		jsonMap.put("userid", pb.getUserId());
 		jsonMap.put("topic", pb.getNoticeType());

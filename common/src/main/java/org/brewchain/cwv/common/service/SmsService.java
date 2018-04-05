@@ -83,6 +83,7 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 
 		try {
 
+			//校验类型
 			// 验证码生成
 			String fixVer = RandomUtill.autoNumber(4);
 			String strMsg = String.format(msg, "加密世界", fixVer);
@@ -128,7 +129,7 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 				return;
 			}
 			ret.setRetCode(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode());
-			ret.setRetMsg(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.AUT_SUCCESS.getRetMsg());
 
 			// 验证码入库
 			CWVCommonSmsVerify cWVCommonSmsVerify = new CWVCommonSmsVerify();
@@ -145,7 +146,7 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.AUT_EXCEPTION.getRetCode());
-			ret.setRetMsg(ReturnCodeMsgEnum.AUT_EXCEPTION.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.AUT_EXCEPTION.getRetMsg());
 
 			log.warn("SmsService onPBPacket error...", e);
 		}

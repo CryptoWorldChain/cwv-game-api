@@ -42,5 +42,12 @@ public class Constant {
 	public static final long JWT_TTL = 10*60*1000;	//access_token有效时间
 	public static final long JWT_TTL_REFRESH = 10*24*60*60*1000;	//refresh_token有效时间
 	
+	/**
+	 * 验证码URL
+	 */
+	public static final String URL_GET_CODE_ = "";	
+	public static final String URL_GET_PHONE_CODE = "http://localhost:8000/cwv/sms/pbaut.do";		
+	public static final String URL_VERIFY_CODE = "http://localhost:8000/cwv/sms/pbmsv.do";	
+	public static final String URL_VERIFY_PHONE_CODE  = "http://localhost:8000/cwv/sms/pbver.do";		
 }
 

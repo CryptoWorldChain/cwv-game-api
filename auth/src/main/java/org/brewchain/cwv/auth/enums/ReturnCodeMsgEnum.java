@@ -82,11 +82,19 @@ public enum ReturnCodeMsgEnum {
 	SIS_EXCEPTION("99","未知异常"),
 	
 	/**
-	 * 设置头像
+	 * 校验短信验证码
 	 */
 	MSV_SUCCESS("01","有效"),
 	MSV_ERROR("02","无效"),
 	MSV_EXCEPTION("99","未知异常"),
+	
+	/**
+	 * 发送短信验证码
+	 */
+	SMC_SUCCESS("01","发送成功！"),
+	SMC_ERROR("02","短信发送失败"),
+	SMC_ERROR_PHONE("03","手机号错误"),
+	SMC_EXCEPTION("99","未知异常"),
 	
 	/**
 	 * 公共信息

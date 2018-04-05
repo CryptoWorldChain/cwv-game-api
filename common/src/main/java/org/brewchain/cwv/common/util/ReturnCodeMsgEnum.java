@@ -104,6 +104,7 @@ public enum ReturnCodeMsgEnum {
 	 */
 	AUT_SUCCESS("01","发送成功！"),
 	AUT_ERROR("02","短信发送失败"),
+	AUT_ERROR_PHONE("03","手机号错误"),
 	AUT_EXCEPTION("99","未知异常"),
 	
 	
