@@ -58,7 +58,9 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 		PRetVerificationDeal.Builder ret = PRetVerificationDeal.newBuilder();
 		try {
 			CWVCommonSmsVerifyExample example = new CWVCommonSmsVerifyExample();
-			example.createCriteria().andPhoneEqualTo(pb.getPhone()).andIsVerifyEqualTo("0");
+			example.createCriteria().andPhoneEqualTo(pb.getPhone())
+			.andVerifyTypeEqualTo(pb.getType())
+			.andIsVerifyEqualTo("0");
 			List<Object> list = sysDaos.cwvcommonsmsverifyDao.selectByExample(example);
 			if (list == null || list.isEmpty()) {
 				// 没有验证记录
@@ -82,7 +84,7 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 				} else {
 					// 获取对应用户的手机验证码
 					String strSmsVer = cWVCommonSmsVerify.getVerifyCode();
-					if (StringUtils.equals(strSmsVer, pb.getCode()) && !StringUtils.equals("2", pb.getType())) {
+					if (StringUtils.equals(strSmsVer, pb.getCode()) && !StringUtils.equals("3", pb.getType())) {//重置密码
 						// 设置成已验证
 						cWVCommonSmsVerify.setIsVerify("1");
 					}

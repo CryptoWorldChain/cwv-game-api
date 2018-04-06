@@ -506,15 +506,29 @@ public class UserHelper implements ActorService {
 	public void sendMsgCode(FramePacket pack, PSSendMsgCode pb, PRetCommon.Builder ret) {
 		// 校验类型
 		// 修改密码 校验用户手机号
-		if ("2".equals(pb.getType()) && !existsPhone(pb.getPhone())) {// 修改密码
+		if ("3".equals(pb.getType()) && !existsPhone(pb.getPhone())) {// 修改密码
 			ret.setRetCode(ReturnCodeMsgEnum.SMC_ERROR_PHONE.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.SMC_ERROR_PHONE.getRetMsg());
 			return;
 		}
+		
+		if(StringUtils.isEmpty(pb.getCountryCode())){
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+			ret.setRetMsg("国家代码不能为空");
+			return;
+		}
+		
+		if(StringUtils.isEmpty(pb.getType())){
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+			ret.setRetMsg("类型不能为空");
+			return;
+		}
+		
+		
 		HashMap<String, String> jsonMap = new HashMap<>();
 		jsonMap.put("phone", pb.getPhone());
 		jsonMap.put("country_code", pb.getCountryCode());
-		jsonMap.put("type", "2");
+		jsonMap.put("type", pb.getType());
 
 		jsonMap = InokeInterfaceHelper.getMsgCode(jsonMap, sender);
 
