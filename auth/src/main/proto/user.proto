@@ -6,16 +6,17 @@ enum PUSERModule {
 	USR = 0;
 };
 enum PUSERCommand {
-	REG = 0; //用户注册
-	LIN = 1; //登陆用户
-	RSP = 2; //重置密码
-	STP = 3; //设置交易密码
-	SNN = 4; //设置用户昵称
-	SHI = 5; //设置头像
-	LOU = 6; //用户注销
-	GHI = 7; //获取头像
+	REG = 0; //用户注册 RegisterUserService
+	LIN = 1; //登陆用户 LoginService
+	RSP = 2; //忘记密码重置 ResetPwdService
+	SPS = 3; //修改密码 SetPwdService
+	STP = 4; //设置交易密码 SetTxPwdService
+	SNN = 5; //设置用户昵称 SetNickService
+	SHI = 6; //设置头像 SetHeadImageService
+	LOU = 7; //用户注销 LogoutService
+	GHI = 8; //获取头像 GetHeadImageService
 	
-	SMC = 8; //短信验证码获取 
+	SMC = 9; //短信验证码获取 SendMsgCodeService
 };
 
 message PSRegistry //REG 

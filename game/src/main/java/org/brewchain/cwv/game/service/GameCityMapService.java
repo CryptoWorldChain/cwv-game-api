@@ -59,8 +59,8 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 		try{
 			baffle(pb, ret);
 		}catch(Exception e){
-			ret.setRetCode("99");
-			ret.setRetMsg(e.getMessage());
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
@@ -77,7 +77,7 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 		criteria.andStatusEqualTo("1").andIsDisplayEqualTo("1").andGameCityIdEqualTo(Integer.parseInt(pb.getCityId()));
 		
 		if(StringUtils.isNotBlank(pb.getShotName())){
-			criteria.andMapNameEqualTo(pb.getShotName());
+			criteria.andMapNameLikeInsensitive("%"+pb.getShotName()+"%");
 		}
 
 		if(StringUtils.isNotBlank(pb.getIsPage())&&"1".equals(pb.getIsPage())){

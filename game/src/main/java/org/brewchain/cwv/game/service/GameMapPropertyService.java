@@ -61,8 +61,9 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 		try{
 			baffle(pb, ret);
 		}catch(Exception e){
-			ret.setRetCode("99");
-			ret.setRetMsg(e.getMessage());
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			ret.setRetMsg("未知异常");
+			e.printStackTrace();
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
@@ -74,6 +75,12 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 		ret.setRetCode("01");
 		ret.setRetMsg("SUCCESS");
 		
+		if(StringUtils.isEmpty(pb.getMapId())){
+			ret.setRetCode("80");
+			ret.setRetMsg("地图ID不能为空");
+			return;
+		}
+		
 		CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
 		CWVGamePropertyExample.Criteria criteria = propertyExample.createCriteria();
 		criteria.andIsDisplayEqualTo("1").andGameMapIdEqualTo(Integer.parseInt(pb.getMapId()));
@@ -83,7 +90,7 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 		}
 		
 		if(StringUtils.isNotBlank(pb.getPropertyStatus())){
-			criteria.andPropertyNameEqualTo(pb.getPropertyStatus());
+			criteria.andPropertyStatusEqualTo(pb.getPropertyStatus());
 		}
 		
 		if(StringUtils.isNotBlank(pb.getPropertyType())){
@@ -97,7 +104,6 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 			
 			ret.setTotalCount(daos.gamePropertyDao.countByExample(propertyExample)+"");
 		}
-		
 		List<Object> properties = daos.gamePropertyDao.selectByExample(propertyExample);
 		for(Object coun : properties){
 			CWVGameProperty property = (CWVGameProperty) coun;

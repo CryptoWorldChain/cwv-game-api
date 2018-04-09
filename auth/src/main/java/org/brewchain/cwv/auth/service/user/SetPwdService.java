@@ -20,7 +20,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class ResetPwdService extends SessionModules<PSLogin> {
+public class SetPwdService extends SessionModules<PSLogin> {
 
 	// @ActorRequire
 	// FctProcessHelper fctProcessHelper;
@@ -32,7 +32,7 @@ public class ResetPwdService extends SessionModules<PSLogin> {
 
 	@Override
 	public String[] getCmds() {
-		return new String[] { PUSERCommand.RSP.name() };
+		return new String[] { PUSERCommand.SPS.name() };
 	}
 
 	@Override
@@ -47,11 +47,11 @@ public class ResetPwdService extends SessionModules<PSLogin> {
 		PRetCommon.Builder ret = PRetCommon.newBuilder();
 
 		try {
-			userHelper.resetPwd(pack, pb, ret);
+			userHelper.setPwd(pack, pb, ret);
 			
 		} catch (Exception e) {
-			ret.setRetCode(ReturnCodeMsgEnum.RSP_EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetMsg());
-			log.warn("ResetPwdService onPBPacket error...",e);
+			ret.setRetCode(ReturnCodeMsgEnum.SPS_EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetMsg());
+			log.warn("SetPwdService setPwd error...",e);
 			
 		}
 

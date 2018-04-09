@@ -8,6 +8,7 @@
 * [用户注册](#用户注册)
 * [用户登陆](#用户登陆)
 * [重置登陆密码](#重置登陆密码)
+* [修改登陆密码](#修改登陆密码)
 * [设置交易密码](#设置交易密码)
 * [设置用户昵称](#设置用户昵称)
 * [设置用户头像](#设置用户头像)
@@ -23,7 +24,7 @@
 -----------
 ## 发送验证码
 ### URL
-	cwv/sms/pbaut.do
+	cwv/usr/pbsmc.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -354,7 +355,7 @@ phone_verify_code|String|手机验证码|1234
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.重置密码成功<br/>02.验证码无效<br/>03 手机号无效<br/>04.次数超限<br/>80.校验类错误<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.重置密码成功<br/>02.验证码无效<br/>03 手机号无效<br/>04.次数超限<br/>05.短信验证码错误<br/>80.校验类错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 
 
@@ -362,7 +363,38 @@ ret_msg|string|返回消息|
 	    "ret_code": "01",
 	    "ret_msg": "重置密码成功"
 	}
-	
+
+## 重置登陆密码
+### 接口说明
+	空
+
+### URL
+	/cwv/usr/pbsps.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+password|string|新登录密码|
+
+	{
+		"password":"123456"
+	}
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.修改密码成功<br/>80.校验类错误<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+
+
+	{
+	    "ret_code": "01",
+	    "ret_msg": "修改密码成功"
+	}
+		
 ## 设置交易密码
 ### 接口说明
 	空
@@ -466,7 +498,7 @@ image_url|string|用户头像地址|
 		举例：_smid=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI1MjM2QSIsInN1YiI6IntcInVpZFwiOjEsXCJ1dHlcIjpcImthZWxcIn0iLCJpYXQiOjE1MjI2NDMxODksImV4cCI6MTUyMjY0Mzc4OX0.WyRmJiNHpfUm75r89vw1N0BSEYViWkUAvVboTA65-Kc
 
 ### URL
-	/cwv/usr/pbats.do
+	/cwv/tkn/pbats.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -500,7 +532,7 @@ image_url|string|用户头像地址|
 	一旦刷新access_token，原有的access_token和refresh_token立即失效。
 
 ### URL
-	/cwv/usr/pbrts.do
+	/cwv/tkn/pbrts.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -852,19 +884,22 @@ ret_msg|String|返回消息|
 notices|array||
 notice_type|string|消息类型|
 notice_content|string|消息内容||
+start_time|string|轮播开始时间||
+end_time|string|轮播结束时间||
+cycle_period|number|循环周期||
+count|number|循环次数||
 	
 	{
 	    "ret_code": "01",
-	    "ret_msg": "获取成功",
-	    "notices": [{
-	    		"notice_type": "announcement",
-	    		"notice_content": "XXXXXX"
-	    },
-	    ...
-	    ,
-	    {
-	    		"notice_type": "announcement",
-	    		"notice_content": "XXXXXX"
-	    }]
-	    
+	    "ret_msg": "SUCCESS",
+	    "notices": [
+	        {
+	            "notice_type": "announcement",
+	            "notice_content": "llalalalallalal",
+	            "start_time": "2018-04-07",
+	            "end_time": "2018-04-07",
+	            "cycle_period": 5000,
+	            "count": 1
+	        }
+	    ]
 	}

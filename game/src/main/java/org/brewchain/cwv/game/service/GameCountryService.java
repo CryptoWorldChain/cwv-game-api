@@ -54,8 +54,8 @@ public class GameCountryService extends SessionModules<PBGameCountry> {
 		try{
 			baffle(pb, ret);
 		}catch(Exception e){
-			ret.setRetCode("99");
-			ret.setRetMsg(e.getMessage());
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

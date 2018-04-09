@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +34,6 @@ import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
 import org.fc.hzq.service.sys.User.PSCommon;
-import org.fc.hzq.service.sys.User.PSCommonOrBuilder;
 import org.fc.hzq.service.sys.User.PSLogin;
 import org.fc.hzq.service.sys.User.PSRegistry;
 import org.fc.hzq.service.sys.User.PSSendMsgCode;
@@ -340,12 +338,12 @@ public class UserHelper implements ActorService {
 		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
 			jsonMapPhone.put("phone", pb.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
-			jsonMapPhone.put("type", "1");
+			jsonMapPhone.put("type", "3"); //重置登陆密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode())
-						.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
+				ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_PHONE_CODE.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.RSP_ERROR_PHONE_CODE.getRetMsg());
 				return;
 			}
 		 }
@@ -549,6 +547,50 @@ public class UserHelper implements ActorService {
 		if (list != null && !list.isEmpty())
 			return true;
 		return false;
+	}
+
+
+	/**
+	 * 修改密码（需要先登陆）
+	 * @param pack
+	 * @param pb
+	 * @param ret
+	 */
+	public void setPwd(FramePacket pack, PSLogin pb, PRetCommon.Builder ret) {
+
+		// 1 校验入参
+		// 1.1 格式校验
+		if (!ValidatorUtil.isPassword(pb.getPassword())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+					.setRetMsg(ValidateEnum.PASSWORD.getVerifyMsg());
+			return;
+		}
+		// 1.2查询当前用户
+
+		CWVAuthUser authUser = getCurrentUser(pack);
+
+		if (authUser == null) {
+			// TODO 次数限制 +1
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+					.setRetMsg("用户未登录");
+			return;
+		}
+
+		// 校验重复密码
+		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
+		if (authUser.getPassword().equals(pwdMd5)) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("无法更新相同密码");
+			return;
+		}
+
+		// 2 更新密码
+		CWVAuthUser authUserUpdate = new CWVAuthUser();
+		authUserUpdate.setUserId(authUser.getUserId());
+		authUserUpdate.setPassword(pwdMd5);
+		dao.userDao.updateByPrimaryKeySelective(authUserUpdate);
+
+		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
+
 	}
 
 }

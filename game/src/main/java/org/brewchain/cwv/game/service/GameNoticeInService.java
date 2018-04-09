@@ -3,6 +3,7 @@ package org.brewchain.cwv.game.service;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSModule;
@@ -58,8 +59,8 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		try{
 			noticeIn(pb, ret);
 		}catch(Exception e){
-			ret.setRetCode("99");
-			ret.setRetMsg(e.getMessage());
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
 			log.warn("GameNoticeInService noticeIn  error......",e);
 		}
 		// 返回给客户端
@@ -72,7 +73,25 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		Map<String,String> jsonMap = new HashMap<>();
 		jsonMap.put("userid", pb.getUserId());
 		jsonMap.put("topic", pb.getNoticeType());
-		jsonMap.put("content", pb.getNoticeContent());
+		
+		if(StringUtils.isEmpty(pb.getNoticeType()) || !pb.getNoticeType().equals("announcement")) {
+			ret.setRetCode("02");
+			ret.setRetMsg("公告类型错误");
+			return;
+		}
+		
+		Map<String,String> contentMap = new HashMap<>();
+		contentMap.put("user_name", pb.getUserName());
+		contentMap.put("notice_type", pb.getNoticeType());
+		contentMap.put("notice_content", pb.getNoticeContent());
+		contentMap.put("start_time", pb.getStartTime());
+		contentMap.put("end_time", pb.getEndTime());
+		contentMap.put("cycle_period", pb.getCyclePeriod()+"");
+		contentMap.put("count", pb.getCount()+"");
+		String contentStr = JsonSerializer.formatToString(contentMap);
+
+		jsonMap.put("content", contentStr);
+		
 		String jsonStr = JsonSerializer.formatToString(jsonMap);
 		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", NOTICE_IN_URL);
 		val yearMeasureRet = sender.send(pp,30000);
@@ -81,7 +100,7 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 			ret.setRetCode("01");
 			ret.setRetMsg("SUCCESS");
 		}else{
-			ret.setRetCode("99");
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg("FAILD");
 		}
 		

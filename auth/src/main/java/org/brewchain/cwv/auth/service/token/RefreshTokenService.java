@@ -49,7 +49,7 @@ public class RefreshTokenService extends SessionModules<PSRefreshToken> {
 			tokenHelper.refreshToken(pack, pb, ret);
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_EXCEPTION.getRetMsg());
-			log.warn("RefreshTokenService onPBPacket error...",e);
+			log.warn("RefreshTokenService refreshToken error...",e);
 		}
 
 		// 返回给客户端

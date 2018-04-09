@@ -1,27 +1,13 @@
 package org.brewchain.cwv.game.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample.Criteria;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.util.PageUtil;
-import org.brewchain.cwv.service.game.Game.PBGameCountry;
-import org.brewchain.cwv.service.game.Game.PRetRefGameCountry;
-import org.brewchain.cwv.service.game.Game.PTPSCommand;
-import org.brewchain.cwv.service.game.Game.PTPSModule;
-import org.brewchain.cwv.service.game.Game.PRetRefGameCountry.PRetCountry;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSModule;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeOut;
@@ -76,8 +62,8 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 			checkParam(pb);
 			baffle(pb, ret);
 		}catch(Exception e){
-			ret.setRetCode("99");
-			ret.setRetMsg(e.getMessage());
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
@@ -89,13 +75,6 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 	 */
 	private void baffle(PBGameNoticeOut pb,PRetGameNoticeOut.Builder ret){
 		
-//		Map<String,String> jsonMap = new HashMap<>();
-//		jsonMap.put("userid", pb.getUserId());
-//		jsonMap.put("topic", pb.getNoticeType());
-//		jsonMap.put("pagesize", pb.getPageSize());
-//		jsonMap.put("pageidx", pb.getPageIndex());
-//		jsonMap.put("pagenum", pb.getPageNum());
-//		String jsonStr = JsonSerializer.formatToString(jsonMap);
 		StringBuffer url = new StringBuffer();
 		url.append(NOTICE_OUT_URL);
 		url.append("?");
@@ -105,9 +84,11 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		}
 		url.append("topic="+pb.getNoticeType());
 		url.append("&");
-		url.append("pagesize="+pb.getPageSize());
+		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
+		
+		url.append("pagesize="+page.getLimit());
 		url.append("&");
-		url.append("pageidx="+pb.getPageIndex());
+		url.append("pageidx="+page.getOffset());
 		url.append("&");
 		url.append("pagenum="+pb.getPageNum());
 		
@@ -119,22 +100,40 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 			if(jsonRet.get("errcode").equals("000")){
 				ret.setRetCode("01");
 				ret.setRetMsg("SUCCESS");
-				
 				List<String> chunk =  (List<String>) jsonRet.get("data");
-				
 				for(String jsonChunk : chunk){
 					Map<String,String> coun = JsonSerializer.getInstance().deserialize(jsonChunk, Map.class);
-					PRetNoticeOut.Builder notice = PRetNoticeOut.newBuilder();
-					notice.setNoticeContent(coun.get("content"));
-					notice.setNoticeType(coun.get("topic"));
-					ret.addNotices(notice);
+					PRetNoticeOut.Builder noticeOut = PRetNoticeOut.newBuilder();
+					noticeOut.setNoticeType(coun.get("topic"));
+					
+					try{
+						Map<String,String> content = JsonSerializer.getInstance().deserialize(coun.get("content"), Map.class);
+						noticeOut.setNoticeContent(content.get("notice_content"));
+//						noticeOut.setNoticeId(content.get("notice_id"));
+						if(content.get("count")!=null)
+							noticeOut.setCount(Integer.parseInt(content.get("count")));
+						if(noticeOut.getNoticeType().equals("announcement")) {
+							noticeOut.setStartTime(content.get("start_time"));
+							noticeOut.setEndTime(content.get("end_time"));
+							noticeOut.setCyclePeriod(Integer.parseInt(content.get("cycle_period")));
+						}
+						ret.addNotices(noticeOut);
+					}catch (Exception e){
+						noticeOut.setNoticeContent(coun.get("content"));
+						ret.addNotices(noticeOut);
+						log.warn("GameNoticeOutService baffle error....",e);
+						continue;
+						
+					}
+					
+					
 				}
 			}else{
-				ret.setRetCode("99");
+				ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 				ret.setRetMsg("FAILD");
 			}
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			log.warn("GameNoticeOutService baffle error....",e);
 		}
 		
 	}

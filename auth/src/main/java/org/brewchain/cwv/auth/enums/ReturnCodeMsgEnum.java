@@ -33,8 +33,14 @@ public enum ReturnCodeMsgEnum {
 	RSP_ERROR_CODE("02","验证码无效"),
 	RSP_ERROR_PHONE("03","手机号无效"),
 	RSP_ERROR_TIMES("04","次数超限"),
+	RSP_ERROR_PHONE_CODE("05","次数超限"),
 	RSP_EXCEPTION("99","未知异常"),
 	
+	/**
+	 * 修改密码
+	 */
+	SPS_SUCCESS("01","修改密码成功"),
+	SPS_EXCEPTION("99","未知异常"),
 	
 	/**
 	 * 设置交易密码

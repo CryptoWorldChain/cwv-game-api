@@ -153,6 +153,9 @@ public class TokenHelper implements ActorService {
 			return;
 		}
 		
+		oldRefresh.setExpires(DateUtils.addMilliseconds(new Date(), (int) Constant.JWT_TTL_REFRESH));
+		dao.tokenDao.updateByPrimaryKeySelective(oldRefresh);
+		
 		int userId = oldRefresh.getUserId();
 
 		//验证通过

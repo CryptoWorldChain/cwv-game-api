@@ -129,3 +129,10 @@ message Bid //GPS 获取游戏房产
 	string property_id=2;
 }
 
+message PRetCommon //公共返回信息 REG
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+	string page_no = 9; //页码
+	string page_size = 10;// 数量
+}
