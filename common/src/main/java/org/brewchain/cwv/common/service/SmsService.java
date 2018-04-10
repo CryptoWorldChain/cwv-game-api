@@ -98,7 +98,7 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 			if (listOld != null && !listOld.isEmpty()) {
 				for (Object o : listOld) {
 					CWVCommonSmsVerify commonSmsVerify = (CWVCommonSmsVerify) listOld.get(0);
-					if (DateUtil.compare(DateUtil.addMinute(commonSmsVerify.getExpires(), 5), new Date()) > 0) {
+					if (DateUtil.compare(DateUtil.addMinute(commonSmsVerify.getExpires(), 15), new Date()) > 0) {
 						// 判断是不是null 非null证明多个有效短信验证码 执行更新
 						if (strMsg == null) {
 							strMsg = String.format(msg, "加密世界", commonSmsVerify.getVerifyCode());
