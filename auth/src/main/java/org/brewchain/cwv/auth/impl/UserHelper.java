@@ -28,8 +28,8 @@ import org.brewchain.cwv.auth.util.jwt.SubjectModel;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshTokenExample;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUserExample;
-import org.brewchain.cwv.dbgens.user.entity.CWVUserTrade;
-import org.brewchain.cwv.dbgens.user.entity.CWVUserTradeExample;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
@@ -270,22 +270,22 @@ public class UserHelper implements ActorService {
 		// 查询用户获取salt
 		CWVAuthUser authUser = this.getCurrentUser(pack);
 		// 创建trade对象更新信息
-		CWVUserTrade userTrade = new CWVUserTrade();
+		CWVUserTradePwd userTrade = new CWVUserTradePwd();
 		userTrade.setUserId(authUser.getUserId());
 		userTrade.setCreatedTime(new Date());
 		String tradePwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
 		userTrade.setTradePassword(tradePwdMd5);
 
 		// 查询原有交易密码
-		CWVUserTradeExample example = new CWVUserTradeExample();
-		CWVUserTradeExample.Criteria criteria = example.createCriteria();
+		CWVUserTradePwdExample example = new CWVUserTradePwdExample();
+		CWVUserTradePwdExample.Criteria criteria = example.createCriteria();
 		criteria.andUserIdEqualTo(authUser.getUserId());
 		List<Object> listTrade = dao.tradeDao.selectByExample(example);
 		if (listTrade == null || listTrade.isEmpty()) {
 			userTrade.setCreatedTime(new Date());
 			dao.tradeDao.insert(userTrade);
 		} else {
-			CWVUserTrade old = (CWVUserTrade) listTrade.get(0);
+			CWVUserTradePwd old = (CWVUserTradePwd) listTrade.get(0);
 			userTrade.setTradeId(old.getTradeId());
 			;
 			dao.tradeDao.updateByPrimaryKeySelective(userTrade);

@@ -3,7 +3,7 @@ package org.brewchain.cwv.auth.dao;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshToken;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
-import org.brewchain.cwv.dbgens.user.entity.CWVUserTrade;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class Dao implements ActorService, IJPAClient {
 	public OJpaDAO<CWVAuthUser> userDao;
 	
 	@StoreDAO
-	public OJpaDAO<CWVUserTrade> tradeDao;
+	public OJpaDAO<CWVUserTradePwd> tradeDao;
 	
 	@Override
 	public void onDaoServiceAllReady() {
