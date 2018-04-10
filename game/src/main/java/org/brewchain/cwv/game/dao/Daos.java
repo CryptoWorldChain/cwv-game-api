@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
+import onight.tfw.ntrans.api.annotation.ActorRequire;
 import onight.tfw.ojpa.api.DomainDaoSupport;
 import onight.tfw.ojpa.api.IJPAClient;
 import onight.tfw.ojpa.api.OJpaDAO;
@@ -34,6 +35,9 @@ public class Daos implements ActorService, IJPAClient{
 	
 	@StoreDAO
 	public OJpaDAO<CWVGameProperty> gamePropertyDao;
+	
+	@ActorRequire
+	public DBProvider provider;
 	
 	@Override
 	public void onDaoServiceAllReady() {

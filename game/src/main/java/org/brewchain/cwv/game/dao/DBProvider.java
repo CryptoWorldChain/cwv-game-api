@@ -20,7 +20,7 @@ public class DBProvider extends SubDBProvider<HZQOrclStoreProvider>  {
 
 	@Override
 	public String[] getContextConfigs() {
-		return new String[] { "/SpringContext-daoConfig-game.xml" };
+		return new String[] { "/SpringContext-daoConfig-cwv.xml" };
 	}
 	@Validate
 	public void startup() {
