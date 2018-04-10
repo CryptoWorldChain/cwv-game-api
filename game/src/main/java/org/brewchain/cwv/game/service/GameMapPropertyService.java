@@ -3,23 +3,16 @@ package org.brewchain.cwv.game.service;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.PageUtil;
-import org.brewchain.cwv.service.game.Game.PBGameCountry;
-import org.brewchain.cwv.service.game.Game.PBGameMap;
 import org.brewchain.cwv.service.game.Game.PBGameProperty;
-import org.brewchain.cwv.service.game.Game.PRetRefGameCountry;
-import org.brewchain.cwv.service.game.Game.PTPSCommand;
-import org.brewchain.cwv.service.game.Game.PTPSModule;
-import org.brewchain.cwv.service.game.Game.PRetRefGameCountry.PRetCountry;
-import org.brewchain.cwv.service.game.Game.PRetRefGameMap;
-import org.brewchain.cwv.service.game.Game.PRetRefGameMap.PRetMap;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty.PRetProperty;
+import org.brewchain.cwv.service.game.Game.PTPSCommand;
+import org.brewchain.cwv.service.game.Game.PTPSModule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -113,6 +106,18 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 			pProperty.setPropertyName(property.getPropertyName());
 			pProperty.setPropertyStatus(property.getPropertyStatus());
 			pProperty.setPropertyType(property.getPropertyType());
+			
+			if(pProperty.getPropertyStatus().equals("3") || pProperty.getPropertyStatus().equals("2")){
+				pProperty.setOwner("匿名Jack");
+				pProperty.setPrice("6987979.000");
+			}else if(pProperty.getPropertyStatus().equals("0")
+					|| pProperty.getPropertyStatus().equals("1")){
+				pProperty.setPrice("0.000");
+				pProperty.setOwner("No");
+			}
+			pProperty.setIncome("32244.00");
+			pProperty.setPropertyTemplateId(property.getPropertyTemplateId()+"");
+			pProperty.setPropertyTemplate(property.getPropertyTemplate());
 			pProperty.setAppearanceType("1");
 			ret.addProperties(pProperty);
 		}

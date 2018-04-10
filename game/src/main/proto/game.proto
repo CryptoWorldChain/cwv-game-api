@@ -108,19 +108,24 @@ message PRetRefGameProperty //GMP 获取游戏房产
 {
 	string ret_code = 1; //返回状态码，
 	string ret_msg = 2; //操作参数
-	message PRetProperty
-	{
-		string map_id = 1;//所属地图
-		string property_name = 2; //房产名称
-		string property_id = 3;//房产编码
-		string property_type = 4;//房产类型
-		string property_status = 5;//房产状态
-		string appearance_type = 6;//外观
-		string url=7;//图片地址
-		Bid bid = 8;//竞拍对象（只有property_status=4）
-	}
 	repeated PRetProperty properties = 3;
 	string total_count = 4;//总条数
+}
+message PRetProperty
+{
+	string map_id = 1;//所属地图
+	string owner = 2;//拥有者
+	string property_name = 3; //房产名称
+	string property_id = 4;//房产编码
+	string property_type = 5;//房产类型
+	string property_status = 6;//房产状态
+	string appearance_type = 7;//外观
+	string income = 8;//房产模板
+	string price = 9;//房产模板
+	string property_template_id = 10;//房产模板Id
+	string property_template = 11;//房产模板
+	string url=12;//图片地址
+	Bid bid = 13;//竞拍对象（只有property_status=4）
 }
 
 message Bid //GPS 获取游戏房产
