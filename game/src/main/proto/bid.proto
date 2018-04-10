@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package org.brewchain.cwv.service.game;
+import "game.proto";
+
+enum PBidModule {
+	GBA = 0;//game-bid-api
+};
+enum PBidCommand {
+	PBS = 0; //查询房产竞拍-PropertyBidService
+	PBI = 1; //查看竞拍信息-PropertyBidInfoService
+	PBA = 2; //个人竞拍记录-PropertyBidAuctionService
+	APS = 3; //竞拍房产-AuctionPropertyService
+};
+
+
+message PSPropertyBid	 //GPB
+{
+	string property_status = 1;//房产状态 0发起竞拍 1竞拍中 2竞拍完成
+}
+
+message PRetPropertyBid //GPE
+{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //提示信息
+	message PropertyBid{
+		string bid_id = 1; //交易ID
+		string auction_start = 2;//开始时间
+		string auction_end = 3;//结束时间
+		PRetProperty property = 7; //房产
+	
+	}
+	PageOut page = 15; //分页对象
+}
+
+message PRetPropertyAuction	 //GPA
+{
+	string ret_code = 1;
+	string ret_msg = 2;
+	message PropertyAuction
+	{
+		string auction_id = 1; //交易ID
+		string bid_id = 2; //交易ID
+		string amount = 3;
+		string nick_name = 4; // 昵称
+		string bid_price = 6; // 出价
+		PRetProperty property = 7; //房产
+	}
+}
+
+
+message PSCommonBid{
+	string bid_id = 1; //竞拍ID
+}
+
+
+

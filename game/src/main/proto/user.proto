@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package org.brewchain.cwv.service.game;
+import "game.proto";
+
+enum PUserModule {
+	GUA = 0;//game-user-api
+};
+enum PUserCommand {
+	GTR = 0; //查询交易记录-GetTransactionRecord
+	GPI = 1; //查询房产收益
+	GWS = 2; //查询钱包账户
+	
+};
+
+message PSGetTransactionRecord	 //GTR
+{
+	string property_status = 1;//房产状态 0发起竞拍 1竞拍中 2竞拍完成
+}
+
+message PRetGetTransactionRecord //GTR
+{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //提示信息
+	message PropertyBid{
+		string bid_id = 1; //交易ID
+		string auction_start = 2;//开始时间
+		string auction_end = 3;//结束时间
+		PRetProperty property = 7; //房产
+	
+	}
+	PageOut page = 15; //分页对象
+}
+
+message PRetGetPropertyIncome	 //GPA
+{
+	string ret_code = 1;
+	string ret_msg = 2;
+	message PropertyAuction
+	{
+		string auction_id = 1; //交易ID
+		string bid_id = 2; //交易ID
+		string amount = 3;
+		string nick_name = 4; // 昵称
+		string bid_price = 6; // 出价
+		PRetProperty property = 7; //房产
+	}
+}
+
+
+message PSCommonUser{
+	string bid_id = 1; //竞拍ID
+}
+
+
+

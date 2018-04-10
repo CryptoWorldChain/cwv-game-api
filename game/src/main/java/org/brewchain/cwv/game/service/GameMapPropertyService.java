@@ -9,8 +9,8 @@ import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Game.PBGameProperty;
+import org.brewchain.cwv.service.game.Game.PRetProperty;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty;
-import org.brewchain.cwv.service.game.Game.PRetRefGameProperty.PRetProperty;
 import org.brewchain.cwv.service.game.Game.PTPSCommand;
 import org.brewchain.cwv.service.game.Game.PTPSModule;
 
