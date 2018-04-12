@@ -32,8 +32,8 @@ public enum ReturnCodeMsgEnum {
 	RSP_SUCCESS("01","重置密码成功"),
 	RSP_ERROR_CODE("02","验证码无效"),
 	RSP_ERROR_PHONE("03","手机号无效"),
-	RSP_ERROR_TIMES("04","次数超限"),
-	RSP_ERROR_PHONE_CODE("05","次数超限"),
+	RSP_ERROR_PHONE_CODE("04","短信验证码无效"),
+	RSP_ERROR_TIMES("05","次数超限"),
 	RSP_EXCEPTION("99","未知异常"),
 	
 	/**
