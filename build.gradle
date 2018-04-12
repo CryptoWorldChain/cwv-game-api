@@ -14,11 +14,11 @@ subprojects {
 	
 	apply plugin: 'eclipse'
 	apply plugin: 'zippo'
-    //if(project.name!='bms') {
-    //	dependencies {
-	//		compile ("org.fc.hzq:org.fc.hzq.sys:1.0.4")
-	//	}
-    //}
+    if(project.name=='game') {
+    	dependencies {
+ 			compile ("org.brewchain.cwv:org.brewchain.cwv.auth:1.0.0")
+		}
+    }
     
     //if(project.name=='bankface') {
     //	dependencies {
@@ -39,6 +39,7 @@ subprojects {
 
 		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.8")
 		// compile group: 'commons-net', name: 'commons-net', version: '3.5'
+		
 	}
 
 	version = '1.0.0'
