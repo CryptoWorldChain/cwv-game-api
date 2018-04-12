@@ -15,6 +15,9 @@ enum PDrawCommand {
 message PSPropertyDrawRecord	 //PDR
 {
 	string property_status = 1;//房产状态 0发起竞拍 1竞拍中 2竞拍完成
+	int32 page_index = 12;
+	int32 page_size = 13;
+	
 }
 
 message PRetPropertyDrawRecord //PDR
@@ -22,11 +25,10 @@ message PRetPropertyDrawRecord //PDR
 	string ret_code = 1; //返回状态码
 	string ret_msg = 2; //提示信息
 	message PropertyDraw{
-		string bid_id = 1; //交易ID
-		string auction_start = 2;//开始时间
-		string auction_end = 3;//结束时间
+		string draw_id = 1; //交易ID
+		string draw_time = 2;//开始时间
+		string property_id = 3;//结束时间
 		PRetProperty property = 7; //房产
-	
 	}
 	PageOut page = 15; //分页对象
 }
@@ -44,6 +46,7 @@ message PRetDrawProperty	 //DPS
 		string bid_price = 6; // 出价
 		PRetProperty property = 7; //房产
 	}
+	PageOut page = 15; //分页对象
 }
 
 

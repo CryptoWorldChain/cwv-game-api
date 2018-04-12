@@ -2,12 +2,12 @@ package org.brewchain.cwv.game.service;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
-import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.service.game.Exchange.PExchangeCommand;
-import org.brewchain.cwv.service.game.Exchange.PExchangeModule;
-import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
-import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
-import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
+import org.brewchain.cwv.game.helper.WalletHelper;
+import org.brewchain.cwv.service.game.Wallet.PRetWalletAccount;
+import org.brewchain.cwv.service.game.Wallet.PRetWalletRecord;
+import org.brewchain.cwv.service.game.Wallet.PSWalletRecord;
+import org.brewchain.cwv.service.game.Wallet.PWalletCommand;
+import org.brewchain.cwv.service.game.Wallet.PWalletModule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class PropertyExchangeService extends SessionModules<PSPropertyExchange> {
+public class WalletRecordService extends SessionModules<PSWalletRecord> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -32,29 +32,29 @@ public class PropertyExchangeService extends SessionModules<PSPropertyExchange> 
 	Daos daos;
 		
 	@ActorRequire
-	PropertyHelper propertyHelper;
+	WalletHelper walletHelper;
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PExchangeCommand.PES.name() };
+		return new String[] { PWalletCommand.WAS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PExchangeModule.GEA.name();
+		return PWalletModule.GWA.name();
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSPropertyExchange pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSWalletRecord pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetPropertyExchange.Builder ret = PRetPropertyExchange.newBuilder();
+		PRetWalletRecord.Builder ret = PRetWalletRecord.newBuilder();
 		try{
-			propertyHelper.getPropertyExchange(pb, ret);
+			walletHelper.walletRecord(pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			log.warn("GetPropertyExchangeService getPropertyExchange  error......",e);
+			log.warn("WalletAccountService waletAccount  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

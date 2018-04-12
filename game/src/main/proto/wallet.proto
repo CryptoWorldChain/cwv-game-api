@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package org.brewchain.cwv.service.game;
+import "game.proto";
+
+enum PWalletModule {
+	GWA = 0;//game-Exchange-api
+};
+enum PWalletCommand {
+	WAS = 0; //获取钱包账户信息-WalletAccountService
+	WRS = 2; //交易记录-WalletRecordService
+	
+};
+
+
+message PSWalletAccount	 //PES
+{
+	int32 page_index = 4;//页索引
+	int32 page_size = 5;//页大小
+}
+
+message PRetWalletAccount //PES
+{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //提示信息
+	double total_value_CNY = 3; //总额
+	double cwb_amount = 4;//CWB数
+	string cwb_topup = 5;//CWB充值
+	message WalletAccount{
+		string account_id = 3; //账户ID
+		string coin_type = 7; // 币种类型
+		double market_price = 8; // 价格CNY
+		double assert = 9;// 资产
+		string icon = 11;//缩略图
+	}
+	repeated WalletAccount account = 13;
+	PageOut page = 15; //分页对象
+}
+
+
+message PRetWalletRecord{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //提示信息
+	message WalletRecord{
+		string record_id = 1;//记录ID
+		string create_time = 2;//时间
+		string detail = 3; //明细
+		string amount = 4; //金额 
+	}
+	repeated WalletRecord record = 3;
+}
+
+message PSWalletRecord	 //PES
+{
+	int32 page_index = 4;//页索引
+	int32 page_size = 5;//页大小
+}
+
+message PSCommonWallet{
+	string walet_id = 1;//交易ID
+}
+
+
+

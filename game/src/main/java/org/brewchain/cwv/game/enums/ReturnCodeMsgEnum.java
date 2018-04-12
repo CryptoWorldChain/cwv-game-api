@@ -9,26 +9,54 @@ import lombok.Data;
  */
 public enum ReturnCodeMsgEnum {
 	
+
+	/**
+	 * 查询钱包账户列表
+	 */
+	WAS_SUCCESS("01","查询成功"),
 	
+	
+	/**
+	 * 发起竞价
+	 */
+	APS_SUCCESS("01","竞价成功"),
+	APS_VALIDATE_ID("02","竞拍房产ID错误"),
+	APS_VALIDATE_PRICE("03","价格错误"),
+	APS_ERROR_PRICE("04","竞价必须高于当前竞拍价"),
+	APS_ERROR_ACCOUNT("05","账户余额不足"),
+	APS_ERROR_STATUS("06","竞拍已结束"),
+
+	/**
+	 * 查询竞拍房产
+	 */
+	PBS_SUCCESS("01","查询成功"),
+	
+	/**
+	 * 查询房产竞价记录
+	 */
+	PBA_SUCCESS("01","查询成功"),
 	
 	/**
 	 * 查询房产交易
 	 */
-	GPT_SUCCESS("01","查询成功"),
+	PES_SUCCESS("01","查询成功"),
 	
 	/**
 	 * 购买房产交易
 	 */
-	BPT_SUCCESS("01","购买成功"),
-	BPT_ERROR_ID("02","交易ID不能为空"),
+	BPS_SUCCESS("01","购买成功"),
+	BPS_ERROR_ID("02","交易ID不能为空"),
+	BPS_ERROR_AMOUNT("03","买入金额错误"),
+	BPS_ERROR_STATUS("04","该交易被成交或撤销"),
+	
 	
 	/**
 	 * 卖出房产（创建房产交易）
 	 */
-	SPT_SUCCESS("01","购买成功"),
-	SPT_VALIDATE_ID("02","房产ID格式错误"),
-	SPT_VALIDATE_PRICE("03","房产价格式错误"),
-	SPT_VALIDATE_TAX("04","手续费格式错误"),
+	SPS_SUCCESS("01","购买成功"),
+	SPS_VALIDATE_ID("02","房产ID格式错误"),
+	SPS_VALIDATE_PRICE("03","房产价格式错误"),
+	SPS_VALIDATE_TAX("04","手续费格式错误"),
 	
 	/**
 	 * 取消房产交易

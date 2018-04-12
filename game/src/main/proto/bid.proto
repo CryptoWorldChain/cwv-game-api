@@ -7,16 +7,18 @@ enum PBidModule {
 	GBA = 0;//game-bid-api
 };
 enum PBidCommand {
-	PBS = 0; //查询房产竞拍-PropertyBidService
-	PBI = 1; //查看竞拍信息-PropertyBidInfoService
+	PBS = 0; //查询房产竞拍列表-PropertyBidService
 	PBA = 2; //个人竞拍记录-PropertyBidAuctionService
 	APS = 3; //竞拍房产-AuctionPropertyService
 };
 
 
-message PSPropertyBid	 //GPB
+message PSPropertyBid	 //PBS
 {
 	string property_status = 1;//房产状态 0发起竞拍 1竞拍中 2竞拍完成
+	string bid_id = 2; //竞拍ID
+	int32 page_index = 3;//页索引
+	int32 page_size = 4;//页大小
 }
 
 message PRetPropertyBid //GPE
@@ -30,14 +32,23 @@ message PRetPropertyBid //GPE
 		PRetProperty property = 7; //房产
 	
 	}
+	repeated PropertyBid bid = 3;//竞拍信息
 	PageOut page = 15; //分页对象
 }
 
-message PRetPropertyAuction	 //GPA
+message PSPropertyBidAuction
+{
+	string auction_id = 1;//竞价记录ID
+	string bid_id = 2; //竞拍ID
+	int32 page_index = 3;//页索引
+	int32 page_size = 4;//页大小
+}
+
+message PRetPropertyBidAuction	 //GPA
 {
 	string ret_code = 1;
 	string ret_msg = 2;
-	message PropertyAuction
+	message PropertyBidAuction
 	{
 		string auction_id = 1; //交易ID
 		string bid_id = 2; //交易ID
@@ -46,8 +57,15 @@ message PRetPropertyAuction	 //GPA
 		string bid_price = 6; // 出价
 		PRetProperty property = 7; //房产
 	}
+	repeated PropertyBidAuction auction = 3;
+	PageOut page = 13;//分页对象
 }
 
+message PSAuctionProperty
+{
+	string bid_id = 2; //竞拍ID
+	double price  = 3; //价格
+}
 
 message PSCommonBid{
 	string bid_id = 1; //竞拍ID
