@@ -493,7 +493,7 @@ public class UserHelper implements ActorService {
 
 	}
 
-	private CWVAuthUser getCurrentUser(FramePacket pack) {
+	public CWVAuthUser getCurrentUser(FramePacket pack) {
 		CWVAuthUser authUser = new CWVAuthUser();
 		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
 		authUser.setUserId(model.getUid());
