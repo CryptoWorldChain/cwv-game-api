@@ -46,9 +46,9 @@ public class Constant {
 	 * 验证码URL
 	 */
 	public static final String URL_GET_CODE_ = "";	
-	public static final String URL_GET_PHONE_CODE = "http://localhost:18000/cwv/sms/pbaut.do";		
-	public static final String URL_VERIFY_CODE = "http://localhost:18000/cwv/sms/pbmsv.do";	
-	public static final String URL_VERIFY_PHONE_CODE  = "http://localhost:18000/cwv/sms/pbver.do";
+	public static final String URL_GET_PHONE_CODE = "http://localhost:8000/cwv/sms/pbaut.do";		
+	public static final String URL_VERIFY_CODE = "http://localhost:8000/cwv/sms/pbmsv.do";	
+	public static final String URL_VERIFY_PHONE_CODE  = "http://localhost:8000/cwv/sms/pbver.do";
 	
 }
 
