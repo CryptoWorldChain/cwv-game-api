@@ -15,6 +15,7 @@ public enum ReturnCodeMsgEnum {
 	REG_DUPLICATE_PHONE("02","⼿机号已注册"),
 	REG_ERROR_CODE("03","验证码错误"),
 	REG_ERROR_PHONE_CODE("04","短信验证码错误"),
+	REG_ERROR_PHONE_CODE_EXPIRED("05","验证码已过期，请重新发起短信验证！"),
 	REG_FREQUENTLY_CALLED("90","注册调⽤过于频繁"),
 	REG_EXCEPTION("99","未知异常"),
 	
@@ -101,6 +102,18 @@ public enum ReturnCodeMsgEnum {
 	SMC_ERROR("02","短信发送失败"),
 	SMC_ERROR_PHONE("03","手机号错误"),
 	SMC_EXCEPTION("99","未知异常"),
+	
+	
+	
+	/**
+	 * 短信验证码
+	 */
+	VER_SUCCESS("01","验证码验证成功！"),
+	VER_ERROR_EMPTY("02","没有短信验证记录，请重新发起短信验证！"),
+	VER_ERROR_DUPLICATE("03","有多条短信验证记录,请重新发起短信验证！"),
+	VER_ERROR_EXPIRED("04","验证码已过期，请重新发起短信验证！"),
+	VER_ERROR("05","无效"),
+	VER_EXCEPTION("99","未知异常"),
 	
 	/**
 	 * 公共信息

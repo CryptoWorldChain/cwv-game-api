@@ -101,6 +101,13 @@ public class UserHelper implements ActorService {
 			throw new IllegalArgumentException("国家不能为空");
 		}
 
+		if (StringUtils.isEmpty(pb.getRegVerifyCode())) {
+			throw new IllegalArgumentException("验证码不能为空");
+		}
+		
+		if (StringUtils.isEmpty(pb.getPhoneCode())) {
+			throw new IllegalArgumentException("短信验证码不能为空");
+		}
 		// 1.2 短信验证码 前端调取 common by leo 验证码校验接口
 
 		// 注册验证码
@@ -121,9 +128,16 @@ public class UserHelper implements ActorService {
 		jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
 		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals( jsonMapPhone.get("ret_code"))) {
-			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
-			return;
+			if(ReturnCodeMsgEnum.VER_ERROR_EXPIRED.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
+				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE_EXPIRED.getRetCode())
+				.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE_EXPIRED.getRetMsg());
+				return;
+			}else{
+				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode())
+				.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
+				return;
+			}
+			
 		}
 
 		// 1.3 用户重复性校验

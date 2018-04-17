@@ -90,7 +90,7 @@ public class MsgVerificationService extends SessionModules<PBMsgVerificationDeal
 			return false;
 
 		long now = new Date().getTime();
-		old = old+(10*60*1000);
+		old = old+(5*60*1000);
 		if(now>old){
 			return false;
 		}

@@ -58,7 +58,7 @@ public class RandomUtill {
 			String key = entry.getKey();
 			Long val = entry.getValue();
 			long now = new Date().getTime();
-			val = val+(60*1000);
+			val = val+(5*60*1000);
 			if(now>val){
 				iter.remove();
 			}
