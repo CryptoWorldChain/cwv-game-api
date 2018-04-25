@@ -158,7 +158,7 @@ public class UserHelper implements ActorService {
 
 		authUser.setPhone(pb.getPhone());
 		String salt = "$1$" + pb.getPhone().substring(7);
-		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), salt);
+		String pwdMd5 = getPwdMd5(pb.getPassword(), salt);
 		authUser.setPassword(pwdMd5);
 		authUser.setSalt(salt);
 
@@ -198,7 +198,7 @@ public class UserHelper implements ActorService {
 			return;
 		}
 
-		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
+		String pwdMd5 = getPwdMd5(pb.getPassword(), authUser.getSalt());
 
 		if (!pwdMd5.equals(authUser.getPassword())) {
 			ret.setRetCode(ReturnCodeMsgEnum.LIN_ERROR_PHONE_PWD.getRetCode())
@@ -287,27 +287,45 @@ public class UserHelper implements ActorService {
 		CWVUserTradePwd userTrade = new CWVUserTradePwd();
 		userTrade.setUserId(authUser.getUserId());
 		userTrade.setCreatedTime(new Date());
-		String tradePwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
+		String tradePwdMd5 = getPwdMd5(pb.getPassword(), authUser.getSalt());
 		userTrade.setTradePassword(tradePwdMd5);
 
 		// 查询原有交易密码
 		CWVUserTradePwdExample example = new CWVUserTradePwdExample();
-		CWVUserTradePwdExample.Criteria criteria = example.createCriteria();
-		criteria.andUserIdEqualTo(authUser.getUserId());
-		List<Object> listTrade = dao.tradeDao.selectByExample(example);
-		if (listTrade == null || listTrade.isEmpty()) {
+		CWVUserTradePwd tradePwdOld = getTradePwd(authUser.getUserId());
+		if (tradePwdOld == null) {
 			userTrade.setCreatedTime(new Date());
 			dao.tradeDao.insert(userTrade);
 		} else {
-			CWVUserTradePwd old = (CWVUserTradePwd) listTrade.get(0);
-			userTrade.setTradeId(old.getTradeId());
-			;
+			userTrade.setTradeId(tradePwdOld.getTradeId());
 			dao.tradeDao.updateByPrimaryKeySelective(userTrade);
 		}
 
 		ret.setRetCode(ReturnCodeMsgEnum.STP_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.STP_SUCCESS.getRetMsg());
 	}
-
+	/**
+	 * 获取交易密码
+	 * @param userId
+	 * @return
+	 */
+	public CWVUserTradePwd getTradePwd(Integer userId) {
+		CWVUserTradePwdExample example = new CWVUserTradePwdExample();
+		CWVUserTradePwdExample.Criteria criteria = example.createCriteria();
+		criteria.andUserIdEqualTo(userId);
+		List<Object> listTrade = dao.tradeDao.selectByExample(example);
+		return listTrade == null || listTrade.isEmpty()? null : (CWVUserTradePwd) listTrade.get(0);
+	}
+	
+	/**
+	 * 通过salt MD5 生成密码
+	 * @param pwd
+	 * @param salt
+	 * @return
+	 */
+	public String getPwdMd5(String pwd, String salt) {
+		return Md5Crypt.md5Crypt(pwd.getBytes(), salt);
+	}
+	
 	/**
 	 * 重置密码
 	 * 
@@ -337,8 +355,8 @@ public class UserHelper implements ActorService {
 		}
 
 		// 校验重复密码
-		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
-		if (authUser.getPassword().equals(pwdMd5)) {
+		String pwdMd5 = getPwdMd5(pb.getPassword(), authUser.getSalt());
+		if (pwdMd5.equals(authUser.getPassword())) {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("无法更新相同密码");
 			return;
 		}
@@ -591,7 +609,7 @@ public class UserHelper implements ActorService {
 		}
 
 		// 校验重复密码
-		String pwdMd5 = Md5Crypt.md5Crypt(pb.getPassword().getBytes(), authUser.getSalt());
+		String pwdMd5 = getPwdMd5(pb.getPassword(),authUser.getSalt());
 		if (authUser.getPassword().equals(pwdMd5)) {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("无法更新相同密码");
 			return;
