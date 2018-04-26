@@ -38,7 +38,7 @@ public class BuyPropertyService extends SessionModules<PSBuyProperty> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PExchangeCommand.PES.name() };
+		return new String[] { PExchangeCommand.BPS.name() };
 	}
 
 	@Override

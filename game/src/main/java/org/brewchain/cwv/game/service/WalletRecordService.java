@@ -36,7 +36,7 @@ public class WalletRecordService extends SessionModules<PSWalletRecord> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PWalletCommand.WAS.name() };
+		return new String[] { PWalletCommand.WRS.name() };
 	}
 
 	@Override

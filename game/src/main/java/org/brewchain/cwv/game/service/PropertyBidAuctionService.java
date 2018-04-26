@@ -35,7 +35,7 @@ public class PropertyBidAuctionService extends SessionModules<PSPropertyBidAucti
 
 	@Override
 	public String[] getCmds() {
-		return new String[] { PBidCommand.PBS.name() };
+		return new String[] { PBidCommand.PBA.name() };
 	}
 
 	@Override

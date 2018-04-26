@@ -148,7 +148,7 @@ public class PropertyHelper implements ActorService {
 		property.setPropertyId(exchange.getPropertyId());
 		property.setLastPrice(new BigDecimal(pb.getAmount()));
 			//需要引入jar包
-		property.setOwner(123);
+//		property.setOwner(123);
 		property.setPropertyStatus("3");
 		
 		//统一事务处理 暂时没有代码

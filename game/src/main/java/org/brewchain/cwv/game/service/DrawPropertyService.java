@@ -37,7 +37,7 @@ public class DrawPropertyService extends SessionModules<PSCommonDraw> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PDrawCommand.PDR.name() };
+		return new String[] { PDrawCommand.DPS.name() };
 	}
 
 	@Override
