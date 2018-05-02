@@ -241,6 +241,14 @@ public class UserHelper implements ActorService {
 		}
 		return (CWVAuthUser) userList.get(0);
 	}
+	
+	public CWVAuthUser getUserById(Integer userId) {
+		CWVAuthUser user = new CWVAuthUser();
+		user.setUserId(userId);
+		user = dao.userDao.selectByPrimaryKey(user);
+		return user;
+	}
+
 
 	/**
 	 * 设置用户昵称
