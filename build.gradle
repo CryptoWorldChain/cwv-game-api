@@ -16,7 +16,7 @@ subprojects {
 	apply plugin: 'zippo'
     if(project.name=='game') {
     	dependencies {
- 			compile ("org.brewchain.cwv:org.brewchain.cwv.auth:1.0.0")
+ 			compile ("org.brewchain.cwv:org.brewchain.cwv.auth:1.0.3")
 		}
     }
     
@@ -37,12 +37,12 @@ subprojects {
 	dependencies {
 		compile ("org.fc.zippo:org.fc.zippo.oapi:3.3.0")
 
-		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.10")
+		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.11")
 		// compile group: 'commons-net', name: 'commons-net', version: '3.5'
 		
 	}
 
-	version = '1.0.0'
+	version = '1.0.3'
 
 	jar { manifest.attributes provider: 'org.brewchain.cwv' }
 }
