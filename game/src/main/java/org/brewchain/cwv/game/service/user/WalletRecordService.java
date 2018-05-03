@@ -1,13 +1,12 @@
-package org.brewchain.cwv.game.service;
+package org.brewchain.cwv.game.service.user;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.WalletHelper;
-import org.brewchain.cwv.service.game.Wallet.PRetWalletAccount;
-import org.brewchain.cwv.service.game.Wallet.PRetWalletRecord;
-import org.brewchain.cwv.service.game.Wallet.PSWalletRecord;
-import org.brewchain.cwv.service.game.Wallet.PWalletCommand;
-import org.brewchain.cwv.service.game.Wallet.PWalletModule;
+import org.brewchain.cwv.service.game.User.PRetWalletRecord;
+import org.brewchain.cwv.service.game.User.PSWalletRecord;
+import org.brewchain.cwv.service.game.User.PUserCommand;
+import org.brewchain.cwv.service.game.User.PUserModule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +35,12 @@ public class WalletRecordService extends SessionModules<PSWalletRecord> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PWalletCommand.WRS.name() };
+		return new String[] { PUserCommand.WRS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PWalletModule.GWA.name();
+		return PUserModule.GUA.name();
 	}
 	
 	@Override

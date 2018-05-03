@@ -1,7 +1,5 @@
 package org.brewchain.cwv.game.enums;
 
-import lombok.Data;
-
 /**
  * 返回代码及提示信息 枚举
  * @author Moon
@@ -14,7 +12,23 @@ public enum ReturnCodeMsgEnum {
 	 * 查询钱包账户列表
 	 */
 	WAS_SUCCESS("01","查询成功"),
+	WAS_ERROR_ACCOUNT("02","账户查询失败"),
 	
+	/**
+	 * 竞拍详情
+	 */
+	
+	PBD_SUCCESS("01","查询成功"),
+	PBD_ERROR_ID("02","查询竞拍ID错误"),
+	PBD_ERROR_STATUS("03","房产竞拍状态错误"),
+	
+	/**
+	 * 公示详情
+	 */
+	
+	PBN_SUCCESS("01","查询成功"),
+	PBN_ERROR_ID("02","查询竞拍ID错误"),
+	PBN_ERROR_STATUS("03","房产竞拍状态错误"),
 	
 	/**
 	 * 发起竞价
@@ -22,9 +36,14 @@ public enum ReturnCodeMsgEnum {
 	APS_SUCCESS("01","竞价成功"),
 	APS_VALIDATE_ID("02","竞拍房产ID错误"),
 	APS_VALIDATE_PRICE("03","价格错误"),
-	APS_ERROR_PRICE("04","竞价必须高于当前竞拍价"),
-	APS_ERROR_ACCOUNT("05","账户余额不足"),
-	APS_ERROR_STATUS("06","竞拍已结束"),
+	APS_VALIDATE_PRICE_LADDER("04","竞拍价格必须是增加量的倍数"),
+	APS_ERROR_PRICE("05","竞价必须高于当前竞拍价"),
+	APS_ERROR_ACCOUNT("06","账户余额不足"),
+	APS_ERROR_STATUS_0("07","竞拍未开始"),
+	APS_ERROR_STATUS_2("08","竞拍已结束"),
+	APS_FALURE("09","竞价失败"),
+	APS_ERROR_TIME("10","竞拍已结束"),
+	
 
 	/**
 	 * 查询竞拍房产
@@ -45,18 +64,22 @@ public enum ReturnCodeMsgEnum {
 	 * 购买房产交易
 	 */
 	BPS_SUCCESS("01","购买成功"),
-	BPS_ERROR_ID("02","交易ID不能为空"),
-	BPS_ERROR_AMOUNT("03","买入金额错误"),
-	BPS_ERROR_STATUS("04","该交易被成交或撤销"),
+	BPS_ERROR_ID("02","交易ID错误"),
+	BPS_ERROR_BALANCE("03","CWB不足"),
+	BPS_ERROR_TRADE_PWD("04","交易密码错误"),
+	BPS_VALIDATE_PWD_SET("05","未设置交易密码"),
+	BPS_ERROR_STATUS("06","该交易被成交或撤销"),
 	
 	
 	/**
 	 * 卖出房产（创建房产交易）
 	 */
-	SPS_SUCCESS("01","购买成功"),
-	SPS_VALIDATE_ID("02","房产ID格式错误"),
-	SPS_VALIDATE_PRICE("03","房产价格式错误"),
-	SPS_VALIDATE_TAX("04","手续费格式错误"),
+	SPS_SUCCESS("01","卖出成功"),
+	SPS_ERROR_ID("02","房产ID错误"),
+	SPS_ERROR_STATUS("03","房产状态错误"),
+	SPS_VALIDATE_PRICE("04","房产价格式错误"),
+	SPS_ERROR_TRADEPWD("05","交易密码错误"),
+	SPS_VALIDATE_PWD_SET("06","未设置交易密码"),
 	
 	/**
 	 * 取消房产交易

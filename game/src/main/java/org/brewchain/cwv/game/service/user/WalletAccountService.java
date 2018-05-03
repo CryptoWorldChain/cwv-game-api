@@ -1,13 +1,12 @@
-package org.brewchain.cwv.game.service;
+package org.brewchain.cwv.game.service.user;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
-import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.service.game.Bid.PBidCommand;
-import org.brewchain.cwv.service.game.Bid.PBidModule;
-import org.brewchain.cwv.service.game.Bid.PRetPropertyBid;
-import org.brewchain.cwv.service.game.Bid.PSCommonBid;
-import org.brewchain.cwv.service.game.Bid.PSPropertyBid;
+import org.brewchain.cwv.game.helper.WalletHelper;
+import org.brewchain.cwv.service.game.User.PRetWalletAccount;
+import org.brewchain.cwv.service.game.User.PSWalletAccount;
+import org.brewchain.cwv.service.game.User.PUserCommand;
+import org.brewchain.cwv.service.game.User.PUserModule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class PropertyBidService extends SessionModules<PSPropertyBid> {
+public class WalletAccountService extends SessionModules<PSWalletAccount> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -32,29 +31,29 @@ public class PropertyBidService extends SessionModules<PSPropertyBid> {
 	Daos daos;
 		
 	@ActorRequire
-	PropertyHelper propertyHelper;
+	WalletHelper walletHelper;
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PBidCommand.PBS.name() };
+		return new String[] { PUserCommand.WAS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PBidModule.GBA.name();
+		return PUserModule.GUA.name();
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSPropertyBid pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSWalletAccount pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetPropertyBid.Builder ret = PRetPropertyBid.newBuilder();
+		PRetWalletAccount.Builder ret = PRetWalletAccount.newBuilder();
 		try{
-			propertyHelper.getPropertyBid(pb, ret);
+			walletHelper.walletAccount(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			log.warn("GetPropertyBidService getPropertyBid  error......",e);
+			log.warn("WalletAccountService waletAccount  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

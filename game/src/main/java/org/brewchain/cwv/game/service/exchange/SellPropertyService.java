@@ -1,12 +1,13 @@
-package org.brewchain.cwv.game.service;
+package org.brewchain.cwv.game.service.exchange;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.service.game.Draw.PDrawCommand;
-import org.brewchain.cwv.service.game.Draw.PDrawModule;
-import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord;
-import org.brewchain.cwv.service.game.Draw.PSPropertyDrawRecord;
+import org.brewchain.cwv.service.game.Exchange.PExchangeCommand;
+import org.brewchain.cwv.service.game.Exchange.PExchangeModule;
+import org.brewchain.cwv.service.game.Exchange.PRetSellProperty;
+import org.brewchain.cwv.service.game.Exchange.PSSellProperty;
+import org.brewchain.cwv.service.game.Game.PRetCommon.Builder;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class PropertyDrawRecordService extends SessionModules<PSPropertyDrawRecord> {
+public class SellPropertyService extends SessionModules<PSSellProperty> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -35,25 +36,25 @@ public class PropertyDrawRecordService extends SessionModules<PSPropertyDrawReco
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PDrawCommand.PDR.name() };
+		return new String[] { PExchangeCommand.SPS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PDrawModule.GDA.name();
+		return PExchangeModule.GEA.name();
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSPropertyDrawRecord pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSSellProperty pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetPropertyDrawRecord.Builder ret = PRetPropertyDrawRecord.newBuilder();
+		PRetSellProperty.Builder ret = PRetSellProperty.newBuilder();
 		try{
-			propertyHelper.getPropertyDrawRecord(pb, ret);
+			propertyHelper.sellProperty(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			log.warn("GetPropertyDrawRecordService getPropertyDrawRecord  error......",e);
+			log.warn("SellPropertyService sellProperty  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

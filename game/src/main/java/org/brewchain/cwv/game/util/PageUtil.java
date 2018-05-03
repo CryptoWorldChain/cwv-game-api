@@ -36,8 +36,10 @@ public class PageUtil {
 		if(offset<0 || limit<0){
 			throw new IllegalArgumentException("分页参数错误");
 		}
-		this.limit = pageSize;
+		this.limit = pageSize == 0? this.limit: pageSize;
 		this.offset = pageIndex==0? 0 : (pageIndex-1) * this.limit  ;
+		pageOut.setPageIndex(pageIndex+"");
+		pageOut.setPageSize(pageSize == 0? "10": pageSize+"");
 	}
 	
 	public void setTotalCount(int sum){

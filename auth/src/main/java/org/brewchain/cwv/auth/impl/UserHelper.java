@@ -168,6 +168,7 @@ public class UserHelper implements ActorService {
 		authUser.setValidatePhone("1");
 		// 3 保存用户
 
+		// 创建账户 TODO
 		this.dao.userDao.insert(authUser);
 		ret.setRetCode(ReturnCodeMsgEnum.REG_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_SUCCESS.getRetMsg());
 

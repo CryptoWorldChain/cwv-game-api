@@ -4,35 +4,75 @@ package org.brewchain.cwv.service.game;
 import "game.proto";
 
 enum PUserModule {
-	GUA = 0;//game-user-api
+	GUA = 0;//game-Exchange-api
 };
 enum PUserCommand {
-	GTR = 0; //查询交易记录-GetTransactionRecord
-	GPI = 1; //查询房产收益
-	GWS = 2; //查询钱包账户
+	WAS = 0; //获取钱包账户列表-WalletAccountService
+	PIS = 1; //查询房产收益
+	
+	WRS = 2; //交易记录-WalletRecordService 
+	GSS = 3; //分享游戏-ShareGameService
+	WIS = 6; //获取钱包账户信息-WalletInfoService
+	WTU = 7; //钱包充值 - WalletTopUpService
 	
 };
 
-message PSGetTransactionRecord	 //GTR
+message PSWalletAccount	 //WAS
 {
-	string property_status = 1;//房产状态 0发起竞拍 1竞拍中 2竞拍完成
+	string coin_type = 1;//币种类型
+	int32 page_index = 4;//页索引
+	int32 page_size = 5;//页大小
 }
 
-message PRetGetTransactionRecord //GTR
+message PRetWalletAccount //WAS
 {
 	string ret_code = 1; //返回状态码
 	string ret_msg = 2; //提示信息
-	message PropertyBid{
-		string bid_id = 1; //交易ID
-		string auction_start = 2;//开始时间
-		string auction_end = 3;//结束时间
-		PRetProperty property = 7; //房产
-	
+	message WalletAccount{
+		string account_id = 3; //账户ID
+		string coin_type = 7; // 币种类型
+		double market_price = 8; // 价格CNY
+		double assert = 9;// 资产
+		string icon = 11;//缩略图
 	}
+	repeated WalletAccount account = 13;
 	PageOut page = 15; //分页对象
 }
 
-message PRetGetPropertyIncome	 //GPA
+message PRetWalletInfo
+{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //提示信息
+	double total_value_CNY = 3; //总额
+	double cwb_amount = 4;//CWB数
+	string cwb_topup = 5;//CWB充值
+}
+
+message PRetWalletRecord{
+	string ret_code = 1; //返回状态码
+	string ret_msg = 2; //提示信息
+	message WalletRecord{
+		string record_id = 1;//记录ID
+		string create_time = 2;//时间
+		string detail = 3; //明细
+		string amount = 4; //金额 
+	}
+	repeated WalletRecord record = 3;
+}
+
+message PSWalletRecord	 //PES
+{
+	int32 page_index = 4;//页索引
+	int32 page_size = 5;//页大小
+}
+
+message PSPropertyIncome
+{
+	string type = 1;//类型 红利（普通），矿场（收益），功能（税收）
+	
+}
+
+message PRetPropertyIncome	 //PIS
 {
 	string ret_code = 1;
 	string ret_msg = 2;
@@ -40,17 +80,28 @@ message PRetGetPropertyIncome	 //GPA
 	{
 		string auction_id = 1; //交易ID
 		string bid_id = 2; //交易ID
-		string amount = 3;
+		string amount = 3; //金额
 		string nick_name = 4; // 昵称
 		string bid_price = 6; // 出价
 		PRetProperty property = 7; //房产
 	}
 }
 
-
-message PSCommonUser{
-	string bid_id = 1; //竞拍ID
+message PRetGameShare //GDS
+{
+	string url = 2;//URL
 }
+
+message PRetGameDescription //GDS
+{
+	string title = 2;//标题
+	string content = 3;//内容
+}
+
+message PSCommonWallet{
+	string walet_id = 1;//账户ID
+}
+
 
 
 

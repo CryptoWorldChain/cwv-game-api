@@ -1,13 +1,13 @@
-package org.brewchain.cwv.game.service;
+package org.brewchain.cwv.game.service.bid;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.service.game.Exchange.PExchangeCommand;
-import org.brewchain.cwv.service.game.Exchange.PExchangeModule;
-import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
-import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
-import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
+import org.brewchain.cwv.service.game.Bid.PBidCommand;
+import org.brewchain.cwv.service.game.Bid.PBidModule;
+import org.brewchain.cwv.service.game.Bid.PSAuctionProperty;
+import org.brewchain.cwv.service.game.Game.PRetCommon;
+import org.brewchain.cwv.service.game.Game.PRetCommon.Builder;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class PropertyExchangeService extends SessionModules<PSPropertyExchange> {
+public class AuctionPropertyService extends SessionModules<PSAuctionProperty> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -36,27 +36,28 @@ public class PropertyExchangeService extends SessionModules<PSPropertyExchange> 
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PExchangeCommand.PES.name() };
+		return new String[] { PBidCommand.APS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PExchangeModule.GEA.name();
+		return PBidModule.GBA.name();
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSPropertyExchange pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSAuctionProperty pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetPropertyExchange.Builder ret = PRetPropertyExchange.newBuilder();
+		PRetCommon.Builder ret = PRetCommon.newBuilder();
 		try{
-			propertyHelper.getPropertyExchange(pb, ret);
+			propertyHelper.auctionProperty(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			log.warn("GetPropertyExchangeService getPropertyExchange  error......",e);
+			log.warn("GetPropertyBidService getPropertyBid  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 	}
+
 }

@@ -11,6 +11,9 @@ enum PTPSCommand {
 	GCM = 2; //获取游戏地图-GameCityMapService
 	GMP = 3; //获取游戏房产-GameMapPropertyService
 	
+	GPC = 4; //查询手续费 -GamePropertyChargeService
+	GIS = 5; //游戏说明 -GameIntroductionService
+	
 };
 
 message PageOut{
@@ -137,10 +140,31 @@ message Bid //GPS 获取游戏房产
 	string property_id=2;
 }
 
+message PSCommon //公共入参
+{
+
+}
+
 message PRetCommon //公共返回信息 REG
 {
 	string ret_code = 1; //错误代码
 	string ret_msg = 2; //提示信息
 	string page_no = 9; //页码
 	string page_size = 10;// 数量
+}
+
+message PRetGamePropertyCharge //GPC
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+	double charge_rate = 9; //手续费比例
+}
+
+
+message PRetGameIntroduction //GIS
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+	string title = 3;//标题
+	string content = 4;//内容
 }
