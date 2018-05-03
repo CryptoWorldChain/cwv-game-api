@@ -29,7 +29,7 @@ subprojects {
 	buildscript {
 	
 		dependencies { 
-			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.10" 
+			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.11" 
 		 }
 	}
 	
