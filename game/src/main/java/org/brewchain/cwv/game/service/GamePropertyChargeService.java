@@ -22,12 +22,12 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @Data
 public class GamePropertyChargeService extends SessionModules<PSCommon> {
 	
-	@ActorRequire
+	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 	
 	@Override

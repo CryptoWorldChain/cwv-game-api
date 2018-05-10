@@ -1,5 +1,6 @@
 package org.brewchain.cwv.game.chain;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.game.chain.ret.RetDraw;
 
@@ -18,6 +19,7 @@ import onight.tfw.ntrans.api.ActorService;
 @Provides(specifications = { ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
+@Instantiate(name="Property_Draw_Invoker")
 public class PropertyDrawInvoker implements ActorService {
 	
 	/**

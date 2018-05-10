@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
@@ -98,30 +99,31 @@ import onight.tfw.otransio.api.beans.FramePacket;
  * @author Moon
  * @date 2018-03-30
  */
+@Instantiate(name="Property_Helper")
 public class PropertyHelper implements ActorService {
 
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 
-	@ActorRequire
+	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;
 
-	@ActorRequire(scope = "global")
+	@ActorRequire(name="User_Helper", scope = "global")
 	UserHelper userHelper;
 
-	@ActorRequire
+	@ActorRequire(name="Property_Exchange_Invoker")
 	PropertyExchangeInvoker exchangeInvoker;
 
-	@ActorRequire
+	@ActorRequire(name="Property_Bid_Invoker")
 	PropertyBidInvoker bidInvoker;
 
-	@ActorRequire
+	@ActorRequire(name="Property_Draw_Invoker")
 	PropertyDrawInvoker drawInvoker;
 	
-	@ActorRequire
+	@ActorRequire(name="Property_Income_Invoker")
 	PropertyIncomeInvoker incomeInvoker;
 
-	@ActorRequire
+	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
 	
 	private HashSet statusForSale = new HashSet<String>() {
@@ -216,7 +218,7 @@ public class PropertyHelper implements ActorService {
 			property.setPropertyStatus(Integer.parseInt(exchange.getPropertyStatus()));
 			property.setIncomeRemark(exchange.getIncomeRemark());
 			property.setIncome(exchange.getIncome().doubleValue());
-			property.setImageUrl("");
+			property.setImageUrl(exchange.getImageUrl());
 			// 设置交易信息
 			ExchangeInfo.Builder exchangeRet = ExchangeInfo.newBuilder();
 			exchangeRet.setExchangeId(exchange.getPropertyId() + "");
@@ -889,7 +891,7 @@ public class PropertyHelper implements ActorService {
 
 			property.setPropertyStatus(Integer.parseInt(bid.getPropertyStatus()));
 			property.setIncomeRemark(bid.getIncomeRemark());
-			property.setImageUrl("wwww");
+			property.setImageUrl(bid.getImageUrl());
 			// 设置交易信息
 			BidInfo.Builder bidRet = BidInfo.newBuilder();
 			bidRet.setBidId(bid.getBidId() + "");
@@ -1302,7 +1304,7 @@ public class PropertyHelper implements ActorService {
 		drawProperty.setPropertyTemplate(property.getPropertyTemplate());
 		drawProperty.setPropertyTemplateId(property.getPropertyTemplateId());
 		drawProperty.setPropertyType(Integer.parseInt(property.getPropertyType()));
-		drawProperty.setImageUrl("asdadad");
+		drawProperty.setImageUrl(property.getImageUrl());
 
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg())
 				.setProperty(drawProperty);
@@ -1404,7 +1406,7 @@ public class PropertyHelper implements ActorService {
 		bidProperty.setPropertyTemplate(property.getPropertyTemplate());
 		bidProperty.setPropertyTemplateId(property.getPropertyTemplateId());
 		bidProperty.setPropertyType(Integer.parseInt(property.getPropertyType()));
-		bidProperty.setImageUrl("asdadad");
+		bidProperty.setImageUrl(property.getImageUrl());
 
 		// string max_price = 12;//房产编码
 		// string bidders_count = 13;//当前参与人数
@@ -1511,7 +1513,7 @@ public class PropertyHelper implements ActorService {
 		bidProperty.setPropertyName(property.getPropertyName());
 		bidProperty.setPropertyId(property.getPropertyId() + "");
 		bidProperty.setIncomeRemark("收益说明");
-		bidProperty.setImageUrl("asdasdad");
+		bidProperty.setImageUrl(property.getImageUrl());
 		// string max_price = 12;//房产编码
 		// string bidders_count = 13;//当前参与人数
 		// string auction_start = 14;//开始时间
@@ -1624,7 +1626,7 @@ public class PropertyHelper implements ActorService {
 		bid.setNickName(user.getNickName());
 		bid.setIncomeRemark("收益说明123");
 		bid.setLastPrice(property.getLastPrice());
-		// bid.setImageUrl(property.getImageUrl()); TODO
+		bid.setImageUrl(property.getImageUrl());
 		property.setPropertyStatus("1");// 竞拍中
 
 		daos.bidDao.doInTransaction(new TransactionExecutor() {

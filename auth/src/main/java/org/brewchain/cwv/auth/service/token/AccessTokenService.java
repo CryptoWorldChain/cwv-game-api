@@ -26,7 +26,7 @@ public class AccessTokenService extends SessionModules<PSAccessToken> {
 	// @ActorRequire(scope = "global")
 	// SessionManager sm;
 
-	@ActorRequire
+	@ActorRequire(name="Token_Helper")
 	TokenHelper tokenHelper;
 
 	@Override

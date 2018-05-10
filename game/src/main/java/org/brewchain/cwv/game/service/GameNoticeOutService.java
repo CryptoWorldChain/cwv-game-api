@@ -36,7 +36,7 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 	
 	@ActorRequire(name = "http", scope = "global")

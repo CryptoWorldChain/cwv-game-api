@@ -27,10 +27,10 @@ public class PropertyExchangeService extends SessionModules<PSPropertyExchange> 
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 		
-	@ActorRequire
+	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;
 	
 	@Override

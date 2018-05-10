@@ -1,5 +1,6 @@
 package org.brewchain.cwv.game.helper;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
@@ -24,9 +25,10 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
  * @author Moon
  * @date 2018-03-30
  */
+@Instantiate(name="Game_Helper")
 public class GameHelper implements ActorService {
 
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 
 	public void gameIntroduction(PSCommon pb, PRetGameIntroduction.Builder ret) {

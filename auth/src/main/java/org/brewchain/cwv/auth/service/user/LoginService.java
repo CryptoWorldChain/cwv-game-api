@@ -26,7 +26,7 @@ public class LoginService extends SessionModules<PSLogin> {
 	// @ActorRequire(scope = "global")
 	// SessionManager sm;
 
-	@ActorRequire
+	@ActorRequire(name="User_Helper")
 	UserHelper userHelper;
 
 	@Override

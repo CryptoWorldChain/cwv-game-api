@@ -26,7 +26,7 @@ public class RegisterUserService extends SessionModules<PSRegistry> {
 	// @ActorRequire(scope = "global")
 	// SessionManager sm;
 
-	@ActorRequire
+	@ActorRequire(name="User_Helper")
 	UserHelper userHelper;
 
 	@Override

@@ -64,7 +64,7 @@ public class WalletHelper implements ActorService {
 		
 	}
 
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 	
 	@ActorRequire(scope = "global")

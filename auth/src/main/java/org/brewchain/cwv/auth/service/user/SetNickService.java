@@ -26,7 +26,7 @@ public class SetNickService extends SessionModules<UserInfo> {
 	// @ActorRequire(scope = "global")
 	// SessionManager sm;
 
-	@ActorRequire
+	@ActorRequire(name="User_Helper")
 	UserHelper userHelper;
 
 	@Override

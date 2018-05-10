@@ -2,6 +2,7 @@ package org.brewchain.cwv.game.helper;
 
 import java.util.List;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDicExample;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
@@ -23,13 +24,14 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
  * @author Moon
  * @date 2018-05-09
  */
+@Instantiate(name="Common_Helper")
 public class CommonHelper implements ActorService {
 	/**
 	 * 派息日期
 	 */
 	public static String INCOMETIME = "income_time"; 
 
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 	/**
 	 * 根据parentKey获取字典数组

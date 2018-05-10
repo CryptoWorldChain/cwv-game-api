@@ -1,5 +1,6 @@
 package org.brewchain.cwv.game.dao;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCity;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
@@ -30,6 +31,7 @@ import onight.tfw.ojpa.api.annotations.StoreDAO;
 @Provides(specifications = { IJPAClient.class, ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
+@Instantiate(name="Daos")
 public class Daos implements ActorService, IJPAClient{
 
 	@StoreDAO
@@ -75,7 +77,7 @@ public class Daos implements ActorService, IJPAClient{
 	public OJpaDAO<CWVSysSetting> settingDao;
 	
 	
-	@ActorRequire
+	@ActorRequire(name="DB_Provider")
 	public DBProvider provider;
 	
 	@Override

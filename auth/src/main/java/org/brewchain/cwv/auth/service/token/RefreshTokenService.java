@@ -26,7 +26,7 @@ public class RefreshTokenService extends SessionModules<PSRefreshToken> {
 	// @ActorRequire(scope = "global")
 	// SessionManager sm;
 
-	@ActorRequire
+	@ActorRequire(name="Token_Helper")
 	TokenHelper tokenHelper;
 
 	@Override

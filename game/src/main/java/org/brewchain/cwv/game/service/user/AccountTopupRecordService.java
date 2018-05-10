@@ -28,15 +28,15 @@ public class AccountTopupRecordService extends SessionModules<PSAccountTopup> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 		
-	@ActorRequire
+	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PUserCommand.ATS.name() };
+		return new String[] { PUserCommand.ATR.name() };
 	}
 
 	@Override

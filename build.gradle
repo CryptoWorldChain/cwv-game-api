@@ -17,16 +17,14 @@ subprojects {
 
     if(project.name=='game') {
     	dependencies {
- 			compile ("org.brewchain.cwv:org.brewchain.cwv.auth:1.0.3")
+ 			compile ("org.brewchain.cwv:org.brewchain.cwv.auth:1.0.5")
 		}
     }
     
-    if(project.name=='auth') {
-    	dependencies {
- 			compile ("org.brewchain.cwv:org.brewchain.cwv.game:1.0.3")
-		}
-    }
     
+    project(':auth') {
+    	version = '1.0.5'
+    }
     //if(project.name=='bankface') {
     //	dependencies {
 	//		compile group: 'commons-net', name: 'commons-net', version: '3.6'

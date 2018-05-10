@@ -33,7 +33,7 @@ public class GameCountryCityService extends SessionModules<PBGameCity> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 	
 	@Override

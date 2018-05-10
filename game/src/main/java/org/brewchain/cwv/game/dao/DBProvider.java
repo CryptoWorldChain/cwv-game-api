@@ -1,5 +1,6 @@
 package org.brewchain.cwv.game.dao;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.fc.hzq.orcl.impl.HZQOrclStoreProvider;
@@ -12,6 +13,7 @@ import onight.tfw.ojpa.ordb.SubDBProvider;
 
 @iPojoBean
 @Provides(specifications = {  StoreServiceProvider.class,ActorService.class }, strategy = "SINGLETON")
+@Instantiate(name="DB_Provider")
 public class DBProvider extends SubDBProvider<HZQOrclStoreProvider>  {
 
 	public DBProvider(BundleContext bundleContext) {

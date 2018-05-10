@@ -27,7 +27,7 @@ public class PropertyIncomeClaimService extends SessionModules<PSPropertyIncomeC
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 		
 	@ActorRequire

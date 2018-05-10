@@ -27,10 +27,10 @@ public class WalletRecordService extends SessionModules<PSWalletRecord> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 		
-	@ActorRequire
+	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;
 	
 	@Override

@@ -14,7 +14,7 @@ enum PUserCommand {
 	GSS = 3; //分享游戏-GameShareService
 	WAB = 5; //查询账户余额
 	WIS = 6; //获取钱包账户信息-WalletInfoService
-	ATS = 7; //钱包充值 - AccountTopupService
+	ATU = 7; //钱包充值 - AccountTopUpService
 	ATR = 8; //钱包充值记录 - AccountTopupRecordService
 	PIC = 9; //房产收益领取
 };

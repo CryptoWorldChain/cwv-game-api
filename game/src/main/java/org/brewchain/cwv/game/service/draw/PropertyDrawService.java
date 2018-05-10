@@ -30,10 +30,10 @@ public class PropertyDrawService extends SessionModules<PSCommonDraw> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 		
-	@ActorRequire
+	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;
 	
 	@Override

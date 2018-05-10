@@ -21,22 +21,22 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class AccountTopupService extends SessionModules<PSAccountTopup> {
+public class AccountTopUpService extends SessionModules<PSAccountTopup> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 		
-	@ActorRequire
+	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PUserCommand.ATS.name() };
+		return new String[] { PUserCommand.ATU.name() };
 	}
 
 	@Override

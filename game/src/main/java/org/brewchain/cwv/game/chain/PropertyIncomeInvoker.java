@@ -3,6 +3,7 @@ package org.brewchain.cwv.game.chain;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
@@ -23,6 +24,7 @@ import onight.tfw.ntrans.api.ActorService;
 @Provides(specifications = { ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
+@Instantiate(name="Property_Income_Invoker")
 public class PropertyIncomeInvoker implements ActorService {
 	
 	/**

@@ -36,7 +36,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @Data
 public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos sysDaos;
 
 	@Override

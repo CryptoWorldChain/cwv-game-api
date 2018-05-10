@@ -35,7 +35,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @Data
 public class CountryListService extends SessionModules<PBCountryList> {
 
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos sysDaos;
 
 	@Override

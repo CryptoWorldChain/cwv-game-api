@@ -28,7 +28,7 @@ public class SessionManager implements ActorService {
 	//SessionIDGenerator idGen = new SessionIDGenerator("node1");
 	public final static String STR_SESSION_SMID = PackHeader.EXT_IGNORE_RESPONSE + "_smid";
 	
-	@ActorRequire
+	@ActorRequire(name="Filter_Helper")
 	FilterHelper filterHelper;
 	
 	public SMSession getSMSesion() {

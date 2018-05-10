@@ -406,6 +406,8 @@ ret_msg|string|返回消息|
 参数|类型|说明|示例
 :----|:----|:----|:----
 password|string|交易密码|
+old_password|string|旧交易密码|
+msg_code|string|短信验证码|
 
 	{
 		"password":"123456"

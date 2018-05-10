@@ -27,7 +27,7 @@ public class SendMsgCodeService extends SessionModules<PSSendMsgCode> {
 	// @ActorRequire(scope = "global")
 	// SessionManager sm;
 
-	@ActorRequire
+	@ActorRequire(name="User_Helper")
 	UserHelper userHelper;
 
 	@Override

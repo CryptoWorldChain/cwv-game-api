@@ -2,6 +2,7 @@ package org.brewchain.cwv.auth.filter;
 
 import java.util.Date;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.dao.Dao;
 import org.fc.zippo.filter.exception.FilterException;
@@ -17,14 +18,15 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Provides(specifications = { ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
+@Instantiate(name="Filter_Helper")
 public class FilterHelper implements  ActorService{
 	
 	public final static int SES_TIMTOUT = 60*20;//session超时时间
 	
 	
-	@ActorRequire
+	@ActorRequire(name="Session_Manager")
 	SessionManager sm;
-	@ActorRequire
+	@ActorRequire(name="Dao")
 	Dao dao;
 	
 	//防止相互引用死循环

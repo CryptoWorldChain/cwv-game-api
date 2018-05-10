@@ -27,7 +27,7 @@ public class SetHeadImageService extends SessionModules<PSCommon> {
 	// @ActorRequire(scope = "global")
 	// SessionManager sm;
 
-	@ActorRequire
+	@ActorRequire(name="User_Helper")
 	UserHelper userHelper;
 
 	@Override

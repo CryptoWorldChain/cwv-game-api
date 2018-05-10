@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.Md5Crypt;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.dao.Dao;
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
@@ -30,7 +31,6 @@ import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUserExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
-import org.brewchain.cwv.game.helper.WalletHelper;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
@@ -59,19 +59,17 @@ import onight.tfw.outils.serialize.UUIDGenerator;
  * @author Moon
  * @date 2018-03-30
  */
+@Instantiate(name = "User_Helper")
 public class UserHelper implements ActorService {
 
-	@ActorRequire
+	@ActorRequire(name = "Dao")
 	Dao dao;
 
-	@ActorRequire
+	@ActorRequire(name = "Session_Manager")
 	SessionManager sessionManager;
 
-	@ActorRequire
+	@ActorRequire(name = "Token_Helper")
 	TokenHelper tokenHelper;
-
-	@ActorRequire
-	WalletHelper walletHelper;
 	
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;

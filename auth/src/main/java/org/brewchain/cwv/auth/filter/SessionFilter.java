@@ -70,11 +70,11 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 
 	public final static boolean ischeckrole = false; // 测试使用，是否走url验证,可配置，临时添加到代码内
 
-	@ActorRequire
+	@ActorRequire(name="Session_Manager")
 	SessionManager sm;
-	@ActorRequire
+	@ActorRequire(name="Dao")
 	Dao dao;
-	@ActorRequire
+	@ActorRequire(name="Filter_Helper")
 	FilterHelper filterHelper;
 
 	@Override

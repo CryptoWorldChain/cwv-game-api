@@ -47,7 +47,7 @@ import onight.tfw.outils.serialize.UUIDGenerator;
 @Data
 public class SmsService extends SessionModules<PBSmsDeal> {
 
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos sysDaos;
 
 	@ActorRequire(name = "http", scope = "global")

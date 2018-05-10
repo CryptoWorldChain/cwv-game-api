@@ -33,7 +33,7 @@ public class GameCountryService extends SessionModules<PBGameCountry> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 	
 	@Override
@@ -72,7 +72,7 @@ public class GameCountryService extends SessionModules<PBGameCountry> {
 		criteria.andStatusEqualTo("1").andIsDisplayEqualTo("1");
 		
 		if(StringUtils.isNotBlank(pb.getShotName())){
-			criteria.andCountryNameEqualTo(pb.getShotName());
+			criteria.andCountryNameLike("%"+pb.getShotName()+"%");
 		}
 		
 		if(StringUtils.isNotBlank(pb.getIsPage())&&"1".equals(pb.getIsPage())){

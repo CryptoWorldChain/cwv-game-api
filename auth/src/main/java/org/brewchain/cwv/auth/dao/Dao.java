@@ -1,5 +1,6 @@
 package org.brewchain.cwv.auth.dao;
 
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshToken;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
@@ -18,6 +19,7 @@ import onight.tfw.ojpa.api.annotations.StoreDAO;
 @Provides(specifications = { IJPAClient.class, ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
+@Instantiate(name = "Dao")
 public class Dao implements ActorService, IJPAClient {
 	
 	@StoreDAO

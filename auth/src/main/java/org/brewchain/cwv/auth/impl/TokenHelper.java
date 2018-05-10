@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.dao.Dao;
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
@@ -42,12 +43,13 @@ import onight.tfw.outils.serialize.UUIDGenerator;
  * @author Moon
  * @date 2018-03-30
  */
+@Instantiate(name = "Token_Helper")
 public class TokenHelper implements ActorService {
 
-	@ActorRequire
+	@ActorRequire(name = "Dao")
 	Dao dao;
 
-	@ActorRequire
+	@ActorRequire(name = "Session_Manager")
 	SessionManager sessionManager;
 
 	// 防止相互引用死循环

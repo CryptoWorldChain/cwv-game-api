@@ -29,7 +29,7 @@ public class SetTxPwdService extends SessionModules<PSLogin> {
 //	SessionManager sm;
 	
 
-	@ActorRequire
+	@ActorRequire(name="User_Helper")
 	UserHelper userHelper;	
 	@Override
 	public String[] getCmds() {

@@ -27,10 +27,10 @@ public class PropertyBidDetailService extends SessionModules<PSCommonBid> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
-	@ActorRequire
+	@ActorRequire(name="Daos")
 	Daos daos;
 		
-	@ActorRequire
+	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;
 	
 	@Override
