@@ -14,9 +14,16 @@ subprojects {
 	
 	apply plugin: 'eclipse'
 	apply plugin: 'zippo'
+
     if(project.name=='game') {
     	dependencies {
  			compile ("org.brewchain.cwv:org.brewchain.cwv.auth:1.0.3")
+		}
+    }
+    
+    if(project.name=='auth') {
+    	dependencies {
+ 			compile ("org.brewchain.cwv:org.brewchain.cwv.game:1.0.3")
 		}
     }
     
@@ -29,7 +36,7 @@ subprojects {
 	buildscript {
 	
 		dependencies { 
-			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.11" 
+			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.14" 
 		 }
 	}
 	
@@ -37,7 +44,7 @@ subprojects {
 	dependencies {
 		compile ("org.fc.zippo:org.fc.zippo.oapi:3.3.0")
 
-		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.11")
+		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.14")
 		// compile group: 'commons-net', name: 'commons-net', version: '3.5'
 		
 	}

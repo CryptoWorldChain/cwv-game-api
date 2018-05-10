@@ -1,5 +1,6 @@
 package org.brewchain.cwv.game.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -24,5 +25,12 @@ public class DateUtil {
 		return new SimpleDateFormat(DAY_TIME).format(day);
 	}
 	
+	public static Date getDate(String date) throws ParseException{
+		return new SimpleDateFormat(DAY).parse(date);
+	}
+	
+	public static Date getDateTime(String date) throws ParseException{
+		return new SimpleDateFormat(DAY_TIME).parse(date);
+	}
 	
 }

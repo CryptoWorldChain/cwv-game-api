@@ -59,6 +59,8 @@ message UserInfo
 	string nick_name = 9; //昵称
 	string phone = 10; //手机号
 	string image_url = 11; //用户头像
+	string trade_pwd_set = 12; //设置交易密码：0未设置 1设置
+	string account_balance = 13; //账户余额 CWB
 }
 
 message PSSendMsgCode //SMC   短信验证码请求信息

@@ -30,6 +30,7 @@ import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUserExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
+import org.brewchain.cwv.game.helper.WalletHelper;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
@@ -69,6 +70,9 @@ public class UserHelper implements ActorService {
 	@ActorRequire
 	TokenHelper tokenHelper;
 
+	@ActorRequire
+	WalletHelper walletHelper;
+	
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
 
@@ -150,7 +154,7 @@ public class UserHelper implements ActorService {
 
 		// 2 初始化用户数据（包含默认值）
 		authUser = new CWVAuthUser();
-		authUser.setNickName(pb.getNickName());
+		authUser.setNickName(StringUtils.isEmpty(pb.getNickName())? pb.getUserName() : pb.getNickName() );
 		authUser.setUserName(pb.getUserName());
 		authUser.setCountryId(pb.getCountryId());
 		// if(pb.getPhoneCode() !=null && pb.getPhoneCode().equals(""))
@@ -169,6 +173,8 @@ public class UserHelper implements ActorService {
 		// 3 保存用户
 
 		// 创建账户 TODO
+		
+		
 		this.dao.userDao.insert(authUser);
 		ret.setRetCode(ReturnCodeMsgEnum.REG_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_SUCCESS.getRetMsg());
 
@@ -225,6 +231,12 @@ public class UserHelper implements ActorService {
 		userInfo.setPhone(authUser.getPhone());
 		// TODO 图片服务器返回URL 或者返回头像接口
 		userInfo.setImageUrl("/cwv/usr/pbghi.do");
+		
+		//查询交易密码
+		CWVUserTradePwd tradePwd = getTradePwd(authUser.getUserId());
+		userInfo.setTradePwdSet(tradePwd == null ? "0" : "1" );
+		//查询余额
+		userInfo.setAccountBalance("0");
 		ret.setUserInfo(userInfo);
 		ret.setExpiresIn(Constant.JWT_TTL / 1000l);
 		ret.setRetCode(ReturnCodeMsgEnum.LIN_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.LIN_SUCCESS.getRetMsg());

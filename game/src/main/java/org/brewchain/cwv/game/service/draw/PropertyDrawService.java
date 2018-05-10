@@ -1,12 +1,15 @@
-package org.brewchain.cwv.game.service.user;
+package org.brewchain.cwv.game.service.draw;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
-import org.brewchain.cwv.game.helper.WalletHelper;
-import org.brewchain.cwv.service.game.User.PRetWalletRecord;
-import org.brewchain.cwv.service.game.User.PSWalletRecord;
-import org.brewchain.cwv.service.game.User.PUserCommand;
-import org.brewchain.cwv.service.game.User.PUserModule;
+import org.brewchain.cwv.game.helper.PropertyHelper;
+import org.brewchain.cwv.service.game.Draw.PDrawCommand;
+import org.brewchain.cwv.service.game.Draw.PDrawModule;
+import org.brewchain.cwv.service.game.Draw.PRetPropertyDraw;
+import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord;
+import org.brewchain.cwv.service.game.Draw.PSCommonDraw;
+import org.brewchain.cwv.service.game.Draw.PSPropertyDrawRecord;
+import org.brewchain.cwv.service.game.Game.PRetCommon;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +23,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class WalletRecordService extends SessionModules<PSWalletRecord> {
+public class PropertyDrawService extends SessionModules<PSCommonDraw> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -31,29 +34,29 @@ public class WalletRecordService extends SessionModules<PSWalletRecord> {
 	Daos daos;
 		
 	@ActorRequire
-	WalletHelper walletHelper;
+	PropertyHelper propertyHelper;
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PUserCommand.WRS.name() };
+		return new String[] { PDrawCommand.PDS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PUserModule.GUA.name();
+		return PDrawModule.GDA.name();
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSWalletRecord pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSCommonDraw pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetWalletRecord.Builder ret = PRetWalletRecord.newBuilder();
+		PRetPropertyDraw.Builder ret = PRetPropertyDraw.newBuilder();
 		try{
-			walletHelper.walletRecord(pack, pb, ret);
+			propertyHelper.drawProperty(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			log.warn("WalletAccountService waletAccount  error......",e);
+			log.warn("GetPropertyDrawRecordService getPropertyDrawRecord  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

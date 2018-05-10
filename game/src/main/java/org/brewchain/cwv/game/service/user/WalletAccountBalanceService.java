@@ -3,8 +3,8 @@ package org.brewchain.cwv.game.service.user;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.WalletHelper;
-import org.brewchain.cwv.service.game.User.PRetWalletRecord;
-import org.brewchain.cwv.service.game.User.PSWalletRecord;
+import org.brewchain.cwv.service.game.User.PRetWalletAccountBalance;
+import org.brewchain.cwv.service.game.User.PSWalletAccountBalance;
 import org.brewchain.cwv.service.game.User.PUserCommand;
 import org.brewchain.cwv.service.game.User.PUserModule;
 
@@ -20,7 +20,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class WalletRecordService extends SessionModules<PSWalletRecord> {
+public class WalletAccountBalanceService extends SessionModules<PSWalletAccountBalance> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -35,7 +35,7 @@ public class WalletRecordService extends SessionModules<PSWalletRecord> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PUserCommand.WRS.name() };
+		return new String[] { PUserCommand.WAB.name() };
 	}
 
 	@Override
@@ -44,16 +44,16 @@ public class WalletRecordService extends SessionModules<PSWalletRecord> {
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSWalletRecord pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSWalletAccountBalance pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetWalletRecord.Builder ret = PRetWalletRecord.newBuilder();
+		PRetWalletAccountBalance.Builder ret = PRetWalletAccountBalance.newBuilder();
 		try{
-			walletHelper.walletRecord(pack, pb, ret);
+			walletHelper.walletAccountBalance(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			log.warn("WalletAccountService waletAccount  error......",e);
+			log.warn("WalletAccountBalanceService waletAccount  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

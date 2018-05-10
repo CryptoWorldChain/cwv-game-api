@@ -3,14 +3,18 @@ package org.brewchain.cwv.game.dao;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCity;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameDic;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +61,18 @@ public class Daos implements ActorService, IJPAClient{
 	
 	@StoreDAO
 	public OJpaDAO<CWVUserWallet> walletDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVUserPropertyIncome> incomeDao;
+
+	@StoreDAO
+	public OJpaDAO<CWVUserWalletTopup> topupDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVGameDic> dicDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVSysSetting> settingDao;
 	
 	
 	@ActorRequire

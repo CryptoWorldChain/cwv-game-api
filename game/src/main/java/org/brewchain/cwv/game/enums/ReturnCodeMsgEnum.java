@@ -7,13 +7,39 @@ package org.brewchain.cwv.game.enums;
  */
 public enum ReturnCodeMsgEnum {
 	
+	/**
+	 * 领取房产收益
+	 */
+	PIC_SUCCESS("01","领取成功"),
+	PIC_ERROR_ID("02","收益ID错误"),
+	PIC_ERROR_STATUS("03","收益已领取，无法重复领取"),
+	
 
 	/**
 	 * 查询钱包账户列表
 	 */
+	PDS_SUCCESS("01","抽奖成功"),
+	PDS_ERROR_DRAW_COUNT("02","暂无抽奖次数"),
+	
+	/**
+	 * 抽奖房产
+	 */
 	WAS_SUCCESS("01","查询成功"),
 	WAS_ERROR_ACCOUNT("02","账户查询失败"),
 	
+	/**
+	 * 创建房产竞拍
+	 */
+	CPB_SUCCESS("01","创建成功"),
+	CPB_ERROR_ID("02","房产ID错误"),
+	CPB_ERROR_PROPERTY("03","房产暂不支持竞拍"),
+	CPB_ERROR_USER("04","用户暂无权限"),
+	
+	/**
+	 * 查询账户余额
+	 */
+	WAB_SUCCESS("01","查询成功"),
+	WAB_ERROR_TYPE("02","账户类型错误"),
 	/**
 	 * 竞拍详情
 	 */
@@ -36,7 +62,7 @@ public enum ReturnCodeMsgEnum {
 	APS_SUCCESS("01","竞价成功"),
 	APS_VALIDATE_ID("02","竞拍房产ID错误"),
 	APS_VALIDATE_PRICE("03","价格错误"),
-	APS_VALIDATE_PRICE_LADDER("04","竞拍价格必须是增加量的倍数"),
+	APS_VALIDATE_PRICE_LADDER("04","竞拍价格必须是单位增加量的倍数"),
 	APS_ERROR_PRICE("05","竞价必须高于当前竞拍价"),
 	APS_ERROR_ACCOUNT("06","账户余额不足"),
 	APS_ERROR_STATUS_0("07","竞拍未开始"),

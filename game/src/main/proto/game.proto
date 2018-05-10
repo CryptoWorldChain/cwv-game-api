@@ -142,7 +142,8 @@ message Bid //GPS 获取游戏房产
 
 message PSCommon //公共入参
 {
-
+	string page_index = 1;//页码
+	string page_size = 2;//数量
 }
 
 message PRetCommon //公共返回信息 REG
@@ -165,6 +166,10 @@ message PRetGameIntroduction //GIS
 {
 	string ret_code = 1; //错误代码
 	string ret_msg = 2; //提示信息
-	string title = 3;//标题
-	string content = 4;//内容
+	message Introduction 
+	{
+		string title = 3;//标题
+		string content = 4;//内容
+	}
+	repeated Introduction introdcution = 3;//游戏说明
 }

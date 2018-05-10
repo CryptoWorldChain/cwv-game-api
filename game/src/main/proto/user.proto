@@ -11,17 +11,19 @@ enum PUserCommand {
 	PIS = 1; //查询房产收益
 	
 	WRS = 2; //交易记录-WalletRecordService 
-	GSS = 3; //分享游戏-ShareGameService
+	GSS = 3; //分享游戏-GameShareService
+	WAB = 5; //查询账户余额
 	WIS = 6; //获取钱包账户信息-WalletInfoService
-	WTU = 7; //钱包充值 - WalletTopUpService
-	
+	ATS = 7; //钱包充值 - AccountTopupService
+	ATR = 8; //钱包充值记录 - AccountTopupRecordService
+	PIC = 9; //房产收益领取
 };
 
 message PSWalletAccount	 //WAS
 {
 	string coin_type = 1;//币种类型
-	int32 page_index = 4;//页索引
-	int32 page_size = 5;//页大小
+	string page_index = 4;//页索引
+	string page_size = 5;//页大小
 }
 
 message PRetWalletAccount //WAS
@@ -46,6 +48,7 @@ message PRetWalletInfo
 	double total_value_CNY = 3; //总额
 	double cwb_amount = 4;//CWB数
 	string cwb_topup = 5;//CWB充值
+	int32 draw_count = 6;//抽奖次数
 }
 
 message PRetWalletRecord{
@@ -58,12 +61,13 @@ message PRetWalletRecord{
 		string amount = 4; //金额 
 	}
 	repeated WalletRecord record = 3;
+	PageOut page = 4; //分页对象
 }
 
 message PSWalletRecord	 //PES
 {
-	int32 page_index = 4;//页索引
-	int32 page_size = 5;//页大小
+	string page_index = 4;//页索引
+	string page_size = 5;//页大小
 }
 
 message PSPropertyIncome
@@ -72,24 +76,39 @@ message PSPropertyIncome
 	
 }
 
+message PSPropertyIncomeClaim
+{
+	string income_id = 1;//收益ID
+	
+}
+
 message PRetPropertyIncome	 //PIS
 {
 	string ret_code = 1;
 	string ret_msg = 2;
-	message PropertyAuction
+	string income_total = 3; //累计派息收益
+	string next_income_time = 4;//下次派息时间
+	string property_type = 5;//房产类型
+	message PropertyIncome
 	{
-		string auction_id = 1; //交易ID
-		string bid_id = 2; //交易ID
-		string amount = 3; //金额
-		string nick_name = 4; // 昵称
-		string bid_price = 6; // 出价
-		PRetProperty property = 7; //房产
+		string income_id = 1; //收益ID
+		string coin_type = 2; //币种类型
+		string amount = 3; //收益金额
 	}
-}
-
-message PRetGameShare //GDS
-{
-	string url = 2;//URL
+	PropertyIncome income = 6; //未领取收益
+	message PropertyInfo 
+	{
+		string description = 1;//收益描述
+		string total_value = 2;//房产总价值（普通房产）
+		message SubTypeInfo
+		{
+			string property_sub_type =2; //房产子类型
+			string count = 3; //数量
+		} 
+		repeated SubTypeInfo subTypeInfo = 3; //子类型信息
+		
+	}
+	PropertyInfo propertyInfo = 7; //房产
 }
 
 message PRetGameDescription //GDS
@@ -102,6 +121,46 @@ message PSCommonWallet{
 	string walet_id = 1;//账户ID
 }
 
+message PSWalletAccountBalance{ //WAB
+	string coin_type = 1;//币种类型
+}
 
+message PRetWalletAccountBalance{ //WAB
+	string ret_code = 1;
+	string ret_msg = 2;
+	double balance = 3;//账户余额
+}
 
+message PSAccountTopup{ //ATS
+	string coin_type = 1; //账户类型
+	string amount = 2; //账户金额
+}
+
+message PRetAccountTopup{ //ATS
+	string ret_code = 1;
+	string ret_msg = 2;
+	double amount = 3;//充值金额
+}
+
+message PRetAccountTopupRecord{ //ATR
+	string ret_code = 1;
+	string ret_msg = 2; 
+	message TopupRecord
+	{
+		
+		double amount = 1; //充值金额
+		string topup_time = 2; //充值时间
+		string status = 3; //充值状态 
+		string coin_type = 4; //币种类型
+	}
+	
+	PageOut page = 3; //页码 
+}
+
+message PRetGameShare //GSS
+{
+	string ret_code = 1;
+	string ret_msg = 2;
+	string url = 3;//分享链接
+}
 

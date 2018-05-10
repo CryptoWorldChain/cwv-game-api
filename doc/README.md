@@ -320,7 +320,9 @@ ret_msg|string|状态说明|
 	        "uid": "1",
 	        "nick_name": "kael",
 	        "phone": "13161531208",
-	        "image_url": "/cwv/user/pbghi.do"
+	        "image_url": "/cwv/user/pbghi.do",
+	        "trade_pwd_set": "1",
+	        "account_balance": "10000.00"
 	    }
 	}
 

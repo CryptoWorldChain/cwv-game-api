@@ -27,7 +27,7 @@ public class PageUtil {
 		this.limit = Integer.parseInt(StringUtils.isEmpty(pageSize)?"10":pageSize);
 		int pageIndexInt = Integer.parseInt(StringUtils.isEmpty(pageIndex)?"1": pageIndex);
 		this.offset = pageIndexInt==0? 0 : (pageIndexInt-1) * this.limit  ;
-		pageOut.setPageIndex(StringUtils.isEmpty(pageIndex)?"1": pageIndex);
+		pageOut.setPageIndex(pageIndexInt + "");
 		pageOut.setPageSize(StringUtils.isEmpty(pageSize)?"10": pageSize);
 	}
 	
@@ -37,8 +37,9 @@ public class PageUtil {
 			throw new IllegalArgumentException("分页参数错误");
 		}
 		this.limit = pageSize == 0? this.limit: pageSize;
-		this.offset = pageIndex==0? 0 : (pageIndex-1) * this.limit  ;
-		pageOut.setPageIndex(pageIndex+"");
+		int pageIndexInt = pageIndex==0 ? 1: pageIndex;
+		this.offset = (pageIndexInt-1) * this.limit  ;
+		pageOut.setPageIndex(pageIndexInt +"");
 		pageOut.setPageSize(pageSize == 0? "10": pageSize+"");
 	}
 	

@@ -23,8 +23,8 @@ message PSPropertyExchange	 //PES UPE
 	string city_id = 4; // 城市
 	string property_type = 5; //房产类型 
 	string property_name = 6;//房产名称
-	int32 page_index = 7;//页索引
-	int32 page_size = 8;//页大小
+	string page_index = 7;//页索引
+	string page_size = 8;//页大小
 }
 
 message PRetPropertyExchange //PES UPE
@@ -56,6 +56,7 @@ message ExchangeProperty
 	string income_remark = 10;//房产说明
     //string appearance_type = 11;//外观
     double income = 12;//收益
+    string image_url = 13;//房产说明
 }
 
 message PSBuyProperty{
