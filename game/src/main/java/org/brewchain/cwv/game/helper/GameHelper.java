@@ -29,7 +29,7 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 public class GameHelper implements ActorService {
 
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 
 	public void gameIntroduction(PSCommon pb, PRetGameIntroduction.Builder ret) {
 		// TODO Auto-generated method stub

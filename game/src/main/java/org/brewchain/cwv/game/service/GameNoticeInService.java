@@ -34,7 +34,7 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;

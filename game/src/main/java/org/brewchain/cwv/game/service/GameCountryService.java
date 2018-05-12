@@ -34,7 +34,7 @@ public class GameCountryService extends SessionModules<PBGameCountry> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@Override
 	public String[] getCmds() {
@@ -80,10 +80,10 @@ public class GameCountryService extends SessionModules<PBGameCountry> {
 			countryExample.setLimit(page.getLimit());
 			countryExample.setOffset(page.getOffset());
 			
-			ret.setTotalCount(daos.gameCountryDao.countByExample(countryExample)+"");
+			ret.setTotalCount(dao.gameCountryDao.countByExample(countryExample)+"");
 		}
 		
-		List<Object> countrys = daos.gameCountryDao.selectByExample(countryExample);
+		List<Object> countrys = dao.gameCountryDao.selectByExample(countryExample);
 		for(Object coun : countrys){
 			CWVGameCountry country = (CWVGameCountry) coun;
 			PRetCountry.Builder pCountry = PRetCountry.newBuilder();

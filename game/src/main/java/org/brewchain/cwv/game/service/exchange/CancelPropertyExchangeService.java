@@ -5,8 +5,11 @@ import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.cwv.service.game.Exchange.PExchangeCommand;
 import org.brewchain.cwv.service.game.Exchange.PExchangeModule;
-import org.brewchain.cwv.service.game.Exchange.PRetSellProperty;
-import org.brewchain.cwv.service.game.Exchange.PSSellProperty;
+import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
+import org.brewchain.cwv.service.game.Exchange.PSBuyProperty;
+import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
+import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
+import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PRetCommon.Builder;
 
 import lombok.Data;
@@ -21,7 +24,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class SellPropertyService extends SessionModules<PSSellProperty> {
+public class CancelPropertyExchangeService extends SessionModules<PSCommonExchange> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -36,7 +39,7 @@ public class SellPropertyService extends SessionModules<PSSellProperty> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PExchangeCommand.SPS.name() };
+		return new String[] { PExchangeCommand.CPE.name() };
 	}
 
 	@Override
@@ -45,18 +48,24 @@ public class SellPropertyService extends SessionModules<PSSellProperty> {
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSSellProperty pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSCommonExchange pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetSellProperty.Builder ret = PRetSellProperty.newBuilder();
+		PRetCommon.Builder ret = PRetCommon.newBuilder();
 		try{
-			propertyHelper.sellProperty(pack, pb, ret);
+			propertyHelper.cancelExchange(pack, pb, ret);
+//			buyProperty(pack,pb,ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			log.warn("SellPropertyService sellProperty  error......",e);
+			log.warn("BuyPropertyService buyProperty  error......",e);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
+	}
+
+	private void buyProperty(FramePacket pack, PSBuyProperty pb, Builder ret) {
+		ret.setRetCode(ReturnCodeMsgEnum.BPS_SUCCESS.getRetCode());
+		ret.setRetMsg(ReturnCodeMsgEnum.BPS_SUCCESS.getRetMsg());
 	}
 }

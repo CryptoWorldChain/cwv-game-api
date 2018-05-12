@@ -28,7 +28,7 @@ public class GameShareService extends SessionModules<PSCommon> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 		
 	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;

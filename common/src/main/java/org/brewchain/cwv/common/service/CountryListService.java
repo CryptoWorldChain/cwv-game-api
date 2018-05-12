@@ -5,7 +5,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.brewchain.cwv.common.dao.Daos;
+import org.brewchain.cwv.common.dao.SysDaos;
 import org.brewchain.cwv.common.service.Country.PBCountryList;
 import org.brewchain.cwv.common.service.Country.PRetCountryList;
 import org.brewchain.cwv.common.service.Country.PRetCountryList.Countries;
@@ -35,8 +35,8 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @Data
 public class CountryListService extends SessionModules<PBCountryList> {
 
-	@ActorRequire(name="Daos")
-	Daos sysDaos;
+	@ActorRequire(name="Sys_Daos")
+	SysDaos sysDaos;
 
 	@Override
 	public String[] getCmds() {

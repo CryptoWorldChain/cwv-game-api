@@ -28,7 +28,7 @@ public class WalletAccountBalanceService extends SessionModules<PSWalletAccountB
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 		
 	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;

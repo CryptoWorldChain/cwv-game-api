@@ -29,7 +29,7 @@ public class AccountTopUpService extends SessionModules<PSAccountTopup> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 		
 	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;

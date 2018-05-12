@@ -41,12 +41,20 @@ public enum ReturnCodeMsgEnum {
 	 * 修改密码
 	 */
 	SPS_SUCCESS("01","修改密码成功"),
+	SPS_ERROR_PWD_OLD("02","旧密码错误"),
+	SPS_DUPLICATE_PWD("03","新密码与原密码相同"),
+	SPS_ERROR_PHONE_CODE("04","短信验证码无效"),
+	SPS_ERROR_TIMES("05","次数超限"),
 	SPS_EXCEPTION("99","未知异常"),
 	
 	/**
 	 * 设置交易密码
 	 */
-	STP_SUCCESS("01","设置交易密码成功"),
+	STP_SUCCESS("01","成功"),
+	STP_ERROR_PWD_OLD("02","旧交易密码错误"),
+	STP_DUPLICATE_PWD("03","新密码与原密码相同"),
+	STP_ERROR_PHONE_CODE("04","短信验证码无效"),
+	STP_ERROR_TIMES("05","次数超限"),
 	STP_EXCEPTION("99","未知异常"),
 	
 	/**

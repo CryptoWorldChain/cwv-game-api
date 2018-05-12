@@ -28,7 +28,7 @@ public class GamePropertyChargeService extends SessionModules<PSCommon> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@Override
 	public String[] getCmds() {

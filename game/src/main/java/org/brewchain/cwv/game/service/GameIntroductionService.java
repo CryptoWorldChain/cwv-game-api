@@ -40,7 +40,7 @@ public class GameIntroductionService extends SessionModules<PSCommon> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@ActorRequire(name="Game_Helper")
 	GameHelper gameHelper;

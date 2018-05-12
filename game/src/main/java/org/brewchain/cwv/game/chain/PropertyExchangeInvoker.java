@@ -52,6 +52,12 @@ public class PropertyExchangeInvoker implements ActorService {
 		PRetCommon.Builder ret = PRetCommon.newBuilder();
 		return ret.setRetCode("01").setRetMsg("成功");
 	}
+
+
+	public PRetCommon.Builder cancelExchange(String address, String exchangeId) {
+		PRetCommon.Builder ret = PRetCommon.newBuilder();
+		return ret.setRetCode("01").setRetMsg("成功");
+	}
 	
 	
 }

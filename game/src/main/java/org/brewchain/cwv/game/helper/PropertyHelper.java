@@ -65,6 +65,7 @@ import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.ExchangeInfo;
 import org.brewchain.cwv.service.game.Exchange.PRetSellProperty;
 import org.brewchain.cwv.service.game.Exchange.PSBuyProperty;
+import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
 import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PSSellProperty;
 import org.brewchain.cwv.service.game.Game.PBGameProperty;
@@ -102,8 +103,8 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @Instantiate(name="Property_Helper")
 public class PropertyHelper implements ActorService {
 
-	@ActorRequire(name="Daos")
-	Daos daos;
+	@ActorRequire(name="Daos", scope = "global")
+	Daos dao;
 
 	@ActorRequire(name="Wallet_Helper")
 	WalletHelper walletHelper;
@@ -198,9 +199,9 @@ public class PropertyHelper implements ActorService {
 			else if (pb.getPriceType().equals("1"))
 				cwvMarketExchangeExample.setOrderByClause(" income ");
 		}
-		int count = daos.exchangeDao.countByExample(cwvMarketExchangeExample);
+		int count = dao.exchangeDao.countByExample(cwvMarketExchangeExample);
 		page.setTotalCount(count);
-		List<Object> list = daos.exchangeDao.selectByExample(cwvMarketExchangeExample);
+		List<Object> list = dao.exchangeDao.selectByExample(cwvMarketExchangeExample);
 
 		for (Object o : list) {
 			CWVMarketExchange exchange = (CWVMarketExchange) o;
@@ -376,11 +377,11 @@ public class PropertyHelper implements ActorService {
 	private List<Map<String, Object>> executeSqlRet(String sql, PageUtil pageUtil) {
 		String sqlCount = sql.substring(sql.indexOf("from"));
 		sqlCount = "select count(1) as count " + sqlCount;
-		List<Map<String, Object>> listCount = daos.provider.getCommonSqlMapper().executeSql(sqlCount);
+		List<Map<String, Object>> listCount = dao.provider.getCommonSqlMapper().executeSql(sqlCount);
 		String count = listCount.get(0).get("count").toString();
 		pageUtil.setTotalCount(Integer.parseInt(count));
 
-		return daos.provider.getCommonSqlMapper().executeSql(sql);
+		return dao.provider.getCommonSqlMapper().executeSql(sql);
 	}
 
 	private String propertyExchangeSql(StringBuffer sb, PSPropertyExchange pb, String userId) {
@@ -562,7 +563,7 @@ public class PropertyHelper implements ActorService {
 		// 查询交易状态
 		CWVMarketExchange exchangeRecord = new CWVMarketExchange();
 		exchangeRecord.setExchangeId(Integer.parseInt(pb.getExchangeId()));
-		final CWVMarketExchange exchange = daos.exchangeDao.selectByPrimaryKey(exchangeRecord);
+		final CWVMarketExchange exchange = dao.exchangeDao.selectByPrimaryKey(exchangeRecord);
 		if (exchange == null) {
 			ret.setRetCode(ReturnCodeMsgEnum.BPS_ERROR_ID.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.BPS_ERROR_ID.getRetMsg());
@@ -650,7 +651,7 @@ public class PropertyHelper implements ActorService {
 		recordSell.setUserId(exchange.getCreateUser());
 		// 统一事务处理 暂时没有代码
 
-		daos.exchangeDao.doInTransaction(new TransactionExecutor() {
+		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
 
 			@Override
 			public Object doInTransaction() {
@@ -658,19 +659,19 @@ public class PropertyHelper implements ActorService {
 				// 链上操作记录Log
 
 				// 更新交易
-				daos.exchangeDao.updateByPrimaryKeySelective(exchange);
+				dao.exchangeDao.updateByPrimaryKeySelective(exchange);
 				// 更新房产
-				daos.gamePropertyDao.updateByPrimaryKeySelective(property);
+				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
 
 				// 用户交易
 
 				// 账户余额
-				daos.walletDao.updateByPrimaryKeySelective(userWalletBuyer);
-				daos.walletDao.updateByPrimaryKeySelective(userWalletSeller);
+				dao.walletDao.updateByPrimaryKeySelective(userWalletBuyer);
+				dao.walletDao.updateByPrimaryKeySelective(userWalletSeller);
 
 				// 账户交易记录
-				daos.userTransactionRecordDao.insert(recordBuy);
-				daos.userTransactionRecordDao.insert(recordSell);
+				dao.userTransactionRecordDao.insert(recordBuy);
+				dao.userTransactionRecordDao.insert(recordSell);
 				return null;
 			}
 
@@ -727,7 +728,7 @@ public class PropertyHelper implements ActorService {
 		// 查询该用户房产
 		CWVGameProperty gameProperty = new CWVGameProperty();
 		gameProperty.setPropertyId(Integer.parseInt(pb.getPropetyId()));
-		final CWVGameProperty property = daos.gamePropertyDao.selectByPrimaryKey(gameProperty);
+		final CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 		if (property == null || !property.getUserId().equals(user.getUserId())) {// 当前用户
 			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_ID.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_ID.getRetMsg());
@@ -770,10 +771,10 @@ public class PropertyHelper implements ActorService {
 		// 房产
 		CWVGameMap map = new CWVGameMap();
 		map.setMapId(property.getGameMapId());
-		map = daos.gameMapDao.selectByPrimaryKey(map);
+		map = dao.gameMapDao.selectByPrimaryKey(map);
 		CWVGameCity city = new CWVGameCity();
 		city.setCityId(map.getGameCityId());
-		city = daos.gameCityDao.selectByPrimaryKey(city);
+		city = dao.gameCityDao.selectByPrimaryKey(city);
 
 		exchange.setCountryId(city.getGameCountryId());
 		exchange.setMapId(map.getMapId());
@@ -788,14 +789,14 @@ public class PropertyHelper implements ActorService {
 		exchange.setLastPrice(property.getLastPrice());
 		// exchange.setImageUrl(property.getImageUrl());
 		property.setPropertyStatus("2");// 出售中
-		daos.exchangeDao.doInTransaction(new TransactionExecutor() {
+		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
 
 			@Override
 			public Object doInTransaction() {
 				// 更新交易
-				daos.exchangeDao.insert(exchange);
+				dao.exchangeDao.insert(exchange);
 				// 更新房产
-				daos.gamePropertyDao.updateByPrimaryKeySelective(property);
+				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
 				return null;
 			}
 		});
@@ -872,9 +873,9 @@ public class PropertyHelper implements ActorService {
 		if (StringUtils.isNotEmpty(pb.getStatus())) {
 			criteria.andStatusEqualTo(Byte.parseByte(pb.getStatus()));
 		}
-		int count = daos.bidDao.countByExample(cwvMarketBidExample);
+		int count = dao.bidDao.countByExample(cwvMarketBidExample);
 		page.setTotalCount(count);
-		List<Object> list = daos.bidDao.selectByExample(cwvMarketBidExample);
+		List<Object> list = dao.bidDao.selectByExample(cwvMarketBidExample);
 
 		for (Object o : list) {
 			CWVMarketBid bid = (CWVMarketBid) o;
@@ -993,9 +994,9 @@ public class PropertyHelper implements ActorService {
 			propertyExample.setLimit(page.getLimit());
 			propertyExample.setOffset(page.getOffset());
 
-			ret.setTotalCount(daos.gamePropertyDao.countByExample(propertyExample) + "");
+			ret.setTotalCount(dao.gamePropertyDao.countByExample(propertyExample) + "");
 		}
-		List<Object> properties = daos.gamePropertyDao.selectByExample(propertyExample);
+		List<Object> properties = dao.gamePropertyDao.selectByExample(propertyExample);
 		for (Object coun : properties) {
 			CWVGameProperty property = (CWVGameProperty) coun;
 			PRetProperty.Builder pProperty = this.getRetProperty(property);
@@ -1026,7 +1027,7 @@ public class PropertyHelper implements ActorService {
 			}
 		}
 
-		List<Object> list = daos.gamePropertyDao.selectByExample(example);
+		List<Object> list = dao.gamePropertyDao.selectByExample(example);
 
 		for (Object o : list) {
 			CWVMarketAuction auctionCWV = (CWVMarketAuction) o;
@@ -1070,7 +1071,7 @@ public class PropertyHelper implements ActorService {
 		// ID存在
 		CWVMarketBid bidNew = new CWVMarketBid();
 		bidNew.setBidId(Integer.parseInt(pb.getBidId()));
-		final CWVMarketBid bid = daos.bidDao.selectByPrimaryKey(bidNew);
+		final CWVMarketBid bid = dao.bidDao.selectByPrimaryKey(bidNew);
 		if (bid == null) {
 			ret.setRetCode(ReturnCodeMsgEnum.APS_VALIDATE_ID.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.APS_VALIDATE_ID.getRetMsg());
@@ -1126,12 +1127,12 @@ public class PropertyHelper implements ActorService {
 		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
 		example.createCriteria().andBidIdEqualTo(Integer.parseInt(pb.getBidId())).andStatusEqualTo((byte) 1)
 				.andUserIdEqualTo(user.getUserId());
-		final List<Object> list = daos.auctionDao.selectByExample(example);
+		final List<Object> list = dao.auctionDao.selectByExample(example);
 		// 账户
 		final CWVUserWallet auctionAccount = walletHelper.getUserAccount(user.getUserId(), Coin.CWB);
 
 		if (retContract.getRetCode().equals(ReturnCodeMsgEnum.APS_SUCCESS.getRetCode())) {
-			daos.bidDao.doInTransaction(new TransactionExecutor() {
+			dao.bidDao.doInTransaction(new TransactionExecutor() {
 
 				@Override
 				public Object doInTransaction() {
@@ -1154,7 +1155,7 @@ public class PropertyHelper implements ActorService {
 						recordAuction.setGainCost(gainCost);
 
 						old.setBidPrice(new BigDecimal(pb.getPrice()));
-						daos.auctionDao.updateByPrimaryKey(old);
+						dao.auctionDao.updateByPrimaryKey(old);
 
 					} else {// 新增竞拍
 						CWVMarketAuction newAuction = new CWVMarketAuction();
@@ -1163,7 +1164,7 @@ public class PropertyHelper implements ActorService {
 						newAuction.setCreateTime(new Date());
 						newAuction.setStatus((byte) 1);
 						newAuction.setUserId(user.getUserId());
-						daos.auctionDao.insert(newAuction);
+						dao.auctionDao.insert(newAuction);
 						// 账户金额
 						BigDecimal gainCost = newAuction.getBidPrice();
 						auctionAccount.setBalance(auctionAccount.getBalance().subtract(gainCost));
@@ -1178,11 +1179,11 @@ public class PropertyHelper implements ActorService {
 					bid.setBidAmount(new BigDecimal(pb.getPrice()));
 					bid.setOwner(user.getUserId());
 					bid.setLastUpdateTime(new Date());
-					daos.bidDao.updateByPrimaryKeySelective(bid);
+					dao.bidDao.updateByPrimaryKeySelective(bid);
 					// 更新账户金额
-					daos.walletDao.updateByPrimaryKeySelective(auctionAccount);
+					dao.walletDao.updateByPrimaryKeySelective(auctionAccount);
 					// 插入钱包操作记录
-					daos.userTransactionRecordDao.insert(recordAuction);
+					dao.userTransactionRecordDao.insert(recordAuction);
 					return null;
 				}
 			});
@@ -1208,7 +1209,7 @@ public class PropertyHelper implements ActorService {
 
 		CWVMarketDrawExample example = new CWVMarketDrawExample();
 		example.createCriteria().andUserIdEqualTo(1);//
-		List<Object> list = daos.drawDao.selectByExample(example);
+		List<Object> list = dao.drawDao.selectByExample(example);
 		for (Object o : list) {
 			CWVMarketDraw draw = (CWVMarketDraw) o;
 			PropertyDraw.Builder drawRet = PropertyDraw.newBuilder();
@@ -1252,20 +1253,20 @@ public class PropertyHelper implements ActorService {
 		gameProperty.setPropertyStatus("0");
 		// 更新抽奖次数
 		wallet.setDrawCount(wallet.getDrawCount() - 1);
-		daos.drawDao.doInTransaction(new TransactionExecutor() {
+		dao.drawDao.doInTransaction(new TransactionExecutor() {
 
 			@Override
 			public Object doInTransaction() {
 				// 更新房产信息
-				daos.gamePropertyDao.updateByPrimaryKeySelective(gameProperty);
+				dao.gamePropertyDao.updateByPrimaryKeySelective(gameProperty);
 				// 更新抽奖次数
-				daos.walletDao.updateByPrimaryKeySelective(wallet);
+				dao.walletDao.updateByPrimaryKeySelective(wallet);
 
 				return null;
 			}
 		});
 
-		CWVGameProperty property = daos.gamePropertyDao.selectByPrimaryKey(gameProperty);
+		CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 
 		DrawProperty.Builder drawProperty = DrawProperty.newBuilder();
 
@@ -1273,11 +1274,11 @@ public class PropertyHelper implements ActorService {
 
 		CWVGameMap map = new CWVGameMap();
 		map.setMapId(property.getGameMapId());
-		map = daos.gameMapDao.selectByPrimaryKey(map);
+		map = dao.gameMapDao.selectByPrimaryKey(map);
 
 		CWVGameCity city = new CWVGameCity();
 		city.setCityId(map.getGameCityId());
-		city = daos.gameCityDao.selectByPrimaryKey(city);
+		city = dao.gameCityDao.selectByPrimaryKey(city);
 
 		// 设置返回信息
 
@@ -1353,7 +1354,7 @@ public class PropertyHelper implements ActorService {
 		// 查询
 		CWVMarketBid bid = new CWVMarketBid();
 		bid.setBidId(Integer.parseInt(pb.getBidId()));
-		bid = daos.bidDao.selectByPrimaryKey(bid);
+		bid = dao.bidDao.selectByPrimaryKey(bid);
 		if (bid == null) {
 			ret.setRetCode(ReturnCodeMsgEnum.PBD_ERROR_ID.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.PBD_ERROR_ID.getRetMsg());
@@ -1368,15 +1369,15 @@ public class PropertyHelper implements ActorService {
 
 		CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyId(bid.getGamePropertyId());
-		property = daos.gamePropertyDao.selectByPrimaryKey(property);
+		property = dao.gamePropertyDao.selectByPrimaryKey(property);
 
 		CWVGameMap map = new CWVGameMap();
 		map.setMapId(property.getGameMapId());
-		map = daos.gameMapDao.selectByPrimaryKey(map);
+		map = dao.gameMapDao.selectByPrimaryKey(map);
 
 		CWVGameCity city = new CWVGameCity();
 		city.setCityId(map.getGameCityId());
-		city = daos.gameCityDao.selectByPrimaryKey(city);
+		city = dao.gameCityDao.selectByPrimaryKey(city);
 
 		CWVAuthUser user = userHelper.getUserById(property.getUserId());
 		// 设置返回信息
@@ -1449,7 +1450,7 @@ public class PropertyHelper implements ActorService {
 		// 查询
 		CWVMarketBid bid = new CWVMarketBid();
 		bid.setBidId(Integer.parseInt(pb.getBidId()));
-		bid = daos.bidDao.selectByPrimaryKey(bid);
+		bid = dao.bidDao.selectByPrimaryKey(bid);
 		if (bid == null) {
 			ret.setRetCode(ReturnCodeMsgEnum.PBN_ERROR_ID.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.PBN_ERROR_ID.getRetMsg());
@@ -1464,22 +1465,22 @@ public class PropertyHelper implements ActorService {
 
 		CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyId(bid.getGamePropertyId());
-		property = daos.gamePropertyDao.selectByPrimaryKey(property);
+		property = dao.gamePropertyDao.selectByPrimaryKey(property);
 
 		CWVGameMap map = new CWVGameMap();
 		map.setMapId(property.getGameMapId());
-		map = daos.gameMapDao.selectByPrimaryKey(map);
+		map = dao.gameMapDao.selectByPrimaryKey(map);
 
 		CWVGameCity city = new CWVGameCity();
 		city.setCityId(map.getGameCityId());
-		city = daos.gameCityDao.selectByPrimaryKey(city);
+		city = dao.gameCityDao.selectByPrimaryKey(city);
 
 		CWVAuthUser user = userHelper.getUserById(property.getUserId());
 
 		CWVMarketAuctionExample auctionExample = new CWVMarketAuctionExample();
 		auctionExample.createCriteria().andBidIdEqualTo(bid.getBidId());
 		auctionExample.setOrderByClause(" bid_price desc ");
-		List<Object> listAuction = daos.auctionDao.selectByExample(auctionExample);
+		List<Object> listAuction = dao.auctionDao.selectByExample(auctionExample);
 		if (listAuction != null && !listAuction.isEmpty()) {
 			for (Object object : listAuction) {
 				CWVMarketAuction auction = (CWVMarketAuction) object;
@@ -1563,7 +1564,7 @@ public class PropertyHelper implements ActorService {
 
 		final CWVGameProperty gameProperty = new CWVGameProperty();
 		gameProperty.setPropertyId(Integer.parseInt(pb.getPropertyId()));
-		final CWVGameProperty property = daos.gamePropertyDao.selectByPrimaryKey(gameProperty);
+		final CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 
 		if (property == null) {
 			ret.setRetCode(ReturnCodeMsgEnum.CPB_ERROR_ID.getRetCode())
@@ -1611,10 +1612,10 @@ public class PropertyHelper implements ActorService {
 		// 房产
 		CWVGameMap map = new CWVGameMap();
 		map.setMapId(property.getGameMapId());
-		map = daos.gameMapDao.selectByPrimaryKey(map);
+		map = dao.gameMapDao.selectByPrimaryKey(map);
 		CWVGameCity city = new CWVGameCity();
 		city.setCityId(map.getGameCityId());
-		city = daos.gameCityDao.selectByPrimaryKey(city);
+		city = dao.gameCityDao.selectByPrimaryKey(city);
 
 		bid.setCountryId(city.getGameCountryId());
 		bid.setMapId(map.getMapId());
@@ -1629,14 +1630,14 @@ public class PropertyHelper implements ActorService {
 		bid.setImageUrl(property.getImageUrl());
 		property.setPropertyStatus("1");// 竞拍中
 
-		daos.bidDao.doInTransaction(new TransactionExecutor() {
+		dao.bidDao.doInTransaction(new TransactionExecutor() {
 
 			@Override
 			public Object doInTransaction() {
 				// 更新交易
-				daos.bidDao.insert(bid);
+				dao.bidDao.insert(bid);
 				// 更新房产
-				daos.gamePropertyDao.updateByPrimaryKeySelective(property);
+				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
 
 				return null;
 			}
@@ -1666,7 +1667,7 @@ public class PropertyHelper implements ActorService {
 
 		criteria.andTypeEqualTo(Byte.parseByte(pb.getType()));
 		//根据类型查询房产
-		List<Object> list = daos.incomeDao.selectByExample(example);
+		List<Object> list = dao.incomeDao.selectByExample(example);
 		//未领取收益
 		
 		
@@ -1684,7 +1685,7 @@ public class PropertyHelper implements ActorService {
 			CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
 			CWVGamePropertyExample.Criteria propertyCriteria = propertyExample.createCriteria();
 			propertyCriteria.andUserIdEqualTo(authUser.getUserId()).andPropertyTypeEqualTo(pb.getType());
-			List<Object> listProperty= daos.gamePropertyDao.selectByExample(propertyExample);
+			List<Object> listProperty= dao.gamePropertyDao.selectByExample(propertyExample);
 			double totalValue = 0;
 			for(Object o : listProperty){
 				CWVGameProperty gameProperty = (CWVGameProperty) o;
@@ -1696,7 +1697,7 @@ public class PropertyHelper implements ActorService {
 		} else { //
 			
 			dicExample.createCriteria().andParentKeyEqualTo(pb.getType());
-			List<Object> listDic = daos.dicDao.selectByExample(dicExample);
+			List<Object> listDic = dao.dicDao.selectByExample(dicExample);
 			for (Object o : listDic) {
 				CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
 				CWVGamePropertyExample.Criteria propertyCriteria = propertyExample.createCriteria();
@@ -1705,7 +1706,7 @@ public class PropertyHelper implements ActorService {
 				SubTypeInfo.Builder subType = SubTypeInfo.newBuilder();
 				subType.setPropertySubType(dic.getKey());
 				propertyCriteria.andPropertySubTypeEqualTo(Byte.parseByte(dic.getKey()));
-				int countType = daos.gamePropertyDao.countByExample(propertyExample);
+				int countType = dao.gamePropertyDao.countByExample(propertyExample);
 				subType.setCount(countType + "");
 				propertyInfo.addSubTypeInfo(subType);
 			}
@@ -1757,7 +1758,7 @@ public class PropertyHelper implements ActorService {
 		propertyIncome.setIncomeId(Integer.parseInt(pb.getIncomeId()));
 
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
-		final CWVUserPropertyIncome propertyIncome2 = daos.incomeDao.selectByPrimaryKey(propertyIncome);
+		final CWVUserPropertyIncome propertyIncome2 = dao.incomeDao.selectByPrimaryKey(propertyIncome);
 		if(propertyIncome2 == null || propertyIncome2.getUserId() != user.getUserId() ) {
 			ret.setRetCode(ReturnCodeMsgEnum.PIC_ERROR_ID.getRetCode())
 			.setRetMsg(ReturnCodeMsgEnum.PIC_ERROR_ID.getRetMsg());
@@ -1779,13 +1780,13 @@ public class PropertyHelper implements ActorService {
 			.setRetMsg(retCommon.getRetMsg());
 			return ;
 		}
-		daos.incomeDao.doInTransaction(new TransactionExecutor() {
+		dao.incomeDao.doInTransaction(new TransactionExecutor() {
 			
 			@Override
 			public Object doInTransaction() {
 				
 				//更新收益状态
-				daos.incomeDao.updateByPrimaryKeySelective(propertyIncome2);
+				dao.incomeDao.updateByPrimaryKeySelective(propertyIncome2);
 				
 				//更新各个房产收益记录状态
 				CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
@@ -1793,7 +1794,7 @@ public class PropertyHelper implements ActorService {
 				.andTypeEqualTo(propertyIncome2.getType()).andPropertyIdIsNotNull();
 				CWVUserPropertyIncome income = new CWVUserPropertyIncome();
 				income.setStatus((byte) 1);
-				daos.incomeDao.updateByExampleSelective(income, example);
+				dao.incomeDao.updateByExampleSelective(income, example);
 				//更新账户历史收益
 				switch (propertyIncome2.getType()) {
 				case 1:
@@ -1810,13 +1811,74 @@ public class PropertyHelper implements ActorService {
 				}
 				
 				wallet.setBalance(wallet.getBalance().add(propertyIncome2.getAmount()));
-				daos.walletDao.updateByPrimaryKeySelective(wallet);
+				dao.walletDao.updateByPrimaryKeySelective(wallet);
 				return null;
 			}
 		});
 		
 		ret.setRetCode(ReturnCodeMsgEnum.PIC_SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.PIC_SUCCESS.getRetMsg());
+		
+	}
+
+	public void cancelExchange(FramePacket pack, PSCommonExchange pb, PRetCommon.Builder ret) {
+		//校验
+		if(StringUtils.isEmpty(pb.getExchangeId())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetMsg());
+			return ;
+		}
+		
+		//查询该交易
+		// 查询交易状态
+		final CWVMarketExchange exchangeRecord = new CWVMarketExchange();
+		exchangeRecord.setExchangeId(Integer.parseInt(pb.getExchangeId()));
+		// 获取当前用户
+		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
+		final CWVMarketExchange exchange = dao.exchangeDao.selectByPrimaryKey(exchangeRecord);
+		if (exchange == null || !authUser.getUserId().equals(exchange.getUserId())) {
+			ret.setRetCode(ReturnCodeMsgEnum.CPE_ERROR_ID.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.CPE_ERROR_ID.getRetMsg());
+			return;
+		}
+
+		if (exchange.getStatus().intValue() != 0) {//出手中
+			ret.setRetCode(ReturnCodeMsgEnum.CPE_ERROR_STATUS.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.CPE_ERROR_STATUS.getRetMsg());
+			return;
+		}
+		
+		//调取合约撤销
+		PRetCommon.Builder retCommon = exchangeInvoker.cancelExchange("","");
+		if(!retCommon.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
+			ret.setRetCode(retCommon.getRetCode())
+			.setRetMsg(retCommon.getRetMsg());
+			return ;
+		}
+		//设置交易状态： 撤销		
+		exchange.setStatus((byte) 2);
+		
+		//房产信息
+		CWVGameProperty gameProperty = new CWVGameProperty();
+		gameProperty.setPropertyId(exchange.getPropertyId());
+		final CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
+		property.setPropertyStatus("0");
+		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
+			
+			@Override
+			public Object doInTransaction() {
+				//更新交易
+				dao.exchangeDao.updateByPrimaryKeySelective(exchange);
+				
+				//更新房产
+				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
+				
+				return null;
+			}
+		});
+		
+		ret.setRetCode(ReturnCodeMsgEnum.CPE_SUCCESS.getRetCode())
+		.setRetMsg(ReturnCodeMsgEnum.CPE_SUCCESS.getRetMsg());
 		
 	}
 

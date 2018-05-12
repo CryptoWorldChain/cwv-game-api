@@ -32,7 +32,7 @@ public class BuyPropertyService extends SessionModules<PSBuyProperty> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 		
 	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;

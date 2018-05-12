@@ -34,7 +34,7 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@Override
 	public String[] getCmds() {
@@ -80,9 +80,9 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			mapExample.setLimit(page.getLimit());
 			mapExample.setOffset(page.getOffset());
 			
-			ret.setTotalCount(daos.gameMapDao.countByExample(mapExample)+"");
+			ret.setTotalCount(dao.gameMapDao.countByExample(mapExample)+"");
 		}
-		List<Object> maps = daos.gameMapDao.selectByExample(mapExample);
+		List<Object> maps = dao.gameMapDao.selectByExample(mapExample);
 		for(Object mapObj : maps){
 			CWVGameMap map = (CWVGameMap) mapObj;
 			PRetMap.Builder pMap = PRetMap.newBuilder();

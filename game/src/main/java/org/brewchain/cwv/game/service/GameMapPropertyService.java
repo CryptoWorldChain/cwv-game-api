@@ -35,7 +35,7 @@ public class GameMapPropertyService extends SessionModules<PBGameProperty> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;

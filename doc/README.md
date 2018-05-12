@@ -362,7 +362,7 @@ ret_msg|string|返回消息|
 	    "ret_msg": "重置密码成功"
 	}
 
-## 重置登陆密码
+## 修改登陆密码
 ### 接口说明
 	空
 
@@ -375,16 +375,20 @@ ret_msg|string|返回消息|
 参数|类型|说明|示例
 :----|:----|:----|:----
 password|string|新登录密码|
+password_old|string|新登录密码|
+phone_verify_code|string|短信验证码|
 
 	{
-		"password":"123456"
+		"password":"123456",
+		"password_old":"123456",
+		"phone_verify_code":"3456"
 	}
 
 ### 输出参数
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.修改密码成功<br/>02.验证码无效<br/>03.手机号无效<br/>04.短信验证码无效<br/>05.次数超限<br/>80.校验类错误<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.修改密码成功<br/>02.旧密码错误<br/>03.新密码与原密码相同<br/>04.短信验证码无效<br/>05.次数超限<br/>80.校验类错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 
 
@@ -406,18 +410,20 @@ ret_msg|string|返回消息|
 参数|类型|说明|示例
 :----|:----|:----|:----
 password|string|交易密码|
-old_password|string|旧交易密码|
-msg_code|string|短信验证码|
+password_old|string|旧交易密码|
+phone_verify_code|string|短信验证码|
 
 	{
-		"password":"123456"
+		"password":"123456",
+		"password_old":"133456",
+		"phone_verify_code":"3456"
 	}
 
 ### 输出参数
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.设置交易密码成功<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.设置交易密码成功<br/>02.旧密码错误<br/>03.新密码与原密码相同<br/>04.短信验证码无效<br/>05.次数超限<br/>80.校验类错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 
 

@@ -19,8 +19,8 @@ import onight.tfw.ojpa.api.annotations.StoreDAO;
 @Provides(specifications = { IJPAClient.class, ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
-@Instantiate(name="Daos")
-public class Daos implements ActorService, IJPAClient{
+@Instantiate(name="Sys_Daos")
+public class SysDaos implements ActorService, IJPAClient{
 
 	@StoreDAO
 	public OJpaDAO<CWVCommonSmsVerify> cwvcommonsmsverifyDao;

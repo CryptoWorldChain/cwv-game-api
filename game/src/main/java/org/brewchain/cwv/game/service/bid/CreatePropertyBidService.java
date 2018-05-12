@@ -28,7 +28,7 @@ public class CreatePropertyBidService extends SessionModules<PSCreatePropertyBid
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 		
 	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;

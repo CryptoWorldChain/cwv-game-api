@@ -10,6 +10,14 @@ public enum ReturnCodeMsgEnum {
 	/**
 	 * 领取房产收益
 	 */
+	CPE_SUCCESS("01","撤销成功"),
+	CPE_ERROR_ID("02","交易ID错误"),
+	CPE_ERROR_STATUS("03","交易状态不支持撤销"),
+	
+	
+	/**
+	 * 领取房产收益
+	 */
 	PIC_SUCCESS("01","领取成功"),
 	PIC_ERROR_ID("02","收益ID错误"),
 	PIC_ERROR_STATUS("03","收益已领取，无法重复领取"),

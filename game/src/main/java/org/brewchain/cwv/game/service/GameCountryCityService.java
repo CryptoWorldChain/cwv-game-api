@@ -34,7 +34,7 @@ public class GameCountryCityService extends SessionModules<PBGameCity> {
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@Override
 	public String[] getCmds() {
@@ -80,9 +80,9 @@ public class GameCountryCityService extends SessionModules<PBGameCity> {
 			cityExample.setLimit(page.getLimit());
 			cityExample.setOffset(page.getOffset());
 			
-			ret.setTotalCount(daos.gameCityDao.countByExample(cityExample)+"");
+			ret.setTotalCount(dao.gameCityDao.countByExample(cityExample)+"");
 		}
-		List<Object> citys = daos.gameCityDao.selectByExample(cityExample);
+		List<Object> citys = dao.gameCityDao.selectByExample(cityExample);
 		for(Object cityObj : citys){
 			CWVGameCity city = (CWVGameCity) cityObj;
 			PRetCity.Builder pCity = PRetCity.newBuilder();

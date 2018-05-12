@@ -32,7 +32,7 @@ public class CommonHelper implements ActorService {
 	public static String INCOMETIME = "income_time"; 
 
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	/**
 	 * 根据parentKey获取字典数组
 	 * @param parentKey
@@ -41,7 +41,7 @@ public class CommonHelper implements ActorService {
 	public List<Object> getDicEntities(String parentKey) {
 		CWVGameDicExample example = new CWVGameDicExample();
 		example.createCriteria().andParentKeyEqualTo(parentKey);
-		return daos.dicDao.selectByExample(example);
+		return dao.dicDao.selectByExample(example);
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public class CommonHelper implements ActorService {
 	public String getSysSettingValue(String key) {
 		CWVSysSettingExample example = new CWVSysSettingExample();
 		example.createCriteria().andNameEqualTo(key);
-		List<Object> list = daos.settingDao.selectByExample(example);
+		List<Object> list = dao.settingDao.selectByExample(example);
 		return list == null || list.isEmpty() ? null :( (CWVSysSetting) list.get(0)).getValue() ;
 	}
 

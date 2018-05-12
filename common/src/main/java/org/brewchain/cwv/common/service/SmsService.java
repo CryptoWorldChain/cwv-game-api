@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.brewchain.cwv.common.dao.Daos;
+import org.brewchain.cwv.common.dao.SysDaos;
 import org.brewchain.cwv.common.service.Sms.PBSmsDeal;
 import org.brewchain.cwv.common.service.Sms.PRetMsgVerificationDeal;
 import org.brewchain.cwv.common.service.Sms.PTPSCommand;
@@ -47,8 +47,8 @@ import onight.tfw.outils.serialize.UUIDGenerator;
 @Data
 public class SmsService extends SessionModules<PBSmsDeal> {
 
-	@ActorRequire(name="Daos")
-	Daos sysDaos;
+	@ActorRequire(name="Sys_Daos")
+	SysDaos sysDaos;
 
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;

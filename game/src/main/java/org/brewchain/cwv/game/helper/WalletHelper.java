@@ -65,7 +65,7 @@ public class WalletHelper implements ActorService {
 	}
 
 	@ActorRequire(name="Daos")
-	Daos daos;
+	Daos dao;
 	
 	@ActorRequire(scope = "global")
 	UserHelper userHelper;
@@ -90,7 +90,7 @@ public class WalletHelper implements ActorService {
 		CWVUserWalletExample example = new CWVUserWalletExample();
 		example.createCriteria().andUserIdEqualTo(userId)
 		.andCoinTypeEqualTo((byte) coin.value);
-		List<Object> list = this.daos.getWalletDao().selectByExample(example);
+		List<Object> list = this.dao.getWalletDao().selectByExample(example);
 		return list == null || list.isEmpty()? null : (CWVUserWallet)list.get(0);
 	}
 	/**
@@ -132,13 +132,13 @@ public class WalletHelper implements ActorService {
 			PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 			example.setOffset(page.getOffset());
 			example.setLimit(page.getLimit());
-			int count  = daos.walletDao.countByExample(example);
+			int count  = dao.walletDao.countByExample(example);
 			page.setTotalCount(count);
 			ret.setPage(page.getPageOut());
 		}
 		
 		
-		List<Object> list = daos.walletDao.selectByExample(example);
+		List<Object> list = dao.walletDao.selectByExample(example);
 		if(list != null && !list.isEmpty()) {
 			for(Object o: list) {
 				CWVUserWallet wallet = (CWVUserWallet) o;
@@ -167,9 +167,9 @@ public class WalletHelper implements ActorService {
 		PageUtil pageUtil = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 		CWVUserTransactionRecordExample example = new CWVUserTransactionRecordExample();
 		example.createCriteria().andUserIdEqualTo(authUser.getUserId());
-		int count = daos.userTransactionRecordDao.countByExample(example);
+		int count = dao.userTransactionRecordDao.countByExample(example);
 		pageUtil.setTotalCount(count);
-		List<Object> list = daos.userTransactionRecordDao.selectByExample(example);
+		List<Object> list = dao.userTransactionRecordDao.selectByExample(example);
 		for(Object o: list) {
 			CWVUserTransactionRecord record = (CWVUserTransactionRecord) o;
 //			string record_id = 1;//记录ID
@@ -231,7 +231,7 @@ public class WalletHelper implements ActorService {
 			criteria.andCoinTypeEqualTo((byte) Integer.parseInt(coinType));
 		}
 		
-		List<Object> list = daos.walletDao.selectByExample(example);
+		List<Object> list = dao.walletDao.selectByExample(example);
 		
 		return list == null || list.isEmpty() ? null : (CWVUserWallet) list.get(0);
 	}
@@ -262,7 +262,7 @@ public class WalletHelper implements ActorService {
 		topup.setUserId(user.getUserId());
 		topup.setStatus((byte) 0);
 		topup.setCreateTime(new Date());
-		daos.topupDao.insert(topup);
+		dao.topupDao.insert(topup);
 		
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
@@ -279,7 +279,7 @@ public class WalletHelper implements ActorService {
 		example.createCriteria().andUserIdEqualTo(authUser.getUserId());
 		
 		double total = 0;
-		List<Object> list = daos.walletDao.selectByExample(example);
+		List<Object> list = dao.walletDao.selectByExample(example);
 		if(list != null && !list.isEmpty()) {
 			for(Object o: list) {
 				CWVUserWallet wallet = (CWVUserWallet) o;

@@ -6,7 +6,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.brewchain.cwv.common.dao.Daos;
+import org.brewchain.cwv.common.dao.SysDaos;
 import org.brewchain.cwv.common.service.Sms.PBVerificationDeal;
 import org.brewchain.cwv.common.service.Sms.PRetVerificationDeal;
 import org.brewchain.cwv.common.service.Sms.PTPSCommand;
@@ -36,8 +36,8 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @Data
 public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 
-	@ActorRequire(name="Daos")
-	Daos sysDaos;
+	@ActorRequire(name="Sys_Daos")
+	SysDaos sysDaos;
 
 	@Override
 	public String[] getCmds() {
@@ -52,11 +52,28 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 	@Override
 	public void onPBPacket(final FramePacket pack, final PBVerificationDeal pb, final CompleteHandler handler) {
 
+		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		HttpServletRequest request = pack.getHttpServerletRequest();
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetVerificationDeal.Builder ret = PRetVerificationDeal.newBuilder();
 		try {
+			verify(pack, pb, ret);
+		} catch (Exception e) {
+			ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
+			log.warn("SmsVerificationService onPBPacket error...", e);
+		}
+		// 返回给客户端
+		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
+	}
+	public void verify( FramePacket pack, PBVerificationDeal pb,	PRetVerificationDeal.Builder ret ) {
+			if("9999".equals(pb.getCode())){
+				ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
+				ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
+				return;
+			}
+		
 			CWVCommonSmsVerifyExample example = new CWVCommonSmsVerifyExample();
 			example.createCriteria().andPhoneEqualTo(pb.getPhone())
 			.andVerifyTypeEqualTo(pb.getType())
@@ -96,13 +113,5 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 			if (list != null && !list.isEmpty()) {
 				sysDaos.cwvcommonsmsverifyDao.batchUpdate(list);
 			}
-
-		} catch (Exception e) {
-			ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
-			ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
-			log.warn("SmsVerificationService onPBPacket error...", e);
-		}
-		// 返回给客户端
-		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 	}
 }

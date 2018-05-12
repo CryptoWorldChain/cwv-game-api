@@ -106,7 +106,7 @@ public class FilterHelper implements  ActorService{
 //		List<Map<String,Object>> listmap = new ArrayList<Map<String,Object>>();
 //		GASSysUserRoleExample userroleExample = new GASSysUserRoleExample();
 //		userroleExample.createCriteria().andUserIdEqualTo(sessionuserId).andStatusEqualTo("1");
-//		List<Object> userrolelist = daos.gasSysUserRoleDao.selectByExample(userroleExample);
+//		List<Object> userrolelist = dao.gasSysUserRoleDao.selectByExample(userroleExample);
 //		if(userrolelist.size()>0){
 //			List<String> roleList =  new ArrayList<String>();
 //			for(Object obj : userrolelist){
@@ -116,14 +116,14 @@ public class FilterHelper implements  ActorService{
 //			
 //			GASSysRoleUrlResourceExample resourceExample = new GASSysRoleUrlResourceExample();
 //			resourceExample.createCriteria().andRoleIdIn(roleList).andStatusEqualTo("1");
-//			List<Object> resourceList = daos.gasSysRoleUrlResourceDao.selectByExample(resourceExample);
+//			List<Object> resourceList = dao.gasSysRoleUrlResourceDao.selectByExample(resourceExample);
 //			if(resourceList.size()>0){
 //				for(Object objres : resourceList){
 //					GASSysRoleUrlResource resourceRecord = (GASSysRoleUrlResource)objres;
 //					String resourceId = resourceRecord.getUrlResourceId();
 //					GASSysUrlResourceKey key =  new GASSysUrlResourceKey();
 //					key.setUrlResourceId(resourceId);
-//					GASSysUrlResource urlresourceRecord =  daos.gasSysUrlResourceDao.selectByPrimaryKey(key);
+//					GASSysUrlResource urlresourceRecord =  dao.gasSysUrlResourceDao.selectByPrimaryKey(key);
 //					if(urlresourceRecord!=null){
 //						urlresourceRecord.getUrlLogOut();
 //						Map<String,Object> map = new HashMap<String, Object>();

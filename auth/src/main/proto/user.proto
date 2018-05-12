@@ -34,8 +34,9 @@ message PSRegistry //REG
 message PSLogin//LOGIN 
 {
 	string phone = 1; //手机号
-	string password = 2; //用户密码
-	string phone_verify_code = 3; //短信验证码
+	string password_old = 2; //旧密码
+	string password = 3; //密码
+	string phone_verify_code = 4; //短信验证码
 }
 
 

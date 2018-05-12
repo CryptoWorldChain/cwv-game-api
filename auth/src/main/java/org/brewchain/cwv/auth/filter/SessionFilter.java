@@ -150,7 +150,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			// logRecord.setProxyTime(reqTime);
 			// logRecord.setResTime(new Date());
 			// logRecord.setCostMs(Integer.parseInt(filterHelper.getCostMs(reqTime)));
-			// daos.getTxSysAccessLog().insert(logRecord);
+			// dao.getTxSysAccessLog().insert(logRecord);
 			// }
 		}
 

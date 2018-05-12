@@ -2,6 +2,8 @@ package org.brewchain.cwv.game.dao;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshToken;
+import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCity;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDic;
@@ -13,6 +15,7 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
@@ -31,7 +34,7 @@ import onight.tfw.ojpa.api.annotations.StoreDAO;
 @Provides(specifications = { IJPAClient.class, ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
-@Instantiate(name="Daos")
+@Instantiate(name = "Daos")
 public class Daos implements ActorService, IJPAClient{
 
 	@StoreDAO

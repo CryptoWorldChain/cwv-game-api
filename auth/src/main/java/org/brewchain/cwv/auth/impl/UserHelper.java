@@ -79,6 +79,17 @@ public class UserHelper implements ActorService {
 	public String toString() {
 		return "102service:";
 	}
+	
+	enum MsgCodeType{
+		REG("1"),//注册
+		STP("2"),//交易密码
+		RSP("3"),//重置登陆密码
+		SPS("4");//设置登陆密码
+		private String value;
+		MsgCodeType(String value){
+			this.value = value;
+		}
+	}
 
 	/**
 	 * 注册用户
@@ -126,7 +137,7 @@ public class UserHelper implements ActorService {
 		HashMap<String, String> jsonMapPhone = new HashMap<>();
 		jsonMapPhone.put("phone", pb.getPhone());
 		jsonMapPhone.put("code", pb.getPhoneVerifyCode());
-		jsonMapPhone.put("type", "1");
+		jsonMapPhone.put("type", MsgCodeType.REG.value);
 		jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
 		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals( jsonMapPhone.get("ret_code"))) {
@@ -302,6 +313,23 @@ public class UserHelper implements ActorService {
 		// 更新交易密码
 		// 查询用户获取salt
 		CWVAuthUser authUser = this.getCurrentUser(pack);
+		if(StringUtils.isEmpty(pb.getPhoneVerifyCode())){
+			 ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetCode())
+		 	.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetMsg());
+		 	return;
+		 }else {
+		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
+			jsonMapPhone.put("phone", pb.getPhone());
+			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
+			jsonMapPhone.put("type", MsgCodeType.STP.value); //设置交易密码
+			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
+	
+			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
+				ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetMsg());
+				return;
+			}
+		 }
 		// 创建trade对象更新信息
 		CWVUserTradePwd userTrade = new CWVUserTradePwd();
 		userTrade.setUserId(authUser.getUserId());
@@ -310,12 +338,22 @@ public class UserHelper implements ActorService {
 		userTrade.setTradePassword(tradePwdMd5);
 
 		// 查询原有交易密码
-		CWVUserTradePwdExample example = new CWVUserTradePwdExample();
 		CWVUserTradePwd tradePwdOld = getTradePwd(authUser.getUserId());
 		if (tradePwdOld == null) {
 			userTrade.setCreatedTime(new Date());
 			dao.tradeDao.insert(userTrade);
 		} else {
+			if(!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
+				ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetCode())
+				.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetMsg());
+				return ;
+			}
+			if(getPwdMd5(pb.getPassword(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
+				ret.setRetCode(ReturnCodeMsgEnum.STP_DUPLICATE_PWD.getRetCode())
+				.setRetMsg(ReturnCodeMsgEnum.STP_DUPLICATE_PWD.getRetMsg());
+				return ;
+			}
+			
 			userTrade.setTradeId(tradePwdOld.getTradeId());
 			dao.tradeDao.updateByPrimaryKeySelective(userTrade);
 		}
@@ -389,7 +427,7 @@ public class UserHelper implements ActorService {
 		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
 			jsonMapPhone.put("phone", pb.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
-			jsonMapPhone.put("type", "3"); //重置登陆密码
+			jsonMapPhone.put("type", MsgCodeType.RSP.value); //重置登陆密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
@@ -616,6 +654,7 @@ public class UserHelper implements ActorService {
 					.setRetMsg(ValidateEnum.PASSWORD.getVerifyMsg());
 			return;
 		}
+		
 		// 1.2查询当前用户
 
 		CWVAuthUser authUser = getCurrentUser(pack);
@@ -627,18 +666,40 @@ public class UserHelper implements ActorService {
 			return;
 		}
 
+		 if(StringUtils.isEmpty(pb.getPhoneVerifyCode())){
+			 ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetCode())
+		 	.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetMsg());
+		 	return;
+		 }else {
+		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
+			jsonMapPhone.put("phone", pb.getPhone());
+			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
+			jsonMapPhone.put("type", MsgCodeType.SPS.value); //设置登陆密码
+			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
+	
+			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
+				ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetMsg());
+				return;
+			}
+		 }
+		 if(!getPwdMd5(pb.getPasswordOld(),authUser.getSalt()).equals(authUser.getPassword())) {
+			 ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetCode())
+				.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetMsg());
+			 return;
+		 }
+		 
 		// 校验重复密码
 		String pwdMd5 = getPwdMd5(pb.getPassword(),authUser.getSalt());
 		if (authUser.getPassword().equals(pwdMd5)) {
-			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("无法更新相同密码");
+			ret.setRetCode(ReturnCodeMsgEnum.SPS_DUPLICATE_PWD.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.SPS_DUPLICATE_PWD.getRetMsg());
 			return;
 		}
 
 		// 2 更新密码
-		CWVAuthUser authUserUpdate = new CWVAuthUser();
-		authUserUpdate.setUserId(authUser.getUserId());
-		authUserUpdate.setPassword(pwdMd5);
-		dao.userDao.updateByPrimaryKeySelective(authUserUpdate);
+		authUser.setPassword(pwdMd5);
+		dao.userDao.updateByPrimaryKeySelective(authUser);
 
 		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
 
