@@ -269,23 +269,24 @@ public class PropertyHelper implements ActorService {
 		CWVGamePropertyExample.Criteria criteria = cwvPropertyExample.createCriteria();
 		cwvPropertyExample.setLimit(page.getLimit());
 		cwvPropertyExample.setOffset(page.getOffset());
+		
 		// 竞拍中
 		criteria.andPropertyStatusEqualTo(PropertyStatus.BIDDING.value);
 		// 房产类型
 		if (StringUtils.isNotEmpty(pb.getPropertyType())) {
 			criteria.andPropertyTypeEqualTo(pb.getPropertyType());
 		}
-
+	
 		// 房产名称
 		if (StringUtils.isNotEmpty(pb.getPropertyName())) {
 			criteria.andPropertyNameLike("%" + pb.getPropertyName() + "%");
 		}
-
+	
 		// 国家
 		if (StringUtils.isNotEmpty(pb.getCountryId())) {
 			criteria.addCriterion("game_map_id in (select map_id from cwv_game_city where game_country_id='"+pb.getCountryId()+"')");
 		}
-
+	
 		// // 城市
 		// if (StringUtils.isNotEmpty(pb.getCityId())) {
 		// criteria.andCountryId(Integer.parseInt(pb.getCityId()));
@@ -303,7 +304,7 @@ public class PropertyHelper implements ActorService {
 			if (pb.getPriceType().equals("1"))
 				cwvPropertyExample.setOrderByClause(" last_price ");
 		}
-
+	
 		// 收益排序
 		if (StringUtils.isNotEmpty(pb.getIncomeType())) {
 			if (pb.getPriceType().equals("0"))
@@ -1004,26 +1005,40 @@ public class PropertyHelper implements ActorService {
 		if (StringUtils.isNotEmpty(pb.getStatus())) {
 			criteria.andStatusEqualTo(Byte.parseByte(pb.getStatus()));
 		}
+		cwvMarketBidExample.setOrderByClause("auction_start desc");
 		int count = dao.bidDao.countByExample(cwvMarketBidExample);
 		page.setTotalCount(count);
 		List<Object> list = dao.bidDao.selectByExample(cwvMarketBidExample);
 
 		for (Object o : list) {
 			CWVMarketBid bid = (CWVMarketBid) o;
+			CWVGameProperty gameProperty = getByPropertyId(bid.getGamePropertyId());
+			
 			// 设置房产信息
 			BidProperty.Builder property = BidProperty.newBuilder();
-			property.setCountryId(bid.getCountryId() + "");
-			property.setMapId(bid.getMapId() + "");
-			property.setPropertyTemplateId(bid.getPropertyTemplateId());
-			property.setPropertyTemplate(bid.getPropertyTemplate());
-			property.setOwner(bid.getNickName() + "");
-			property.setPropertyId(bid.getGamePropertyId() + "");
-			property.setPropertyName(bid.getPropertyName());
-			property.setPropertyType(Integer.parseInt(bid.getPropertyType()));
+			CWVGameMap gameMap = new CWVGameMap();
+			gameMap.setMapId(gameProperty.getGameMapId());
+			gameMap = dao.gameMapDao.selectByPrimaryKey(gameMap);
+			CWVGameCity gameCity = new CWVGameCity();
+			gameCity.setCityId(gameMap.getGameCityId());
+			gameCity = dao.gameCityDao.selectByPrimaryKey(gameCity);
+			
+			property.setCountryId(gameCity.getGameCountryId() + "");
+			property.setMapId(gameMap.getMapId() + "");
+			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
+			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
+			if(gameProperty.getUserId() != null){
+				CWVAuthUser user = userHelper.getUserById(gameProperty.getUserId());
+				property.setOwner(user.getNickName());
+			}
+			
+			property.setPropertyId(gameProperty.getPropertyId() + "");
+			property.setPropertyName(gameProperty.getPropertyName());
+			property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
 
-			property.setPropertyStatus(Integer.parseInt(bid.getPropertyStatus()));
-			property.setIncomeRemark(bid.getIncomeRemark());
-			property.setImageUrl(bid.getImageUrl());
+			property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
+			property.setIncomeRemark("收益说明");
+			property.setImageUrl(gameProperty.getImageUrl());
 			// 设置交易信息
 			BidInfo.Builder bidRet = BidInfo.newBuilder();
 			bidRet.setBidId(bid.getBidId() + "");
@@ -2013,6 +2028,12 @@ public class PropertyHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.CPE_SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.CPE_SUCCESS.getRetMsg());
 		
+	}
+	
+	public CWVGameProperty getByPropertyId(Integer propertyId)  {
+		CWVGameProperty gameProperty = new CWVGameProperty();
+		gameProperty.setPropertyId(propertyId);
+		return dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 	}
 
 }
