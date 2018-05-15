@@ -127,7 +127,7 @@ message PSCommonBid{
 	string bid_id = 1; //竞拍ID
 }
 
-message PSCreatePropertyBid
+message PSCreatePropertyBid //CPB
 {
 	string property_id = 2; //竞拍ID
 	double bid_start  = 3; //竞拍起价

@@ -2,6 +2,7 @@ package org.brewchain.cwv.game.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtil {
@@ -31,6 +32,20 @@ public class DateUtil {
 	
 	public static Date getDateTime(String date) throws ParseException{
 		return new SimpleDateFormat(DAY_TIME).parse(date);
+	}
+	
+	public static Date addMinute(Date time, int addMinute) {
+		Calendar ca = Calendar.getInstance();
+		ca.setTime(time);
+		ca.add(Calendar.MINUTE, addMinute);
+		return ca.getTime();
+	}
+	
+	public static Date addDay(Date time, int addMinute) {
+		Calendar ca = Calendar.getInstance();
+		ca.setTime(time);
+		ca.add(Calendar.DATE, addMinute);
+		return ca.getTime();
 	}
 	
 }

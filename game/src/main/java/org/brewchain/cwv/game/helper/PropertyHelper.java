@@ -710,6 +710,12 @@ public class PropertyHelper implements ActorService {
 
 		// 获取当前用户
 		final CWVAuthUser authUser = userHelper.getCurrentUser(pack);
+		if(exchangeRecord.getCreateUser().equals(authUser.getUserId())) {
+			ret.setRetCode(ReturnCodeMsgEnum.BPS_ERROR_USER.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.BPS_ERROR_USER.getRetMsg());
+			return;
+		}
+		
 		// 交易密码
 		CWVUserTradePwd userTradePwd = userHelper.getTradePwd(authUser.getUserId());
 		if (userTradePwd == null) {
@@ -1706,10 +1712,6 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
-		if (StringUtils.isEmpty(pb.getAuctionEnd())) {
-			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("竞拍止期不能为空");
-			return;
-		}
 
 		final CWVGameProperty gameProperty = new CWVGameProperty();
 		gameProperty.setPropertyId(Integer.parseInt(pb.getPropertyId()));
@@ -1720,14 +1722,15 @@ public class PropertyHelper implements ActorService {
 					.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_ID.getRetMsg());
 			return;
 		}
-
-		if (property.getUserId() != null) {
+		String superUserId = commonHelper.getSysSettingValue("super_user");
+		
+		if (property.getUserId() != Integer.parseInt(superUserId)) {
 			ret.setRetCode(ReturnCodeMsgEnum.CPB_ERROR_PROPERTY.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_PROPERTY.getRetMsg());
 			return;
 		}
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
-		if (user.getUserId().intValue() != 24) {
+		if (user.getUserId().intValue() != Integer.parseInt(superUserId)) {
 			ret.setRetCode(ReturnCodeMsgEnum.CPB_ERROR_USER.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_USER.getRetMsg());
 			return;
@@ -1739,7 +1742,12 @@ public class PropertyHelper implements ActorService {
 		bid.setAuctionStart(DateUtil.getDateTime(pb.getAuctionEnd()));
 		bid.setBidStart(new BigDecimal(pb.getBidStart()));
 		bid.setIncreaseLadder(Long.parseLong(pb.getIncreaseLadder()));
-		bid.setAnnounceTime(DateUtil.getDateTime(pb.getAnnounceTime()));
+		if(StringUtils.isEmpty(pb.getAnnounceTime())) {
+			bid.setAnnounceTime(DateUtil.addMinute(bid.getAuctionEnd(), 60));
+		}else{
+			bid.setAnnounceTime(DateUtil.addMinute(bid.getAuctionEnd(), Integer.parseInt(pb.getAnnounceTime())));
+		}
+		
 		bid.setBidAmount(new BigDecimal(pb.getBidStart()));
 		bid.setBiddersCount(0);
 		// 生成交易
@@ -1793,7 +1801,7 @@ public class PropertyHelper implements ActorService {
 		});
 
 		// 设置返回
-		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
+		ret.setRetCode(ReturnCodeMsgEnum.CPB_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.CPB_SUCCESS.getRetMsg());
 
 	}
 
@@ -2036,5 +2044,7 @@ public class PropertyHelper implements ActorService {
 		gameProperty.setPropertyId(propertyId);
 		return dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 	}
+	
+	
 
 }
