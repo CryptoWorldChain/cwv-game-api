@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
@@ -49,6 +50,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
  * @author Moon
  * @date 2018-03-30
  */
+@Instantiate(name="Wallet_Helper")
 public class WalletHelper implements ActorService {
 	enum Coin{
 		CWB(0),

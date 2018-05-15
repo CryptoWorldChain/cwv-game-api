@@ -3,11 +3,10 @@ package org.brewchain.cwv.game.service.exchange;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.service.game.Exchange.PExchangeCommand;
-import org.brewchain.cwv.service.game.Exchange.PExchangeModule;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
-import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
 import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
+import org.brewchain.cwv.service.game.User.PUserCommand;
+import org.brewchain.cwv.service.game.User.PUserModule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +35,12 @@ public class UserPropertyExchangeService extends SessionModules<PSPropertyExchan
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PExchangeCommand.UPE.name() };
+		return new String[] { PUserCommand.UPS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PExchangeModule.GEA.name();
+		return PUserModule.GUA.name();
 	}
 	
 	@Override

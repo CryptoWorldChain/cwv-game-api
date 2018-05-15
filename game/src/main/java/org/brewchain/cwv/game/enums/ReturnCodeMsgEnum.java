@@ -8,7 +8,7 @@ package org.brewchain.cwv.game.enums;
 public enum ReturnCodeMsgEnum {
 	
 	/**
-	 * 领取房产收益
+	 * 取消房产交易
 	 */
 	CPE_SUCCESS("01","撤销成功"),
 	CPE_ERROR_ID("02","交易ID错误"),
