@@ -52,6 +52,7 @@ message ExchangeProperty
     //string appearance_type = 11;//外观
     double income = 12;//收益
     string image_url = 13;//房产说明
+    string map_template = 15;//所属地图
     
 	message ExchangeInfo{
 		string exchange_id = 3; //交易ID

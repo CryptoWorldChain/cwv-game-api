@@ -42,6 +42,7 @@ message PRetPropertyDraw	 //DPS
 	{
 		string country_id = 1;//所属国家
 		string map_id = 2;//所属地图
+		string map_template = 15;//所属地图
 	    string property_template_id = 3;//房产模板Id
 	    string property_template = 4;//房产模板
 	    string owner = 5;//拥有者

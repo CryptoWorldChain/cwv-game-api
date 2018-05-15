@@ -110,6 +110,7 @@ message PBGameProperty //GMP 获取游戏房产
 message PRetProperty
 {
 	string map_id = 1;//所属地图
+	string map_template = 15;//所属地图
 	string owner = 2;//拥有者
 	string property_name = 3; //房产名称
 	string property_id = 4;//房产编码

@@ -230,6 +230,7 @@ public class PropertyHelper implements ActorService {
 			
 			property.setCountryId(city.getGameCountryId() + "");
 			property.setMapId(map.getMapId() + "");
+			property.setMapTemplate(map.getTemplate()+"");
 			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
 			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
 			CWVAuthUser user = userHelper.getUserById(gameProperty.getUserId());
@@ -329,6 +330,8 @@ public class PropertyHelper implements ActorService {
 			
 			property.setCountryId(city.getGameCountryId() + "");
 			property.setMapId(map.getMapId() + "");
+
+			property.setMapTemplate(map.getTemplate()+"");
 			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
 			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
 
@@ -1029,6 +1032,7 @@ public class PropertyHelper implements ActorService {
 			
 			property.setCountryId(gameCity.getGameCountryId() + "");
 			property.setMapId(gameMap.getMapId() + "");
+			property.setMapTemplate(gameMap.getTemplate() + "");
 			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
 			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
 			if(gameProperty.getUserId() != null){
@@ -1087,6 +1091,10 @@ public class PropertyHelper implements ActorService {
 
 		PRetProperty.Builder pProperty = PRetProperty.newBuilder();
 		pProperty.setMapId(property.getGameMapId() + "");
+		CWVGameMap gameMap = new CWVGameMap();
+		gameMap.setMapId(property.getGameMapId());
+		gameMap = dao.gameMapDao.selectByPrimaryKey(gameMap);
+		pProperty.setMapTemplate(gameMap.getTemplate() + "");
 		pProperty.setPropertyId(property.getPropertyId() + "");
 		pProperty.setPropertyName(property.getPropertyName());
 		pProperty.setPropertyStatus(property.getPropertyStatus());
@@ -1447,6 +1455,8 @@ public class PropertyHelper implements ActorService {
 		drawProperty.setCountryId(city.getGameCountryId() + "");
 		drawProperty.setIncomeRemark("收益说明");
 		drawProperty.setMapId(map.getMapId() + "");
+
+		drawProperty.setMapTemplate(map.getTemplate() + "");
 		if (authUser != null)
 			drawProperty.setOwner(authUser.getNickName() + "");
 		drawProperty.setPropertyId(property.getPropertyId() + "");
@@ -1558,6 +1568,7 @@ public class PropertyHelper implements ActorService {
 		bidProperty.setCountryId(city.getGameCountryId() + "");
 		bidProperty.setIncomeRemark("收益说明");
 		bidProperty.setMapId(map.getMapId() + "");
+		bidProperty.setMapTemplate(map.getTemplate() + "");
 		if (user != null)
 			bidProperty.setOwner(user.getNickName() + "");
 		bidProperty.setPropertyId(property.getPropertyId() + "");
@@ -1666,6 +1677,7 @@ public class PropertyHelper implements ActorService {
 		BidProperty.Builder bidProperty = BidProperty.newBuilder();
 		bidProperty.setCountryId(city.getGameCountryId() + "");
 		bidProperty.setMapId(map.getMapId() + "");
+		bidProperty.setMapTemplate(map.getTemplate() + "");
 		bidProperty.setPropertyTemplate(property.getPropertyTemplate());
 		bidProperty.setPropertyTemplateId(property.getPropertyTemplateId());
 		if (user != null)
