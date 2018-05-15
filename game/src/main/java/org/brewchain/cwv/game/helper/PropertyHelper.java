@@ -173,16 +173,13 @@ public class PropertyHelper implements ActorService {
 		
 		if(StringUtils.isEmpty(userId)) {
 			criteria.addCriterion("property_id in (select property_id from cwv_market_exchange where status='0' )");
+		}else {
+			criteria.andUserIdEqualTo(Integer.parseInt(userId));
 		}
 		
 		// 房产类型
 		if (StringUtils.isNotEmpty(pb.getPropertyType())) {
 			criteria.andPropertyTypeEqualTo(pb.getPropertyType());
-		}
-
-		// 房产类型
-		if (StringUtils.isNotEmpty(userId)) {
-			criteria.andUserIdEqualTo(Integer.parseInt(userId));
 		}
 
 		// 房产名称
