@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -1092,19 +1091,16 @@ public class PropertyHelper implements ActorService {
 		pProperty.setPropertyName(property.getPropertyName());
 		pProperty.setPropertyStatus(property.getPropertyStatus());
 		pProperty.setPropertyType(property.getPropertyType());
-
-		if (pProperty.getPropertyStatus().equals("3") || pProperty.getPropertyStatus().equals("2")) {
-			pProperty.setOwner(pProperty.getOwner());
-			pProperty.setPrice(pProperty.getPrice());
-		} else if (pProperty.getPropertyStatus().equals("0") || pProperty.getPropertyStatus().equals("1")) {
-			pProperty.setPrice("0.000");
-			pProperty.setOwner("No");
+		if(property.getUserId()!=null) {
+			CWVAuthUser authUser = userHelper.getUserById(property.getUserId());
+			pProperty.setOwner(authUser.getNickName());
 		}
-		pProperty.setIncome(pProperty.getIncome());
+		pProperty.setPrice(property.getLastPrice()+"");
+		pProperty.setIncome(property.getIncome()+"");
 		pProperty.setPropertyTemplateId(property.getPropertyTemplateId() + "");
 		pProperty.setPropertyTemplate(property.getPropertyTemplate());
 		pProperty.setAppearanceType("1");
-
+		pProperty.setUrl(property.getImageUrl());
 		return pProperty;
 
 	}
@@ -1399,8 +1395,9 @@ public class PropertyHelper implements ActorService {
 		}
 
 		// 更新房产信息
-		final CWVGameProperty gameProperty = new CWVGameProperty();
-		gameProperty.setPropertyId(1);
+		final CWVGameProperty gameProperty = getDrawProperty();
+		//设置抽奖合约返回ID
+//		gameProperty.setPropertyId(1);
 		gameProperty.setUserId(authUser.getUserId());
 		gameProperty.setPropertyStatus("0");
 		// 更新抽奖次数
@@ -1462,6 +1459,14 @@ public class PropertyHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg())
 				.setProperty(drawProperty);
 
+	}
+
+	private CWVGameProperty getDrawProperty() {
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		example.createCriteria().andUserIdIsNull()
+		.andPropertyTypeEqualTo("2");
+		Object o = dao.gamePropertyDao.selectOneByExample(example);
+		return (CWVGameProperty) o;
 	}
 
 	public void getUserPropertyExchangeBack(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, FramePacket pack) {
