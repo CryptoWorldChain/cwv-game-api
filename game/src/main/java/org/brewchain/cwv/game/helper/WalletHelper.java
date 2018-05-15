@@ -262,10 +262,14 @@ public class WalletHelper implements ActorService {
 		topup.setAddress(wallet.getAccount());
 		topup.setAmount(new BigDecimal(pb.getAmount()));
 		topup.setUserId(user.getUserId());
-		topup.setStatus((byte) 0);
+//		topup.setStatus((byte) 0);
+		topup.setStatus((byte) 1);
 		topup.setCreateTime(new Date());
 		dao.topupDao.insert(topup);
-		
+		wallet.setBalance(wallet.getBalance().add(new BigDecimal(pb.getAmount())));
+		wallet.setDrawCount(wallet.getDrawCount()+Integer.parseInt(pb.getAmount())/1000);
+		wallet.setTopupBalance(wallet.getTopupBalance().add(new BigDecimal(pb.getAmount())));
+		dao.walletDao.updateByPrimaryKeySelective(wallet);
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
 		ret.setAmount(topup.getAmount().doubleValue());

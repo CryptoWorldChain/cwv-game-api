@@ -253,7 +253,7 @@ public class PropertyHelper implements ActorService {
 				
 				CWVMarketExchange exchange = (CWVMarketExchange) ob;
 				ExchangeInfo.Builder exchangeRet = ExchangeInfo.newBuilder();
-				exchangeRet.setExchangeId(exchange.getPropertyId() + "");
+				exchangeRet.setExchangeId(exchange.getExchangeId() + "");
 				exchangeRet.setPrice(exchange.getSellPrice().doubleValue());
 				exchangeRet.setStatus(exchange.getStatus());
 				property.setExchange(exchangeRet);
