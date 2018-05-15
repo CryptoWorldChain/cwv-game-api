@@ -711,7 +711,7 @@ public class PropertyHelper implements ActorService {
 
 		// 获取当前用户
 		final CWVAuthUser authUser = userHelper.getCurrentUser(pack);
-		if(exchangeRecord.getCreateUser().equals(authUser.getUserId())) {
+		if(exchange.getCreateUser().equals(authUser.getUserId())) {
 			ret.setRetCode(ReturnCodeMsgEnum.BPS_ERROR_USER.getRetCode())
 			.setRetMsg(ReturnCodeMsgEnum.BPS_ERROR_USER.getRetMsg());
 			return;
