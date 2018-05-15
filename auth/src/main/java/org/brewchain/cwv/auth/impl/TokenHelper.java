@@ -20,6 +20,7 @@ import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshTokenExample;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.fc.hzq.service.sys.Token.PRetRefreshToken;
 import org.fc.hzq.service.sys.Token.PRetRefreshToken.Builder;
+import org.fc.zippo.filter.exception.FilterException;
 import org.fc.hzq.service.sys.Token.PSAccessToken;
 import org.fc.hzq.service.sys.Token.PSRefreshToken;
 
@@ -78,14 +79,20 @@ public class TokenHelper implements ActorService {
 		//设置refresh_token
 		ExtHeader.addCookie(pack.getHttpServerletResponse(), "refresh_token", refreshToken);
 		
-		//删除 redis access_token
-		destroyAccessToken(smid);
+		
+		//刷新redis access_token
+		refreshAccessToken(smid);
 		//删除 旧 refresh_token
 		destroyRefreshToken(user.getUserId());
 		//插入新的refresh_token
 		insertRefreshToken(user.getUserId(),refreshToken);
 
 	}
+	public void refreshAccessToken(String smid) {
+		SubjectModel usrInfo = getUserSub(smid);
+		SessionFilter.userMap.put(usrInfo.getUid()+"", smid);
+	}
+
 	/**
 	 * 根据用户id删除原有token
 	 * @param userId
@@ -187,6 +194,8 @@ public class TokenHelper implements ActorService {
 	public void destroyAccessToken(String smid) {
 		// TODO Auto-generated method stub
 		// redis 删除
+		SubjectModel usrInfo = getUserSub(smid);
+		SessionFilter.userMap.remove(usrInfo.getUid()+"");
 	}
 
 	/**

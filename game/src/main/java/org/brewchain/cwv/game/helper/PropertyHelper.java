@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -139,8 +140,7 @@ public class PropertyHelper implements ActorService {
 	enum PropertyStatus{
 		NOSALE("0"),// 未出售
 		ONSALE("1"), //出售中
-		BIDDING("2"), //竞拍中
-		SOLD("3"); // 已出售
+		BIDDING("2"); //竞拍中
 		private String value;
 		PropertyStatus(String value){
 			this.value = value;
@@ -246,8 +246,7 @@ public class PropertyHelper implements ActorService {
 			// 设置交易信息
 			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
 			exchangeExample.createCriteria().andPropertyIdEqualTo(gameProperty.getPropertyId())
-			.andStatusNotEqualTo(Byte.parseByte(PropertyStatus.BIDDING.value))
-			.andStatusNotEqualTo(Byte.parseByte(PropertyStatus.SOLD.value));
+			.andStatusNotEqualTo(Byte.parseByte(PropertyStatus.BIDDING.value));
 			
 			List<Object> listExchange = dao.exchangeDao.selectByExample(exchangeExample);
 			for(Object ob : listExchange) {
@@ -764,7 +763,7 @@ public class PropertyHelper implements ActorService {
 		property.setLastPrice(exchange.getSellPrice());
 		property.setLastPriceTime(new Date());
 		property.setUserId(exchange.getUserId());
-		property.setPropertyStatus("3");
+		property.setPropertyStatus(PropertyStatus.NOSALE.value);
 
 		// 设置账户信息
 		userWalletBuyer.setBalance(userWalletBuyer.getBalance().subtract(exchange.getSellPrice()));
@@ -926,7 +925,7 @@ public class PropertyHelper implements ActorService {
 		exchange.setIncomeRemark("收益说明123");
 		exchange.setLastPrice(property.getLastPrice());
 		// exchange.setImageUrl(property.getImageUrl());
-		property.setPropertyStatus("2");// 出售中
+		property.setPropertyStatus(PropertyStatus.ONSALE.value);// 出售中
 		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
 
 			@Override
@@ -1294,7 +1293,7 @@ public class PropertyHelper implements ActorService {
 					// 设置交易记录
 					recordAuction.setCreateTime(new Date());
 					recordAuction.setCreateUser(user.getUserId());
-					recordAuction.setDetail("竞拍房产:" + pb.getPrice());
+					recordAuction.setDetail("竞拍房产");
 					recordAuction.setUserId(user.getUserId());
 
 					// 更新个人竞拍记录
@@ -1710,6 +1709,9 @@ public class PropertyHelper implements ActorService {
 		if (StringUtils.isEmpty(pb.getAuctionEnd())) {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("竞拍止期不能为空");
 			return;
+		}else if(org.brewchain.cwv.auth.util.DateUtil.compare(DateUtil.getDateTime(pb.getAuctionEnd()), new Date()) <=0){
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("竞拍止期必须大于当前时间");
+			return;
 		}
 
 
@@ -1761,8 +1763,11 @@ public class PropertyHelper implements ActorService {
 			ret.setRetMsg(exchangeRet.getRetMsg());
 			return;
 		}
-
-		bid.setStatus((byte) 0);
+		if(org.brewchain.cwv.auth.util.DateUtil.compare(bid.getAuctionStart(), new Date()) > 0)
+			bid.setStatus((byte)1);
+		else 
+			bid.setStatus((byte)0);
+		
 		bid.setCreateTime(new Date());
 		bid.setCreateUser(user.getUserId() + "");
 

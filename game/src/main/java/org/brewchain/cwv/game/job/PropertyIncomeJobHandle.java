@@ -1,5 +1,7 @@
 package org.brewchain.cwv.game.job;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +32,7 @@ public class PropertyIncomeJobHandle extends ActWrapper implements ActorService,
 	Daos sysDaos;
 
 	private static ScheduledExecutorService service = null;
-//	private final static int POOL_SIZE = 100;
+	private final static int POOL_SIZE = 100;
 
 	//间隔时间
 	private final int numIntervalTime = 3;
@@ -82,8 +84,9 @@ public class PropertyIncomeJobHandle extends ActWrapper implements ActorService,
 			// 分发任务
 //			ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
 //			ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
-			// 延迟0， 间隔1， 单位：SECONDS
-//			service.scheduleAtFixedRate(new PropertyIncomeTask(sysDaos), numZero, numIntervalTime, TimeUnit.MINUTES);
+//			 延迟0， 间隔1， 单位：SECONDS
+			service.scheduleAtFixedRate(new PropertyIncomeTask(), numZero, numIntervalTime, TimeUnit.MINUTES);
+			
 		}
 
 	}

@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUserExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
@@ -45,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
 import onight.tfw.ntrans.api.annotation.ActorRequire;
+import onight.tfw.ojpa.api.TransactionExecutor;
 import onight.tfw.otransio.api.IPacketSender;
 import onight.tfw.otransio.api.beans.FramePacket;
 import onight.tfw.outils.serialize.UUIDGenerator;
@@ -154,15 +157,15 @@ public class UserHelper implements ActorService {
 		}
 
 		// 1.3 用户重复性校验
-		CWVAuthUser authUser = getUserByPhone(pb.getPhone());
-		if (authUser != null) {
+		CWVAuthUser user = getUserByPhone(pb.getPhone());
+		if (user != null) {
 			ret.setRetCode(ReturnCodeMsgEnum.REG_DUPLICATE_PHONE.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.REG_DUPLICATE_PHONE.getRetMsg());
 			return;
 		}
 
 		// 2 初始化用户数据（包含默认值）
-		authUser = new CWVAuthUser();
+		final CWVAuthUser authUser = new CWVAuthUser();
 		authUser.setNickName(StringUtils.isEmpty(pb.getNickName())? pb.getUserName() : pb.getNickName() );
 		authUser.setUserName(pb.getUserName());
 		authUser.setCountryId(pb.getCountryId());
@@ -182,9 +185,34 @@ public class UserHelper implements ActorService {
 		// 3 保存用户
 
 		// 创建账户 TODO
+		this.dao.userDao.doInTransaction(new TransactionExecutor() {
+			
+			@Override
+			public Object doInTransaction() {
+				
+				dao.userDao.insertIfNoExist(authUser);
+				CWVAuthUser userInsert = getUserByPhone(authUser.getPhone());
+				
+				for(int i=0;i<3;i++) {
+					CWVUserWallet userWallet = new CWVUserWallet();
+					userWallet.setAccount("http://ceshidizhi");
+					userWallet.setBalance(new BigDecimal(0));
+					userWallet.setCoinIcon("http://cwc.icon");
+					userWallet.setCoinType((byte)i);
+					userWallet.setCreateTime(new Date());
+					userWallet.setDrawCount(0);
+					userWallet.setTopupBalance(new BigDecimal(0));
+					userWallet.setUpdateTime(new Date());
+					userWallet.setUserId(userInsert.getUserId());
+					userWallet.setIncomeFunctional(new BigDecimal(0));
+					userWallet.setIncomeOrdinary(new BigDecimal(0));
+					userWallet.setIncomeTypical(new BigDecimal(0));
+					dao.walletDao.insertSelective(userWallet);
+				}
+				return null;
+			}
+		});
 		
-		
-		this.dao.userDao.insert(authUser);
 		ret.setRetCode(ReturnCodeMsgEnum.REG_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_SUCCESS.getRetMsg());
 
 	}

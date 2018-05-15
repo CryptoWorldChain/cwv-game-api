@@ -1,6 +1,7 @@
 package org.brewchain.cwv.auth.filter;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +68,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			
 		}
 	}; // 可配置
-
+	public static HashMap<String,String> userMap = new HashMap<String,String>();
 	public final static boolean ischeckrole = false; // 测试使用，是否走url验证,可配置，临时添加到代码内
 
 	@ActorRequire(name="Session_Manager")
@@ -211,7 +212,9 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 
 		Claims claims = checkResult.getClaims();
 		SubjectModel usrInfo = GsonUtil.jsonStrToObject(claims.getSubject(), SubjectModel.class);
-
+		if(!userMap.containsKey(usrInfo.getUid()+"") || !userMap.get(usrInfo.getUid()+"").equals(smid)){
+			throw new FilterException("filter: [" + checkResult.getMsg() + "]");
+		}
 		pack.getExtHead().append(STR_IS_SESSION, "1");
 		pack.getExtHead().append(STR_SESSION_SMID, smid);
 		pack.getExtHead().append(STR_RECEIVE_TIME, new Date());
