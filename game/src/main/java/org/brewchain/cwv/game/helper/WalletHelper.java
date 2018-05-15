@@ -69,7 +69,7 @@ public class WalletHelper implements ActorService {
 	@ActorRequire(name="Daos")
 	Daos dao;
 	
-	@ActorRequire(scope = "global")
+	@ActorRequire(name="User_Helper", scope = "global")
 	UserHelper userHelper;
 	
 	// 防止相互引用死循环
