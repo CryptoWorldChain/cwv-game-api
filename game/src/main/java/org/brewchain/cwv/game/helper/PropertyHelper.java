@@ -1043,6 +1043,7 @@ public class PropertyHelper implements ActorService {
 			BidInfo.Builder bidRet = BidInfo.newBuilder();
 			bidRet.setBidId(bid.getBidId() + "");
 			bidRet.setAuctionStart(DateUtil.getDayTime(bid.getAuctionStart()));
+			bidRet.setAuctionEnd(DateUtil.getDayTime(bid.getAuctionEnd()));
 			bidRet.setPrice(bid.getLastPrice() + "");
 			bidRet.setStatus(bid.getStatus() + "");
 			bidRet.setProperty(property);

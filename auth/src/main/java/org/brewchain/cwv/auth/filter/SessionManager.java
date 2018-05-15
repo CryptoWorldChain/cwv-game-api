@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.util.jwt.TokenMgr;
 import org.fc.zippo.filter.exception.FilterException;
@@ -22,6 +23,7 @@ import onight.tfw.outils.serialize.SessionIDGenerator;
 @Provides(specifications = { ActorService.class }, strategy = "SINGLETON")
 @Slf4j
 @Data
+@Instantiate(name="Session_Manager")
 public class SessionManager implements ActorService {
 
 	Map<String, SMSession> sms = new ConcurrentHashMap<>();
