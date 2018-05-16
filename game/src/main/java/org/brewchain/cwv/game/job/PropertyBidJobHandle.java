@@ -31,7 +31,7 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 	private final static int POOL_SIZE = 100;
 
 	//间隔时间
-	private final int numIntervalTime = 3;
+	private final int numIntervalTime = 10;
 	//线程大小
 	private final int numThredSize = 1;
 	private final int numZero = 0;
@@ -46,17 +46,19 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					while(bool) {
+					while(dao == null) {
 						try {
 							Thread.sleep(5000L);
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						if(dao != null) {
-							service = getService();
-							if (service != null) {
-								// 延迟0， 间隔1， 单位：SECONDS
+					}
+					
+					if(dao != null) {
+						service = getService();
+						if (service != null) {
+							// 延迟0， 间隔1， 单位：SECONDS
 //								service.scheduleAtFixedRate(new Runnable() {
 //									public void run() {
 //										try {
@@ -67,13 +69,12 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 //									}
 //								}, numZero, numOne, TimeUnit.MINUTES);
 //								bool = false;
-								// 分发任务
+							// 分发任务
 //								ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
 //								ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
 //								 延迟0， 间隔1， 单位：SECONDS
-								service.scheduleAtFixedRate(new PropertyBidTask(dao), numZero, numIntervalTime, TimeUnit.MINUTES);
-								
-							}
+							service.scheduleAtFixedRate(new PropertyBidTask(dao), numZero, numIntervalTime, TimeUnit.SECONDS);
+							
 						}
 					}
 				}
