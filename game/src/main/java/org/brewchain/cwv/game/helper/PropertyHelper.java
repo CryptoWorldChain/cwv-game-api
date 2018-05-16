@@ -144,6 +144,9 @@ public class PropertyHelper implements ActorService {
 		PropertyStatus(String value){
 			this.value = value;
 		}
+		public String getValue() {
+			return value;
+		}
 	}
 
 	// 防止相互引用死循环
@@ -1843,7 +1846,7 @@ public class PropertyHelper implements ActorService {
 		bid.setIncomeRemark("收益说明123");
 		bid.setLastPrice(property.getLastPrice());
 		bid.setImageUrl(property.getImageUrl());
-		property.setPropertyStatus("1");// 竞拍中
+		property.setPropertyStatus(PropertyStatus.BIDDING.getValue());// 竞拍中
 
 		dao.bidDao.doInTransaction(new TransactionExecutor() {
 

@@ -1,12 +1,12 @@
 package org.brewchain.cwv.game.job;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.game.dao.Daos;
 
 import lombok.Data;
@@ -18,15 +18,14 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 import onight.tfw.proxy.IActor;
 
 /**
- * 收益定时任务
+ * 竞拍状态定时任务
  * @author Moon
  * @date 2018-05-10
  */
 @NActorProvider
 @Slf4j
 @Data
-public class PropertyIncomeJobHandle extends ActWrapper implements ActorService, IActor {
-	
+public class PropertyBidJobHandle extends ActWrapper implements ActorService, IActor {
 	
 	private static ScheduledExecutorService service = null;
 	private final static int POOL_SIZE = 100;
@@ -37,21 +36,55 @@ public class PropertyIncomeJobHandle extends ActWrapper implements ActorService,
 	private final int numThredSize = 1;
 	private final int numZero = 0;
 	private boolean bool = true;
-
+	
+	@ActorRequire(name="Daos", scope = "global")
+	Daos dao;
+	
 	@Override
 	public void onDaoServiceAllReady() {
 		try {
-			Thread.sleep(3000L);
-			if(bool) {
-//				service = this.getService();
-//				this.startService();
-			}
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					while(bool) {
+						try {
+							Thread.sleep(5000L);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						if(dao != null) {
+							service = getService();
+							if (service != null) {
+								// 延迟0， 间隔1， 单位：SECONDS
+//								service.scheduleAtFixedRate(new Runnable() {
+//									public void run() {
+//										try {
+//											entrustEngineTask.execute();
+//										} catch (Exception e) {
+//											log.error("PropertyIncomeJobHandle startService run error...", e);
+//										}
+//									}
+//								}, numZero, numOne, TimeUnit.MINUTES);
+//								bool = false;
+								// 分发任务
+//								ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
+//								ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
+//								 延迟0， 间隔1， 单位：SECONDS
+								service.scheduleAtFixedRate(new PropertyBidTask(dao), numZero, numIntervalTime, TimeUnit.MINUTES);
+								
+							}
+						}
+					}
+				}
+			}).start();
+			
 		} catch (Exception e) {
 			log.warn("PropertyIncomeJobHandle onDaoServiceAllReady error...", e);
 		}
 	}
 
-	private ScheduledExecutorService getService() {
+	public ScheduledExecutorService getService() {
 		try {
 			if (service != null) {
 				service.shutdown();
@@ -65,7 +98,7 @@ public class PropertyIncomeJobHandle extends ActWrapper implements ActorService,
 		return service;
 	}
 
-	private void startService() {
+	private void startService() throws InterruptedException {
 		if (service != null) {
 			// 延迟0， 间隔1， 单位：SECONDS
 //			service.scheduleAtFixedRate(new Runnable() {
@@ -77,12 +110,12 @@ public class PropertyIncomeJobHandle extends ActWrapper implements ActorService,
 //					}
 //				}
 //			}, numZero, numOne, TimeUnit.MINUTES);
-			bool = false;
+//			bool = false;
 			// 分发任务
 //			ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
 //			ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
 //			 延迟0， 间隔1， 单位：SECONDS
-			service.scheduleAtFixedRate(new PropertyIncomeTask(), numZero, numIntervalTime, TimeUnit.MINUTES);
+			service.scheduleAtFixedRate(new PropertyBidTask(dao), numZero, numIntervalTime, TimeUnit.MINUTES);
 			
 		}
 
