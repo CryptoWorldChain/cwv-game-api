@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -30,6 +31,10 @@ import org.brewchain.cwv.auth.util.jwt.SubjectModel;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshTokenExample;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUserExample;
+import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
+import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountryExample;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
@@ -93,6 +98,12 @@ public class UserHelper implements ActorService {
 			this.value = value;
 		}
 	}
+	
+	public HashSet<String> msgCodeLoginType = new HashSet<String>(){{
+		add(MsgCodeType.STP.value);
+		add(MsgCodeType.RSP.value);
+		add(MsgCodeType.SPS.value);
+	}};
 
 	/**
 	 * 注册用户
@@ -113,7 +124,7 @@ public class UserHelper implements ActorService {
 		}
 
 		// 国家代码
-		if (pb.getCountryId() == 0) {
+		if (StringUtils.isEmpty(pb.getCountryCode())) {
 			throw new IllegalArgumentException("国家不能为空");
 		}
 
@@ -144,16 +155,9 @@ public class UserHelper implements ActorService {
 		jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
 		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals( jsonMapPhone.get("ret_code"))) {
-			if(ReturnCodeMsgEnum.VER_ERROR_EXPIRED.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE_EXPIRED.getRetCode())
-				.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE_EXPIRED.getRetMsg());
-				return;
-			}else{
-				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetCode())
-				.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_PHONE_CODE.getRetMsg());
-				return;
-			}
-			
+			ret.setRetCode(jsonMapPhone.get("ret_code"))
+			.setRetMsg(jsonMapPhone.get("ret_msg"));
+			return;
 		}
 
 		// 1.3 用户重复性校验
@@ -168,10 +172,13 @@ public class UserHelper implements ActorService {
 		final CWVAuthUser authUser = new CWVAuthUser();
 		authUser.setNickName(StringUtils.isEmpty(pb.getNickName())? pb.getUserName() : pb.getNickName() );
 		authUser.setUserName(pb.getUserName());
-		authUser.setCountryId(pb.getCountryId());
+		CWVCommonCountryExample countryExample = new CWVCommonCountryExample();
+		countryExample.createCriteria().andRegionCodeEqualTo(pb.getCountryCode());
+		CWVCommonCountry countryOb = (CWVCommonCountry) dao.commonCountryDao.selectOneByExample(countryExample);
+		authUser.setCountryId(countryOb.getCountryId());
+		authUser.setCountryCode(pb.getCountryCode());
 		// if(pb.getPhoneCode() !=null && pb.getPhoneCode().equals(""))
 		// authUser.setPhone(phone);
-
 		authUser.setPhone(pb.getPhone());
 		String salt = "$1$" + pb.getPhone().substring(7);
 		String pwdMd5 = getPwdMd5(pb.getPassword(), salt);
@@ -266,6 +273,19 @@ public class UserHelper implements ActorService {
 		userInfo.setUid(authUser.getUserId() + "");
 		userInfo.setNickName(StringUtils.isEmpty(authUser.getNickName()) ? "" : authUser.getNickName());
 		userInfo.setPhone(authUser.getPhone());
+		CWVCommonCountryExample countryExample = new CWVCommonCountryExample();
+		countryExample.createCriteria().andRegionCodeEqualTo(authUser.getCountryCode());
+		CWVCommonCountry countryOb = (CWVCommonCountry) dao.commonCountryDao.selectOneByExample(countryExample);
+		
+		userInfo.setPhoneCode(countryOb.getPhoneCode());
+		CWVSysSettingExample example = new CWVSysSettingExample();
+		example.createCriteria().andNameEqualTo("super_user");
+		CWVSysSetting supperSet  = (CWVSysSetting) dao.settingDao.selectOneByExample(example);
+		if(supperSet.getValue().equals(authUser.getUserId()))
+			userInfo.setIsSupper("1");
+		else{
+			userInfo.setIsSupper("0");
+		}
 		// TODO 图片服务器返回URL 或者返回头像接口
 		userInfo.setImageUrl("/cwv/usr/pbghi.do");
 		
@@ -353,8 +373,8 @@ public class UserHelper implements ActorService {
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 	
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetCode())
-						.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetMsg());
+				ret.setRetCode(jsonMapPhone.get("ret_code"))
+				.setRetMsg(jsonMapPhone.get("ret_msg"));
 				return;
 			}
 		 }
@@ -459,8 +479,8 @@ public class UserHelper implements ActorService {
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_PHONE_CODE.getRetCode())
-						.setRetMsg(ReturnCodeMsgEnum.RSP_ERROR_PHONE_CODE.getRetMsg());
+				ret.setRetCode(jsonMapPhone.get("ret_code"))
+				.setRetMsg(jsonMapPhone.get("ret_msg"));
 				return;
 			}
 		 }
@@ -620,16 +640,15 @@ public class UserHelper implements ActorService {
 
 	public void sendMsgCode(FramePacket pack, PSSendMsgCode pb, PRetCommon.Builder ret) {
 		// 校验类型
-		// 修改密码 校验用户手机号
-		if ("3".equals(pb.getType()) && !existsPhone(pb.getPhone())) {// 修改密码
+		if (msgCodeLoginType.contains(pb.getType()) && !existsPhone(pb.getPhone())) {// 校验登陆者手机号
 			ret.setRetCode(ReturnCodeMsgEnum.SMC_ERROR_PHONE.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.SMC_ERROR_PHONE.getRetMsg());
 			return;
 		}
 		
-		if(StringUtils.isEmpty(pb.getCountryCode())){
+		if(StringUtils.isEmpty(pb.getPhoneCode())){
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
-			ret.setRetMsg("国家代码不能为空");
+			ret.setRetMsg("手机代码不能为空");
 			return;
 		}
 		
@@ -642,7 +661,7 @@ public class UserHelper implements ActorService {
 		
 		HashMap<String, String> jsonMap = new HashMap<>();
 		jsonMap.put("phone", pb.getPhone());
-		jsonMap.put("country_code", pb.getCountryCode());
+		jsonMap.put("country_code", pb.getPhoneCode());
 		jsonMap.put("type", pb.getType());
 
 		jsonMap = InokeInterfaceHelper.getMsgCode(jsonMap, sender);
@@ -706,8 +725,8 @@ public class UserHelper implements ActorService {
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 	
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetCode())
-						.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetMsg());
+				ret.setRetCode(jsonMapPhone.get("ret_code"))
+				.setRetMsg(jsonMapPhone.get("ret_msg"));
 				return;
 			}
 		 }

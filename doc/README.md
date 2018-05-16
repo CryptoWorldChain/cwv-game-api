@@ -31,25 +31,25 @@
 	     
 
 	{
-		"country_code":"86", 
+		"phone_code":"86", 
 		"phone":"18512345678",
 		"type":"1"
 	}
 
 
-	country_code 手机号所属国家代码
+	phone_code 手机号所属国家代码 86
 	phone        手机号
 	type         1:注册验证
-				 2:登陆验证(不可用)
-				 3:重置密码验证
-				 4:修改信息验证[需传递用户身份]
+			 2:交易密码
+			 3:重置密码验证
+			 4:设置登陆密码
 
 
 ### 输出参数
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|状态码<br/>01,发送成功！<br/>02,短信发送失败！ <br/>03,手机号错误！<br/>80,校验类错误信息<br/>99，未知异常|
+ret_code|string|状态码<br/>01,发送成功！<br/>61,短信发送失败！ <br/>66,手机号错误！<br/>80,校验类错误信息<br/>99，未知异常|
 ret_msg|string|状态说明|
 
 	{
@@ -108,7 +108,7 @@ ret_msg|string|状态说明|
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|状态码<br/>01,验证码验证成功！<br/>02没有短信验证记录，请重新发起短信验证！ <br/>03,有多条短信验证记录,请重新发起短信验证！<br/>04,验证码已过期，请重新发起短信验证！ <br/>05,无效<br/>99，未知异常|
+ret_code|string|状态码<br/>01,验证码验证成功！<br/>62没有短信验证记录，请重新发起短信验证！ <br/>63,有多条短信验证记录,请重新发起短信验证！<br/>64,验证码已过期，请重新发起短信验证！ <br/>65,短信验证码无效<br/>99，未知异常|
 ret_msg|string|状态说明|
 
 	{
@@ -241,7 +241,7 @@ ret_msg|string|状态说明|
 |password|string|用户密码||
 |phone_verify_code|string|短信验证码|1234|
 |reg_verify_code|string|注册验证码||
-|country_id|number|国家编码||
+|country_code|number|国家编码||
 
 	{
 		"user_name":"test01",
@@ -250,7 +250,7 @@ ret_msg|string|状态说明|
 		"password":"123456",
 		"phone_verify_code":"123456",
 		"reg_verify_code":"123456",
-		"country_id": 10001
+		"country_code": "156"
 	}
 	
 ### 输出参数
@@ -308,6 +308,7 @@ ret_msg|string|状态说明|
 |nick_name|string|昵称||
 |phone|string|手机号||
 |image_url|string|用户头像||
+|is_supper|string|是否超级玩家  0不是，1是||
 
 	{
 	    "ret_code": "01",
@@ -323,6 +324,7 @@ ret_msg|string|状态说明|
 	        "image_url": "/cwv/user/pbghi.do",
 	        "trade_pwd_set": "1",
 	        "account_balance": "10000.00"
+	         "is_supper": "0"
 	    }
 	}
 

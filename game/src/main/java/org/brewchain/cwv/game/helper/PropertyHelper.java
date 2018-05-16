@@ -839,7 +839,7 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
-		if (pb.getPrice() <= 0) {// 出售价格
+		if (pb.getPrice() <= 0 ) {// 出售价格
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
 			ret.setRetMsg("出售价格错误");
 			return;

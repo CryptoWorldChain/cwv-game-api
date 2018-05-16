@@ -30,18 +30,21 @@ public class GameHelper implements ActorService {
 
 	@ActorRequire(name="Daos")
 	Daos dao;
+	@ActorRequire(name="Common_Helper")
+	CommonHelper commonHelper;
 
 	public void gameIntroduction(PSCommon pb, PRetGameIntroduction.Builder ret) {
 		// TODO Auto-generated method stub
 		Introduction.Builder intro1 = Introduction.newBuilder();
-		intro1.setTitle("title1");
-		intro1.setContent("content1");
+		intro1.setTitle(commonHelper.getSysSettingValue("game_intro_1"));
+		intro1.setContent(commonHelper.getSysSettingValue("game_intro_1"));
 		Introduction.Builder intro2 = Introduction.newBuilder();
-		intro2.setTitle("title2");
-		intro2.setContent("content2");
+		intro2.setTitle(commonHelper.getSysSettingValue("game_intro_2"));
+		intro2.setContent(commonHelper.getSysSettingValue("game_intro_2"));
 		Introduction.Builder intro3 = Introduction.newBuilder();
-		intro3.setTitle("title3");
-		intro3.setContent("content3");
+		intro3.setTitle(commonHelper.getSysSettingValue("game_intro_3"));
+		intro3.setContent(commonHelper.getSysSettingValue("game_intro_3"));
+		
 		ret.addIntrodcution(intro1);
 		ret.addIntrodcution(intro2);
 		ret.addIntrodcution(intro3);
