@@ -1781,9 +1781,9 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 		if(org.brewchain.cwv.auth.util.DateUtil.compare(bid.getAuctionStart(), new Date()) > 0)
-			bid.setStatus((byte)1);
-		else 
 			bid.setStatus((byte)0);
+		else 
+			bid.setStatus((byte)1);
 		
 		bid.setCreateTime(new Date());
 		bid.setCreateUser(user.getUserId() + "");
