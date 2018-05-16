@@ -281,7 +281,7 @@ public class UserHelper implements ActorService {
 		CWVSysSettingExample example = new CWVSysSettingExample();
 		example.createCriteria().andNameEqualTo("super_user");
 		CWVSysSetting supperSet  = (CWVSysSetting) dao.settingDao.selectOneByExample(example);
-		if(supperSet.getValue().equals(authUser.getUserId()))
+		if(supperSet.getValue().equals(authUser.getUserId().toString()))
 			userInfo.setIsSupper("1");
 		else{
 			userInfo.setIsSupper("0");
@@ -367,7 +367,7 @@ public class UserHelper implements ActorService {
 		 	return;
 		 }else {
 		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
-			jsonMapPhone.put("phone", pb.getPhone());
+			jsonMapPhone.put("phone", authUser.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
 			jsonMapPhone.put("type", MsgCodeType.STP.value); //设置交易密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
@@ -473,7 +473,7 @@ public class UserHelper implements ActorService {
 		 	return;
 		 }else {
 		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
-			jsonMapPhone.put("phone", pb.getPhone());
+			jsonMapPhone.put("phone", authUser.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
 			jsonMapPhone.put("type", MsgCodeType.RSP.value); //重置登陆密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
@@ -719,7 +719,7 @@ public class UserHelper implements ActorService {
 		 	return;
 		 }else {
 		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
-			jsonMapPhone.put("phone", pb.getPhone());
+			jsonMapPhone.put("phone", authUser.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
 			jsonMapPhone.put("type", MsgCodeType.SPS.value); //设置登陆密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
