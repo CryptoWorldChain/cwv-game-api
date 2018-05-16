@@ -1758,7 +1758,7 @@ public class PropertyHelper implements ActorService {
 
 		bid.setGamePropertyId(Integer.parseInt(pb.getPropertyId()));
 		bid.setAuctionEnd(DateUtil.getDateTime(pb.getAuctionEnd()));
-		bid.setAuctionStart(DateUtil.getDateTime(pb.getAuctionEnd()));
+		bid.setAuctionStart(DateUtil.getDateTime(pb.getAuctionStart()));
 		bid.setBidStart(new BigDecimal(pb.getBidStart()));
 		bid.setIncreaseLadder(Long.parseLong(pb.getIncreaseLadder()));
 		if(StringUtils.isEmpty(pb.getAnnounceTime())) {
