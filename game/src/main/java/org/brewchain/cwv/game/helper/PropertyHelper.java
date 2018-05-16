@@ -1591,9 +1591,38 @@ public class PropertyHelper implements ActorService {
 		ret.setAuctionStart(DateUtil.getDayTime(bid.getAuctionStart()));
 		ret.setAuctionEnd(DateUtil.getDayTime(bid.getAuctionEnd()));
 		ret.setAnnounceTime(DateUtil.getDayTime(bid.getAnnounceTime()));
+		//查询竞价最高者
+		CWVMarketAuction auctionMax = getMaxAuction(bid.getBidId());
+		if(auctionMax !=null) {
+			CWVAuthUser userMax = userHelper.getUserById(auctionMax.getUserId());
+			ret.setMaxPriceUser(userMax.getNickName());
+			ret.setMaxPrice(auctionMax.getBidPrice()+"");
+		}else{
+			ret.setMaxPrice(bid.getBidStart()+"");
+		}
+		//查询竞价最高者
+		CWVMarketAuction auctionUser = getUserAuction(user.getUserId());
+		ret.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
+		
 		ret.setBidStart(bid.getBidStart().toString());
 		ret.setRetCode(ReturnCodeMsgEnum.PBD_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.PBD_SUCCESS.getRetMsg());
 
+	}
+	
+	public CWVMarketAuction getMaxAuction(Integer bidId){
+		CWVMarketAuctionExample auctionExample = new CWVMarketAuctionExample();
+		auctionExample.createCriteria().andBidIdEqualTo(bidId);
+		auctionExample.setOrderByClause("bid_price desc");
+		Object o = dao.auctionDao.selectOneByExample(auctionExample);
+		
+		return o==null?null : (CWVMarketAuction)o;
+	}
+	
+	public CWVMarketAuction getUserAuction(Integer userId){
+		CWVMarketAuctionExample auctionExample = new CWVMarketAuctionExample();
+		auctionExample.createCriteria().andUserIdEqualTo(userId);
+		Object o = dao.auctionDao.selectOneByExample(auctionExample);
+		return o==null?null : (CWVMarketAuction)o;
 	}
 
 	public void getPropertyCharge(PSCommon pb, PRetGamePropertyCharge.Builder ret) {
@@ -1692,6 +1721,13 @@ public class PropertyHelper implements ActorService {
 		// string auction_end = 15;//结束时间
 		// string announce_time = 16;//公布时间
 		// string bid_start = 17;//最低喊价
+		//查询竞价最高者
+		CWVAuthUser owner = userHelper.getUserById(bid.getOwner());
+		ret.setMaxPriceUser(owner.getNickName());
+		//查询竞价最高者
+		CWVMarketAuction auctionUser = getUserAuction(user.getUserId());
+		ret.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
+				
 		ret.setProperty(bidProperty);
 		ret.setBidPrice(bid.getBidAmount().doubleValue());
 
