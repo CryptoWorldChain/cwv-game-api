@@ -77,11 +77,12 @@ public class PropertyBidTask implements Runnable {
 				gameProperty.setPropertyId(bid.getGamePropertyId());
 				final CWVGameProperty property = propertyHelper.getDao().gamePropertyDao.selectByPrimaryKey(gameProperty);
 				
+				if(!property.getPropertyStatus().equals(PropertyStatusEnum.BIDDING.getValue()))
+					continue;
 				//查询竞价最高者
 				CWVMarketAuction auctionMax = propertyHelper.getMaxAuction(bid.getBidId());
 				if(auctionMax !=null) {
 					//调取钱包查询竞拍数据
-					
 					
 					//更新竞拍信息
 					CWVAuthUser userMax = propertyHelper.getUserHelper().getUserById(auctionMax.getUserId());
@@ -98,7 +99,7 @@ public class PropertyBidTask implements Runnable {
 					//回退为竞拍成功者资金
 					CWVMarketAuctionExample auctionExample = new CWVMarketAuctionExample();
 					auctionExample.createCriteria().andBidIdEqualTo(bid.getBidId())
-					.andUserIdNotEqualTo(userMax.getUserId());
+					.andUserIdNotEqualTo(userMax.getUserId()).andStatusEqualTo((byte) 1);
 					
 					final List<Object> listAuction = propertyHelper.getDao().auctionDao.selectByExample(auctionExample);
 					
@@ -122,8 +123,10 @@ public class PropertyBidTask implements Runnable {
 								CWVUserWallet aucitonWallet = propertyHelper.getWalletHelper().getUserAccount(aucton.getUserId(), CoinEnum.CWB);
 								aucitonWallet.setBalance(aucitonWallet.getBalance().add(aucton.getBidPrice()));
 								aucitonWallet.setUpdateTime(new Date());
+								aucton.setStatus((byte) 2 );
 								propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(aucitonWallet);
 								
+								propertyHelper.getDao().auctionDao.updateByPrimaryKeySelective(aucton);
 							}
 							return null;
 						}

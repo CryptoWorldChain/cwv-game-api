@@ -286,7 +286,8 @@ public class PropertyHelper implements ActorService {
 		CWVAuthUser authUser = userHelper.getUserById(Integer.parseInt(userId));
 		
 		// 用户
-		criteria.addCriterion("property_id in (select property_id from cwv_market_auction where user_id='"+authUser.getUserId()+"' and status='1')");
+		criteria.addCriterion("property_id in (select game_property_id from cwv_market_bid where status='"
+		+PropertyBidStatusEnum.BIDDING.getValue()+"' and bid_id in (select bid_id from cwv_market_auction  where user_id='"+authUser.getUserId()+"' and status='1' ))");
 		
 		// 价格排序
 		if (StringUtils.isNotEmpty(pb.getPriceType())) {
@@ -361,7 +362,7 @@ public class PropertyHelper implements ActorService {
 					exchangeRet.setPrice(bid.getBidStart().doubleValue());
 				}
 				//查询竞价最高者
-				CWVMarketAuction auctionUser = getUserAuction(authUser.getUserId());
+				CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(), authUser.getUserId());
 				exchangeRet.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
 				exchangeRet.setBiddingTime(DateUtil.getDayTime(bid.getAuctionEnd()));
 				property.setExchange(exchangeRet);
@@ -1060,6 +1061,15 @@ public class PropertyHelper implements ActorService {
 			bidRet.setBidId(bid.getBidId() + "");
 			bidRet.setAuctionStart(DateUtil.getDayTime(bid.getAuctionStart()));
 			bidRet.setAuctionEnd(DateUtil.getDayTime(bid.getAuctionEnd()));
+			//查询竞价最高者
+			CWVMarketAuction auctionMax = getMaxAuction(bid.getBidId());
+			if(auctionMax !=null) {
+				CWVAuthUser userMax = userHelper.getUserById(auctionMax.getUserId());
+				bidRet.setMaxPriceUser(userMax.getNickName());
+				bidRet.setPrice(auctionMax.getBidPrice()+"");
+			}else{
+				bidRet.setPrice(bid.getBidStart()+"");
+			}
 			bidRet.setPrice(bid.getLastPrice() + "");
 			bidRet.setStatus(bid.getStatus() + "");
 			bidRet.setProperty(property);
@@ -1625,7 +1635,7 @@ public class PropertyHelper implements ActorService {
 			ret.setMaxPrice(bid.getBidStart()+"");
 		}
 		//查询竞价最高者
-		CWVMarketAuction auctionUser = getUserAuction(user.getUserId());
+		CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(),user.getUserId());
 		ret.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
 		
 		ret.setBidStart(bid.getBidStart().toString());
@@ -1642,9 +1652,9 @@ public class PropertyHelper implements ActorService {
 		return o==null?null : (CWVMarketAuction)o;
 	}
 	
-	public CWVMarketAuction getUserAuction(Integer userId){
+	public CWVMarketAuction getUserAuction(Integer bidId,Integer userId) {
 		CWVMarketAuctionExample auctionExample = new CWVMarketAuctionExample();
-		auctionExample.createCriteria().andUserIdEqualTo(userId);
+		auctionExample.createCriteria().andBidIdEqualTo(bidId).andUserIdEqualTo(userId);
 		Object o = dao.auctionDao.selectOneByExample(auctionExample);
 		return o==null?null : (CWVMarketAuction)o;
 	}
@@ -1749,7 +1759,7 @@ public class PropertyHelper implements ActorService {
 		CWVAuthUser owner = userHelper.getUserById(bid.getOwner());
 		ret.setMaxPriceUser(owner.getNickName());
 		//查询竞价最高者
-		CWVMarketAuction auctionUser = getUserAuction(user.getUserId());
+		CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(), user.getUserId());
 		ret.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
 				
 		ret.setProperty(bidProperty);

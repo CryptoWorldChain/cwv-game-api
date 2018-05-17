@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
+import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.game.service.GameNoticeInService.NoticeTopicEnum;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
@@ -42,8 +43,8 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 	
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
-	
-	private final String NOTICE_OUT_URL = "http://54.169.102.90:80/api/msg/subcription";
+	@ActorRequire(name = "Common_Helper")
+	CommonHelper commonHelper;
 	
 	public String[] getCmds() {
 		return new String[] { GNPSCommand.GNO.name() };
@@ -76,8 +77,9 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 	 */
 	private void baffle(PBGameNoticeOut pb,PRetGameNoticeOut.Builder ret){
 		
+		String noticeOutUrl = commonHelper.getSysSettingValue("ipfs_msg_out");
 		StringBuffer url = new StringBuffer();
-		url.append(NOTICE_OUT_URL);
+		url.append(noticeOutUrl);
 		url.append("?");
 		url.append("type="+pb.getNoticeType());
 		url.append("&");

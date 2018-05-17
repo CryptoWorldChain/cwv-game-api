@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
+import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSModule;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeIn;
@@ -39,8 +40,8 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
 	
-	private final String NOTICE_IN_URL = "http://54.169.102.90:80/api/msg/publication";
-	
+	@ActorRequire(name = "Common_Helper")
+	CommonHelper commonHelper;
 	
 	@Override
 	public String[] getCmds() {
@@ -110,7 +111,9 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		jsonMap.put("data", dataStr);
 		
 		String jsonStr = JsonSerializer.formatToString(jsonMap);
-		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", NOTICE_IN_URL);
+		
+		String noticeInUrl = commonHelper.getSysSettingValue("ipfs_msg_in");
+		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", noticeInUrl);
 		val yearMeasureRet = sender.send(pp,30000);
 		Map<String,String> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()), Map.class);
 		if(jsonRet.get("errcode").equals("000")){
