@@ -1,13 +1,8 @@
 package org.brewchain.cwv.game.job;
 
-import java.util.Date;
-
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
-import org.brewchain.cwv.dbgens.market.entity.CWVMarketBidExample;
 import org.brewchain.cwv.game.dao.Daos;
-import org.brewchain.cwv.game.job.PropertyBidTask.PropertyBidStatus;
 import org.brewchain.cwv.service.game.Game.PTPSModule;
 
 import com.google.protobuf.Message;

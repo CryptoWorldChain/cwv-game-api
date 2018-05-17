@@ -52,6 +52,20 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		return GNPSModule.GNA.name();
 	}
 	
+	enum NoticeTopicEnum{
+		NOTICE("notice"),
+		TRADE("trade"),
+		AUCTION("auction");
+		private String value;
+		NoticeTopicEnum(String value){
+			this.value = value;
+		}
+		public String getValue() {
+			return value;
+		}
+		
+	}
+	
 	@Override
 	public void onPBPacket(final FramePacket pack, final PBGameNoticeIn pb, final CompleteHandler handler) {
 		
@@ -72,26 +86,28 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 	 */
 	private void noticeIn(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
 		Map<String,String> jsonMap = new HashMap<>();
-		jsonMap.put("userid", pb.getUserId());
-		jsonMap.put("topic", pb.getNoticeType());
+		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
+		jsonMap.put("type", pb.getNoticeType());
 		
 		if(StringUtils.isEmpty(pb.getNoticeType()) || !pb.getNoticeType().equals("announcement")) {
 			ret.setRetCode("02");
 			ret.setRetMsg("公告类型错误");
 			return;
 		}
+		Map<String,String> timeMap = new HashMap<>();
+		timeMap.put("start_time", pb.getStartTime());
+		timeMap.put("end_time", pb.getEndTime());
+		timeMap.put("interval", pb.getCyclePeriod()+"");
 		
-		Map<String,String> contentMap = new HashMap<>();
-		contentMap.put("user_name", pb.getUserName());
-		contentMap.put("notice_type", pb.getNoticeType());
-		contentMap.put("notice_content", pb.getNoticeContent());
-		contentMap.put("start_time", pb.getStartTime());
-		contentMap.put("end_time", pb.getEndTime());
-		contentMap.put("cycle_period", pb.getCyclePeriod()+"");
-		contentMap.put("count", pb.getCount()+"");
-		String contentStr = JsonSerializer.formatToString(contentMap);
+		Map<String,String> dataMap = new HashMap<>();
+		String timeStr = JsonSerializer.formatToString(timeMap);
+		dataMap.put("time", timeStr);
+		dataMap.put("times", pb.getCount()+"");
+		dataMap.put("content", pb.getNoticeContent()+"");
+		
+		String dataStr = JsonSerializer.formatToString(dataMap);
 
-		jsonMap.put("content", contentStr);
+		jsonMap.put("data", dataStr);
 		
 		String jsonStr = JsonSerializer.formatToString(jsonMap);
 		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", NOTICE_IN_URL);

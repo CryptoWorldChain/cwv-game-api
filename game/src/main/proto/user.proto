@@ -18,6 +18,8 @@ enum PUserCommand {
 	ATR = 8; //钱包充值记录 - AccountTopupRecordService
 	PIC = 9; //房产收益领取
 	UPS = 10; //个人房产收益
+	
+	ATC = 11; //钱包充值记录 - AccountTopupConfirmService
 };
 
 message PSWalletAccount	 //WAS
@@ -132,12 +134,12 @@ message PRetWalletAccountBalance{ //WAB
 	double balance = 3;//账户余额
 }
 
-message PSAccountTopup{ //ATS
+message PSAccountTopup{ //ATU
 	string coin_type = 1; //账户类型
 	string amount = 2; //账户金额
 }
 
-message PRetAccountTopup{ //ATS
+message PRetAccountTopup{ //ATU
 	string ret_code = 1;
 	string ret_msg = 2;
 	double amount = 3;//充值金额

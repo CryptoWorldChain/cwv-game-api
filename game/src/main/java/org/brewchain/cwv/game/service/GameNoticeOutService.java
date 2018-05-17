@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
+import org.brewchain.cwv.game.service.GameNoticeInService.NoticeTopicEnum;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSModule;
@@ -78,11 +79,9 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		StringBuffer url = new StringBuffer();
 		url.append(NOTICE_OUT_URL);
 		url.append("?");
-		if(StringUtils.isNotBlank(pb.getUserId())){
-			url.append("userid="+pb.getUserId());
-			url.append("&");
-		}
-		url.append("topic="+pb.getNoticeType());
+		url.append("type="+pb.getNoticeType());
+		url.append("&");
+		url.append("topic="+pb.getNoticeTopic());
 		url.append("&");
 		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 		
@@ -90,7 +89,7 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		url.append("&");
 		url.append("pageidx="+page.getOffset());
 		url.append("&");
-		url.append("pagenum="+pb.getPageNum());
+		url.append("ispage="+pb.getPageNum());
 		
 		FramePacket pp = PacketHelper.buildUrlForGet(url.toString());
 		val yearMeasureRet = sender.send(pp,30000);
@@ -104,27 +103,25 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 				for(String jsonChunk : chunk){
 					Map<String,String> coun = JsonSerializer.getInstance().deserialize(jsonChunk, Map.class);
 					PRetNoticeOut.Builder noticeOut = PRetNoticeOut.newBuilder();
-					noticeOut.setNoticeType(coun.get("topic"));
-					
-					try{
-						Map<String,String> content = JsonSerializer.getInstance().deserialize(coun.get("content"), Map.class);
-						noticeOut.setNoticeContent(content.get("notice_content"));
+					noticeOut.setNoticeTopic(coun.get("topic"));
+					noticeOut.setNoticeType(coun.get("type"));
+						Map<String,String> data = JsonSerializer.getInstance().deserialize(coun.get("data"), Map.class);
+						noticeOut.setNoticeContent(data.get("content"));
 //						noticeOut.setNoticeId(content.get("notice_id"));
-						if(content.get("count")!=null)
-							noticeOut.setCount(Integer.parseInt(content.get("count")));
-						if(noticeOut.getNoticeType().equals("announcement")) {
-							noticeOut.setStartTime(content.get("start_time"));
-							noticeOut.setEndTime(content.get("end_time"));
-							noticeOut.setCyclePeriod(Integer.parseInt(content.get("cycle_period")));
+						Map<String,String> time = JsonSerializer.getInstance().deserialize(coun.get("time"), Map.class);
+						if(noticeOut.getNoticeTopic().equals(NoticeTopicEnum.NOTICE.getValue())) {
+							noticeOut.setStartTime(time.get("start_time"));
+							noticeOut.setEndTime(time.get("end_time"));
+							noticeOut.setCount(Integer.parseInt(time.get("times")));
+							noticeOut.setCyclePeriod(Integer.parseInt(data.get("interval")));
+						
+						}else if(noticeOut.getNoticeTopic().equals(NoticeTopicEnum.AUCTION.getValue())){
+							noticeOut.setStartTime(time.get("start_time"));
+							noticeOut.setEndTime(time.get("end_time"));
+							noticeOut.setCyclePeriod(Integer.parseInt(time.get("publicity")));
+						
 						}
 						ret.addNotices(noticeOut);
-					}catch (Exception e){
-						noticeOut.setNoticeContent(coun.get("content"));
-						ret.addNotices(noticeOut);
-						log.warn("GameNoticeOutService baffle error....",e);
-						continue;
-						
-					}
 					
 					
 				}

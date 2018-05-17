@@ -14,13 +14,16 @@ import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecordExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopupExample;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.User.PRetAccountTopup;
+import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord;
 import org.brewchain.cwv.service.game.User.PRetWalletAccount;
 import org.brewchain.cwv.service.game.User.PRetWalletAccount.WalletAccount;
 import org.brewchain.cwv.service.game.User.PRetWalletAccountBalance.Builder;
@@ -32,7 +35,6 @@ import org.brewchain.cwv.service.game.User.PSWalletAccount;
 import org.brewchain.cwv.service.game.User.PSWalletAccountBalance;
 import org.brewchain.cwv.service.game.User.PSWalletRecord;
 
-import freemarker.core.ReturnInstruction.Return;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
@@ -52,19 +54,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
  */
 @Instantiate(name="Wallet_Helper")
 public class WalletHelper implements ActorService {
-	enum Coin{
-		CWB(0),
-		CWV(1),
-		ETH(2);
-		private int value;
-		Coin(int value){
-			this.value = value;		
-		}
-		public int getValue() {
-			return value;
-		}
-		
-	}
+	
 
 	@ActorRequire(name="Daos")
 	Daos dao;
@@ -88,10 +78,10 @@ public class WalletHelper implements ActorService {
 	 * @return
 	 */
 	
-	public CWVUserWallet getUserAccount(Integer userId, Coin coin ){
+	public CWVUserWallet getUserAccount(Integer userId, CoinEnum coin ){
 		CWVUserWalletExample example = new CWVUserWalletExample();
 		example.createCriteria().andUserIdEqualTo(userId)
-		.andCoinTypeEqualTo((byte) coin.value);
+		.andCoinTypeEqualTo((byte) coin.getValue());
 		List<Object> list = this.dao.getWalletDao().selectByExample(example);
 		return list == null || list.isEmpty()? null : (CWVUserWallet)list.get(0);
 	}
@@ -228,7 +218,7 @@ public class WalletHelper implements ActorService {
 		
 		//校验 账户类型
 		if(StringUtils.isEmpty(coinType)) {//默认CWB
-			criteria.andCoinTypeEqualTo((byte) Coin.CWB.value);
+			criteria.andCoinTypeEqualTo((byte) CoinEnum.CWB.getValue());
 		}else{
 			criteria.andCoinTypeEqualTo((byte) Integer.parseInt(coinType));
 		}
@@ -251,13 +241,13 @@ public class WalletHelper implements ActorService {
 		CWVUserWalletTopup topup = new CWVUserWalletTopup();
 		//充值操作
 		if(StringUtils.isEmpty(pb.getCoinType())) {
-			topup.setCoinType((byte) Coin.CWB.value);
+			topup.setCoinType((byte) CoinEnum.CWB.getValue());
 		}else {
 			topup.setCoinType(Byte.parseByte(pb.getCoinType()));
 		}
 		
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
-		CWVUserWallet wallet = getUserAccount(user.getUserId(), Coin.CWB);
+		CWVUserWallet wallet = getUserAccount(user.getUserId(), CoinEnum.CWB);
 		
 		topup.setAddress(wallet.getAccount());
 		topup.setAmount(new BigDecimal(pb.getAmount()));
@@ -290,7 +280,7 @@ public class WalletHelper implements ActorService {
 			for(Object o: list) {
 				CWVUserWallet wallet = (CWVUserWallet) o;
 				total = total + wallet.getBalance().doubleValue() * 0.002;
-				if(wallet.getCoinType().intValue() == Coin.CWB.value) {
+				if(wallet.getCoinType().intValue() == CoinEnum.CWB.getValue()) {
 					ret.setCwbTopup(wallet.getTopupBalance().toString());//充值CWB
 					ret.setCwbAmount(wallet.getBalance().doubleValue());
 					ret.setDrawCount(wallet.getDrawCount());
@@ -317,6 +307,28 @@ public class WalletHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg())
 		.setUrl("/share_user="+authUser.getUserId());
+	}
+
+
+
+
+	public void accountTopupRecord(FramePacket pack, PSCommon pb,PRetAccountTopupRecord.Builder ret) {
+		// TODO Auto-generated method stub
+		CWVUserWalletTopupExample example = new CWVUserWalletTopupExample();
+		CWVAuthUser user = userHelper.getCurrentUser(pack);
+		example.createCriteria().andUserIdEqualTo(user.getUserId());
+		example.setOrderByClause("create_time desc");
+		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
+		page.setTotalCount(dao.topupDao.countByExample(example));
+		List<Object> list = dao.topupDao.selectByExample(example);
+		for(Object o : list){
+			CWVUserWalletTopup topup = (CWVUserWalletTopup) o;
+			
+		}
+		ret.setPage(page.getPageOut());
+		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
+		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+		
 	}
 	
 }

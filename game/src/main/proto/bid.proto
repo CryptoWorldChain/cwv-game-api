@@ -34,6 +34,8 @@ message PRetPropertyBid //GPE
 		string auction_start = 2;//开始时间
 		string auction_end = 3;//结束时间
 		string price = 4; //最终价格
+		string user_price = 18;//用户出价
+    	string max_price_user = 19;//最高出价者
 		string status = 5; //竞拍状态  0发起，1竞拍中 ，2完成
 		BidProperty property = 7; //房产
 	

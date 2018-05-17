@@ -37,6 +37,7 @@ message PRetGameNoticeIn //GNI 添加消息
 
 message PBGameNoticeOut //GNO 获取消息
 {
+	string notice_topic = 10;//消息类型
 	string notice_type = 1;//消息类型
 	string page_index = 2;//页索引
 	string page_size = 3;//页大小
@@ -53,7 +54,7 @@ message PRetGameNoticeOut //GNO 获取消息
 	{
 		string notice_type = 1;//消息类型
 		string notice_content = 2;//消息内容
-		string notice_id = 3;//消息id
+		string notice_topic = 3;//消息id
 		string start_time = 4; //开始时间
 		string end_time = 5;// 结束时间
 		int32 cycle_period = 6; //循环周期

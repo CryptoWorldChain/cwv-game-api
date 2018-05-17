@@ -53,12 +53,15 @@ message ExchangeProperty
     double income = 12;//收益
     string image_url = 13;//房产说明
     string map_template = 15;//所属地图
+    string transaction_value = 16;//价格
     
 	message ExchangeInfo{
 		string exchange_id = 3; //交易ID
 		double price = 8; // 价格
 		int32 status = 10; // 交易状态 0发起，1成功，2撤销
-		
+		string bidding_time = 11;//结束时间
+		string user_price = 18;//用户出价
+    	string max_price_user = 19;//最高出价者
 	}
 	ExchangeInfo exchange = 20;
 }

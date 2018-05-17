@@ -5,9 +5,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.apache.felix.ipojo.annotations.Instantiate;
-import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.helper.PropertyHelper;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -40,22 +39,25 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 	@ActorRequire(name="Daos", scope = "global")
 	Daos dao;
 	
+	@ActorRequire(name="Property_Helper")
+	PropertyHelper propertyHelper;
+	
 	@Override
 	public void onDaoServiceAllReady() {
 		try {
+			log.info("PropertyBidJobHandle start ");
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					while(dao == null) {
-						try {
-							Thread.sleep(5000L);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+					try {
+						Thread.sleep(5000L);
+						log.info("waiting for loading the dao beans ....");
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-					
-					if(dao != null) {
+					if(propertyHelper != null ) {
+						log.info("the dao beans loading success....");
 						service = getService();
 						if (service != null) {
 							// 延迟0， 间隔1， 单位：SECONDS
@@ -73,13 +75,13 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 //								ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
 //								ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
 //								 延迟0， 间隔1， 单位：SECONDS
-							service.scheduleAtFixedRate(new PropertyBidTask(dao), numZero, numIntervalTime, TimeUnit.SECONDS);
+							log.info("job service start....");
+							service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.SECONDS);
 							
 						}
 					}
 				}
 			}).start();
-			
 		} catch (Exception e) {
 			log.warn("PropertyIncomeJobHandle onDaoServiceAllReady error...", e);
 		}
@@ -116,7 +118,7 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 //			ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
 //			ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
 //			 延迟0， 间隔1， 单位：SECONDS
-			service.scheduleAtFixedRate(new PropertyBidTask(dao), numZero, numIntervalTime, TimeUnit.MINUTES);
+			service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.MINUTES);
 			
 		}
 

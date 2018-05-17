@@ -3,9 +3,8 @@ package org.brewchain.cwv.game.service.user;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.WalletHelper;
-import org.brewchain.cwv.service.game.User.PRetAccountTopup;
-import org.brewchain.cwv.service.game.User.PRetWalletAccountBalance;
-import org.brewchain.cwv.service.game.User.PSAccountTopup;
+import org.brewchain.cwv.service.game.Game.PSCommon;
+import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord;
 import org.brewchain.cwv.service.game.User.PUserCommand;
 import org.brewchain.cwv.service.game.User.PUserModule;
 
@@ -21,7 +20,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class AccountTopupRecordService extends SessionModules<PSAccountTopup> {
+public class AccountTopupRecordService extends SessionModules<PSCommon> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -45,12 +44,12 @@ public class AccountTopupRecordService extends SessionModules<PSAccountTopup> {
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSAccountTopup pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSCommon pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetAccountTopup.Builder ret = PRetAccountTopup.newBuilder();
+		PRetAccountTopupRecord.Builder ret = PRetAccountTopupRecord.newBuilder();
 		try{
-			walletHelper.accountTopup(pack, pb, ret);
+			walletHelper.accountTopupRecord(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
