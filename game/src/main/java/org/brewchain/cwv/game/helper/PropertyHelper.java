@@ -197,9 +197,9 @@ public class PropertyHelper implements ActorService {
 
 		// 收益排序
 		if (StringUtils.isNotEmpty(pb.getIncomeType())) {
-			if (pb.getPriceType().equals("0"))
+			if (pb.getIncomeType().equals("0"))
 				cwvPropertyExample.setOrderByClause(" income desc ");
-			else if (pb.getPriceType().equals("1"))
+			else if (pb.getIncomeType().equals("1"))
 				cwvPropertyExample.setOrderByClause(" income ");
 		}
 		int count = dao.gamePropertyDao.countByExample(cwvPropertyExample);
