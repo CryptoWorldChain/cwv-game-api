@@ -35,14 +35,6 @@ message PRetPropertyExchange //PES UPE
 	message PropertyExchange 
 	{
 		Property property = 13;//房产信息
-		message ExchangeInfo{
-			string exchange_id = 3; //交易ID
-			double price = 8; // 价格
-			int32 status = 10; // 交易状态 0发起，1成功，2撤销
-			string bidding_time = 11;//结束时间
-			string user_price = 18;//用户出价
-	    	string max_price_user = 19;//最高出价者
-		}
 		ExchangeInfo exchange = 20;
 	}
 	repeated PropertyExchange propertyExchange = 3; //房产信息
@@ -65,6 +57,7 @@ message PSSellProperty{
 message PSCommonExchange{
 
 	string exchange_id = 1;//交易ID
+	
 }
 
 message PRetSellProperty
@@ -72,6 +65,7 @@ message PRetSellProperty
 	string ret_code = 1; //错误代码
 	string ret_msg = 2; //提示信息
 	string exchange_id = 3;//交易ID
+	Property property = 4; //房产信息
 }
 
 message PSCancelExchange{

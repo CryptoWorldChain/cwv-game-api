@@ -142,9 +142,16 @@ message Property
     string image_url = 13;//房产说明
     string map_template = 15;//所属地图
     string price = 16;//价格
-    
 }
-
+message ExchangeInfo
+{
+	string exchange_id = 3; //交易ID
+	double price = 8; // 价格
+	int32 status = 10; // 交易状态 0发起，1成功，2撤销
+	string bidding_time = 11;//结束时间
+	string user_price = 18;//用户出价
+	string max_price_user = 19;//最高出价者
+}
 message PRetRefGameProperty //GMP 获取游戏房产
 {
 	string ret_code = 1; //返回状态码，
@@ -173,6 +180,8 @@ message PRetCommon //公共返回信息 REG
 	string ret_msg = 2; //提示信息
 	string page_no = 9; //页码
 	string page_size = 10;// 数量
+	Property property = 4; //房产信息
+	ExchangeInfo exchange = 5; //交易信息 
 }
 
 message PRetGamePropertyCharge //GPC

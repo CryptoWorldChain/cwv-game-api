@@ -62,12 +62,12 @@ import org.brewchain.cwv.service.game.Draw.PSCommonDraw;
 import org.brewchain.cwv.service.game.Draw.PSPropertyDrawRecord;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.PropertyExchange;
-import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.PropertyExchange.ExchangeInfo;
 import org.brewchain.cwv.service.game.Exchange.PRetSellProperty;
 import org.brewchain.cwv.service.game.Exchange.PSBuyProperty;
 import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
 import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PSSellProperty;
+import org.brewchain.cwv.service.game.Game.ExchangeInfo;
 import org.brewchain.cwv.service.game.Game.PBGameProperty;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PRetCommon.Builder;
@@ -82,7 +82,6 @@ import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo.SubTypeInfo;
 import org.brewchain.cwv.service.game.User.PSPropertyIncome;
 import org.brewchain.cwv.service.game.User.PSPropertyIncomeClaim;
-import org.codehaus.jackson.map.ser.PropertyBuilder;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -643,7 +642,10 @@ public class PropertyHelper implements ActorService {
 		});
 
 		// 设置 交易成功数据 end
-
+		Property.Builder propertyBuilder = Property.newBuilder();
+		CWVGameProperty propertyUpdated = dao.gamePropertyDao.selectByPrimaryKey(property);
+		propertyCopy(propertyBuilder, propertyUpdated);
+		ret.setProperty(propertyBuilder);
 		// 设置返回数据
 		ret.setRetCode(ReturnCodeMsgEnum.BPS_SUCCESS.getRetCode());
 		ret.setRetMsg(ReturnCodeMsgEnum.BPS_SUCCESS.getRetMsg());
@@ -765,7 +767,11 @@ public class PropertyHelper implements ActorService {
 				return null;
 			}
 		});
-
+		
+		Property.Builder propertyBuilder = Property.newBuilder();
+		CWVGameProperty propertyUpdated = dao.gamePropertyDao.selectByPrimaryKey(property);
+		propertyCopy(propertyBuilder, propertyUpdated);
+		ret.setProperty(propertyBuilder);
 		// 设置返回
 		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
 
@@ -1128,11 +1134,16 @@ public class PropertyHelper implements ActorService {
 					.setRetMsg(ReturnCodeMsgEnum.APS_FALURE.getRetMsg());
 			return;
 		}
-
+		ExchangeInfo.Builder exchangeBuilder = ExchangeInfo.newBuilder();
+		exchangeBuilder.setMaxPriceUser(user.getNickName());
+		exchangeBuilder.setUserPrice(bid.getBidAmount()+"");
+		exchangeBuilder.setPrice(bid.getBidAmount().doubleValue());
+		ret.setExchange(exchangeBuilder);
 		// 4设置竞价成功
 		ret.setRetCode(ReturnCodeMsgEnum.APS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.APS_SUCCESS.getRetMsg());
 
 	}
+	
 
 	/**
 	 * 查询抽奖记录
