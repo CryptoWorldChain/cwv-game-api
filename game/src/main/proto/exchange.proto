@@ -32,38 +32,21 @@ message PRetPropertyExchange //PES UPE
 {
 	string ret_code = 1; //返回状态码
 	string ret_msg = 2; //提示信息
-	repeated ExchangeProperty property = 13;//房产信息
-	PageOut page = 15; //分页对象
-}
-
-message ExchangeProperty
-{
- 	
-	string country_id = 1;//所属国家
-	string map_id = 2;//所属地图
-    string property_template_id = 3;//房产模板Id
-    string property_template = 4;//房产模板
-    string owner = 5;//拥有者
-    string property_name = 6; //房产名称
-    string property_id = 7;//房产编码
-    int32 property_type = 8;//房产类型
-    int32 property_status = 9;//房产状态
-	string income_remark = 10;//房产说明
-    //string appearance_type = 11;//外观
-    double income = 12;//收益
-    string image_url = 13;//房产说明
-    string map_template = 15;//所属地图
-    string transaction_value = 16;//价格
-    
-	message ExchangeInfo{
-		string exchange_id = 3; //交易ID
-		double price = 8; // 价格
-		int32 status = 10; // 交易状态 0发起，1成功，2撤销
-		string bidding_time = 11;//结束时间
-		string user_price = 18;//用户出价
-    	string max_price_user = 19;//最高出价者
+	message PropertyExchange 
+	{
+		Property property = 13;//房产信息
+		message ExchangeInfo{
+			string exchange_id = 3; //交易ID
+			double price = 8; // 价格
+			int32 status = 10; // 交易状态 0发起，1成功，2撤销
+			string bidding_time = 11;//结束时间
+			string user_price = 18;//用户出价
+	    	string max_price_user = 19;//最高出价者
+		}
+		ExchangeInfo exchange = 20;
 	}
-	ExchangeInfo exchange = 20;
+	repeated PropertyExchange propertyExchange = 3; //房产信息
+	PageOut page = 15; //分页对象
 }
 
 message PSBuyProperty{

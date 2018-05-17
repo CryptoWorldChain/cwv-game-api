@@ -43,7 +43,6 @@ import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
-import org.brewchain.cwv.service.game.Bid.BidProperty;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyDetail;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyNotice;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyNotice.AuctionRank;
@@ -57,14 +56,13 @@ import org.brewchain.cwv.service.game.Bid.PSCreatePropertyBid;
 import org.brewchain.cwv.service.game.Bid.PSPropertyBid;
 import org.brewchain.cwv.service.game.Bid.PSPropertyBidAuction;
 import org.brewchain.cwv.service.game.Draw.PRetPropertyDraw;
-import org.brewchain.cwv.service.game.Draw.PRetPropertyDraw.DrawProperty;
 import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord;
 import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord.PropertyDraw;
 import org.brewchain.cwv.service.game.Draw.PSCommonDraw;
 import org.brewchain.cwv.service.game.Draw.PSPropertyDrawRecord;
-import org.brewchain.cwv.service.game.Exchange.ExchangeProperty;
-import org.brewchain.cwv.service.game.Exchange.ExchangeProperty.ExchangeInfo;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
+import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.PropertyExchange;
+import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.PropertyExchange.ExchangeInfo;
 import org.brewchain.cwv.service.game.Exchange.PRetSellProperty;
 import org.brewchain.cwv.service.game.Exchange.PSBuyProperty;
 import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
@@ -77,12 +75,14 @@ import org.brewchain.cwv.service.game.Game.PRetGamePropertyCharge;
 import org.brewchain.cwv.service.game.Game.PRetProperty;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty;
 import org.brewchain.cwv.service.game.Game.PSCommon;
+import org.brewchain.cwv.service.game.Game.Property;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo.SubTypeInfo;
 import org.brewchain.cwv.service.game.User.PSPropertyIncome;
 import org.brewchain.cwv.service.game.User.PSPropertyIncomeClaim;
+import org.codehaus.jackson.map.ser.PropertyBuilder;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -209,32 +209,12 @@ public class PropertyHelper implements ActorService {
 		for (Object o : list) {
 			CWVGameProperty gameProperty = (CWVGameProperty) o;
 			// 设置房产信息
-			ExchangeProperty.Builder property = ExchangeProperty.newBuilder();
+			Property.Builder property = Property.newBuilder();
 			
-			CWVGameMap map = new CWVGameMap();
-			map.setMapId(gameProperty.getGameMapId());
-			map = dao.gameMapDao.selectByPrimaryKey(map);
+			propertyCopy(property, gameProperty);
 			
-			CWVGameCity city = new CWVGameCity();
-			city.setCityId(map.getGameCityId());
-			city = dao.gameCityDao.selectByPrimaryKey(city);
-			
-			property.setCountryId(city.getGameCountryId() + "");
-			property.setMapId(map.getMapId() + "");
-			property.setMapTemplate(map.getTemplate()+"");
-			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
-			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
-			CWVAuthUser user = userHelper.getUserById(gameProperty.getUserId());
-			property.setOwner(user.getNickName());
-			property.setPropertyId(gameProperty.getPropertyId() + "");
-			property.setPropertyName(gameProperty.getPropertyName());
-			property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
-
-			property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
-			property.setIncomeRemark("收益说明");
-			property.setIncome(gameProperty.getIncome().doubleValue());
-			property.setImageUrl(gameProperty.getImageUrl());
-			property.setTransactionValue(gameProperty.getLastPrice()+"");
+			PropertyExchange.Builder propertyExchange = PropertyExchange.newBuilder();
+			propertyExchange.setProperty(property);
 			// 设置交易信息
 			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
 			exchangeExample.createCriteria().andPropertyIdEqualTo(gameProperty.getPropertyId())
@@ -248,9 +228,10 @@ public class PropertyHelper implements ActorService {
 				exchangeRet.setExchangeId(exchange.getExchangeId() + "");
 				exchangeRet.setPrice(exchange.getSellPrice().doubleValue());
 				exchangeRet.setStatus(exchange.getStatus());
-				property.setExchange(exchangeRet);
+				propertyExchange.setExchange(exchangeRet);
 			}
-			ret.addProperty(property);
+			
+			ret.addPropertyExchange(propertyExchange);
 		}
 	}
 	
@@ -311,34 +292,12 @@ public class PropertyHelper implements ActorService {
 		for (Object o : list) {
 			CWVGameProperty gameProperty = (CWVGameProperty) o;
 			// 设置房产信息
-			ExchangeProperty.Builder property = ExchangeProperty.newBuilder();
+			Property.Builder property = Property.newBuilder();
 			
-			CWVGameMap map = new CWVGameMap();
-			map.setMapId(gameProperty.getGameMapId());
-			map = dao.gameMapDao.selectByPrimaryKey(map);
-			
-			CWVGameCity city = new CWVGameCity();
-			city.setCityId(map.getGameCityId());
-			city = dao.gameCityDao.selectByPrimaryKey(city);
-			
-			property.setCountryId(city.getGameCountryId() + "");
-			property.setMapId(map.getMapId() + "");
-
-			property.setMapTemplate(map.getTemplate()+"");
-			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
-			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
-
-			property.setOwner(authUser.getNickName());
-			property.setPropertyId(gameProperty.getPropertyId() + "");
-			property.setPropertyName(gameProperty.getPropertyName());
-			property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
-
-			property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
-			property.setIncomeRemark(property.getIncomeRemark());
-			property.setIncome(gameProperty.getIncome().doubleValue());
-			property.setImageUrl(gameProperty.getImageUrl());
+			propertyCopy(property, gameProperty);
 			// 设置交易信息
-			
+			PropertyExchange.Builder propertyExchange = PropertyExchange.newBuilder();
+			propertyExchange.setProperty(property);
 			CWVMarketBidExample bidExample = new CWVMarketBidExample();
 			
 			bidExample.createCriteria().andGamePropertyIdEqualTo(gameProperty.getPropertyId());
@@ -359,159 +318,18 @@ public class PropertyHelper implements ActorService {
 					exchangeRet.setMaxPriceUser(userMax.getNickName());
 					exchangeRet.setPrice(auctionMax.getBidPrice().doubleValue());
 				}else{
-					exchangeRet.setPrice(bid.getBidStart().doubleValue());
+					exchangeRet.setPrice(0);
 				}
 				//查询竞价最高者
 				CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(), authUser.getUserId());
 				exchangeRet.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
 				exchangeRet.setBiddingTime(DateUtil.getDayTime(bid.getAuctionEnd()));
-				property.setExchange(exchangeRet);
+				propertyExchange.setExchange(exchangeRet);
 			}
-			ret.addProperty(property);
+			ret.addPropertyExchange(propertyExchange);
 		}
 	}
 
-	public void getPropertyExchangeBack(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, FramePacket pack) {
-
-		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
-
-		// 设置查询条件
-		StringBuffer sb = new StringBuffer();
-
-		propertyExchangeSql(sb, pb, null);
-
-		sb.append(" limit ").append(page.getOffset()).append(",").append(page.getLimit());
-
-		setExchangeRet(sb.toString(), ret, page);
-
-		ret.setPage(page.getPageOut());
-		ret.setRetCode(ReturnCodeMsgEnum.PES_SUCCESS.getRetCode());
-		ret.setRetMsg(ReturnCodeMsgEnum.PES_SUCCESS.getRetMsg());
-
-	}
-
-	private void setExchangeRet(String sql, PRetPropertyExchange.Builder ret, PageUtil pageUtil) {
-		List<Map<String, Object>> list = this.executeSqlRet(sql, pageUtil);
-		for (Map<String, Object> map : list) {
-			// 设置房产信息
-			ExchangeProperty.Builder property = ExchangeProperty.newBuilder();
-			// string country_id = 1;//所属国家
-			// string map_id = 2;//所属地图
-			// string property_template_id = 3;//房产模板Id
-			// string property_template = 4;//房产模板
-			// string owner = 5;//拥有者
-			// string property_name = 6; //房产名称
-			// string property_id = 7;//房产编码
-			// int32 property_type = 8;//房产类型
-			// int32 property_status = 9;//房产状态
-			// string income_remark = 10;//房产说明
-			// //string appearance_type = 11;//外观
-			// double income = 12;//收益
-
-			property.setCountryId(map.get("country_id").toString());
-			property.setMapId(map.get("map_id").toString());
-			property.setPropertyTemplateId(map.get("property_template_id").toString());
-			property.setPropertyTemplate(map.get("property_template").toString());
-			property.setOwner(map.get("owner").toString());
-			property.setPropertyId(map.get("property_id").toString());
-			property.setPropertyName(map.get("property_name").toString());
-			property.setPropertyType(Integer.parseInt(map.get("property_type").toString()));
-
-			property.setPropertyStatus(Integer.parseInt(map.get("status").toString()));
-			property.setIncomeRemark(map.get("income_remark").toString());
-			property.setIncome(Double.parseDouble(map.get("income").toString()));
-			// 设置交易信息
-			ExchangeInfo.Builder exchange = ExchangeInfo.newBuilder();
-			exchange.setExchangeId(map.get("exchange_id").toString());
-			exchange.setPrice(Double.parseDouble(map.get("exchange_price").toString()));
-			exchange.setStatus(Integer.parseInt(map.get("exchange_status").toString()));
-
-			property.setExchange(exchange);
-			//
-			// property.setCountryId("1");
-			// property.setMapId("1");
-			// property.setPropertyTemplateId("1");
-			// property.setPropertyTemplate("1");
-			// property.setOwner("kael");
-			// property.setPropertyId("1");
-			// property.setPropertyName("矿场007");
-			// property.setPropertyType(1);
-			//
-			// property.setPropertyStatus(1);
-			// property.setIncomeRemark("矿场可以带来收益");
-			// property.setIncome(123132.77);
-			// //设置交易信息
-			// ExchangeInfo.Builder exchange = ExchangeInfo.newBuilder();
-			// exchange.setExchangeId("1");
-			// exchange.setPrice(44321.22);
-			// exchange.setStatus(0);
-			// exchange.setProperty(property);
-
-			ret.addProperty(property);
-
-		}
-	}
-
-	private void setBidRet(String sql, PRetPropertyBid.Builder ret, PageUtil pageUtil) {
-		List<Map<String, Object>> list = this.executeSqlRet(sql, pageUtil);
-		for (Map<String, Object> map : list) {
-			// 设置房产信息
-			BidProperty.Builder property = BidProperty.newBuilder();
-			// string country_id = 1;//所属国家
-			// string map_id = 2;//所属地图
-			// string property_template_id = 3;//房产模板Id
-			// string property_template = 4;//房产模板
-			// string owner = 5;//拥有者
-			// string property_name = 6; //房产名称
-			// string property_id = 7;//房产编码
-			// int32 property_type = 8;//房产类型
-			// int32 property_status = 9;//房产状态
-			// string income_remark = 10;//房产说明
-			// //string appearance_type = 11;//外观
-			// double income = 12;//收益
-
-			property.setCountryId(map.get("country_id").toString());
-			property.setMapId(map.get("map_id").toString());
-			property.setPropertyTemplateId(map.get("property_template_id").toString());
-			property.setPropertyTemplate(map.get("property_template").toString());
-			property.setOwner(map.get("owner").toString());
-			property.setPropertyId(map.get("property_id").toString());
-			property.setPropertyName(map.get("property_name").toString());
-			property.setPropertyType(Integer.parseInt(map.get("property_type").toString()));
-
-			property.setPropertyStatus(Integer.parseInt(map.get("status").toString()));
-			property.setIncomeRemark(map.get("income_remark").toString());
-			// 设置交易信息
-			BidInfo.Builder bid = BidInfo.newBuilder();
-			bid.setBidId(map.get("bid_id").toString());
-			bid.setAuctionStart(map.get("bid_auction_start").toString());
-			bid.setPrice(map.get("bid_price").toString());
-			bid.setProperty(property);
-
-			//
-			// property.setCountryId("1");
-			// property.setMapId("1");
-			// property.setPropertyTemplateId("1");
-			// property.setPropertyTemplate("1");
-			// property.setOwner("kael");
-			// property.setPropertyId("1");
-			// property.setPropertyName("矿场007");
-			// property.setPropertyType(1);
-			//
-			// property.setPropertyStatus(1);
-			// property.setIncomeRemark("矿场可以带来收益");
-			// property.setIncome(123132.77);
-			// //设置交易信息
-			// ExchangeInfo.Builder exchange = ExchangeInfo.newBuilder();
-			// exchange.setExchangeId("1");
-			// exchange.setPrice(44321.22);
-			// exchange.setStatus(0);
-			// exchange.setProperty(property);
-
-			ret.addBid(bid);
-
-		}
-	}
 
 	private List<Map<String, Object>> executeSqlRet(String sql, PageUtil pageUtil) {
 		String sqlCount = sql.substring(sql.indexOf("from"));
@@ -953,56 +771,6 @@ public class PropertyHelper implements ActorService {
 
 	}
 
-	/**
-	 * 获取竞拍房产列表
-	 * 
-	 * @param pb
-	 * @param ret
-	 */
-	public void getPropertyBidBack(PSPropertyBid pb, PRetPropertyBid.Builder ret) {
-		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
-
-		// 设置查询条件
-		StringBuffer sb = new StringBuffer();
-
-		propertyBidSql(sb, pb, null);
-
-		sb.append(" limit ").append(page.getOffset()).append(",").append(page.getLimit());
-
-		setBidRet(sb.toString(), ret, page);
-
-		ret.setPage(page.getPageOut());
-		ret.setRetCode(ReturnCodeMsgEnum.PBS_SUCCESS.getRetCode());
-		ret.setRetMsg(ReturnCodeMsgEnum.PBS_SUCCESS.getRetMsg());
-
-		// property.setCountryId("1");
-		// property.setMapId("1");
-		// property.setPropertyTemplateId("1");
-		// property.setPropertyTemplate("1");
-		// property.setPropertyId("1");
-		// property.setPropertyName("矿场007");
-		// property.setPropertyType(1);
-		//
-		// property.setPropertyStatus(1);
-		// property.setIncomeRemark("矿场可以带来收益");
-		// //设置交易信息
-		// BidInfo.Builder bid = BidInfo.newBuilder();
-		//
-		// bid.setAuctionStart("2018-04-20");
-		// bid.setBidId("1");
-		// bid.setPrice("34243.00");
-		// bid.setStatus("1");
-		// bid.setProperty(property);
-
-		// ret.addBid(bid);
-
-		// }
-
-		ret.setPage(page.getPageOut());
-		ret.setRetCode(ReturnCodeMsgEnum.PBS_SUCCESS.getRetCode());
-		ret.setRetMsg(ReturnCodeMsgEnum.PBS_SUCCESS.getRetMsg());
-
-	}
 
 	/**
 	 * 获取竞拍房产列表
@@ -1031,31 +799,8 @@ public class PropertyHelper implements ActorService {
 			CWVGameProperty gameProperty = getByPropertyId(bid.getGamePropertyId());
 			
 			// 设置房产信息
-			BidProperty.Builder property = BidProperty.newBuilder();
-			CWVGameMap gameMap = new CWVGameMap();
-			gameMap.setMapId(gameProperty.getGameMapId());
-			gameMap = dao.gameMapDao.selectByPrimaryKey(gameMap);
-			CWVGameCity gameCity = new CWVGameCity();
-			gameCity.setCityId(gameMap.getGameCityId());
-			gameCity = dao.gameCityDao.selectByPrimaryKey(gameCity);
-			
-			property.setCountryId(gameCity.getGameCountryId() + "");
-			property.setMapId(gameMap.getMapId() + "");
-			property.setMapTemplate(gameMap.getTemplate() + "");
-			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
-			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
-			if(gameProperty.getUserId() != null){
-				CWVAuthUser user = userHelper.getUserById(gameProperty.getUserId());
-				property.setOwner(user.getNickName());
-			}
-			
-			property.setPropertyId(gameProperty.getPropertyId() + "");
-			property.setPropertyName(gameProperty.getPropertyName());
-			property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
-
-			property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
-			property.setIncomeRemark("收益说明");
-			property.setImageUrl(gameProperty.getImageUrl());
+			Property.Builder property = Property.newBuilder();
+			propertyCopy(property, gameProperty);
 			// 设置交易信息
 			BidInfo.Builder bidRet = BidInfo.newBuilder();
 			bidRet.setBidId(bid.getBidId() + "");
@@ -1068,7 +813,7 @@ public class PropertyHelper implements ActorService {
 				bidRet.setMaxPriceUser(userMax.getNickName());
 				bidRet.setPrice(auctionMax.getBidPrice()+"");
 			}else{
-				bidRet.setPrice(bid.getBidStart()+"");
+				bidRet.setPrice("0");
 			}
 			bidRet.setPrice(bid.getLastPrice() + "");
 			bidRet.setStatus(bid.getStatus() + "");
@@ -1442,6 +1187,7 @@ public class PropertyHelper implements ActorService {
 //		gameProperty.setPropertyId(1);
 		gameProperty.setUserId(authUser.getUserId());
 		gameProperty.setPropertyStatus("0");
+		gameProperty.setLastPrice(new BigDecimal("1000"));
 		// 更新抽奖次数
 		wallet.setDrawCount(wallet.getDrawCount() - 1);
 		dao.drawDao.doInTransaction(new TransactionExecutor() {
@@ -1459,50 +1205,40 @@ public class PropertyHelper implements ActorService {
 
 		CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 
-		DrawProperty.Builder drawProperty = DrawProperty.newBuilder();
+		Property.Builder drawProperty = Property.newBuilder();
 
-		drawProperty.setPropertyId(gameProperty.getPropertyId() + "");
-
-		CWVGameMap map = new CWVGameMap();
-		map.setMapId(property.getGameMapId());
-		map = dao.gameMapDao.selectByPrimaryKey(map);
-
-		CWVGameCity city = new CWVGameCity();
-		city.setCityId(map.getGameCityId());
-		city = dao.gameCityDao.selectByPrimaryKey(city);
-
-		// 设置返回信息
-
-		// string ret_code = 21; //返回状态码
-		// string ret_msg = 22; //提示信息
-		// string country_id = 1;//所属国家
-		// string map_id = 2;//所属地图
-		// string property_template_id = 3;//房产模板Id
-		// string property_template = 4;//房产模板
-		// //string owner = 5;//拥有者
-		// string property_name = 6; //房产名称
-		// string property_id = 7;//房产编码
-		// int32 property_type = 8;//房产类型
-		// int32 property_status = 9;//房产状态
-		// string income_remark = 10;//房产说明
-
-		drawProperty.setCountryId(city.getGameCountryId() + "");
-		drawProperty.setIncomeRemark("收益说明");
-		drawProperty.setMapId(map.getMapId() + "");
-
-		drawProperty.setMapTemplate(map.getTemplate() + "");
-		if (authUser != null)
-			drawProperty.setOwner(authUser.getNickName() + "");
-		drawProperty.setPropertyId(property.getPropertyId() + "");
-		drawProperty.setPropertyName(property.getPropertyName());
-		drawProperty.setPropertyTemplate(property.getPropertyTemplate());
-		drawProperty.setPropertyTemplateId(property.getPropertyTemplateId());
-		drawProperty.setPropertyType(Integer.parseInt(property.getPropertyType()));
-		drawProperty.setImageUrl(property.getImageUrl());
-
+		propertyCopy(drawProperty, property);
+		
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg())
 				.setProperty(drawProperty);
 
+	}
+	
+	private void propertyCopy(Property.Builder property, CWVGameProperty gameProperty) {
+		CWVGameMap map = new CWVGameMap();
+		map.setMapId(gameProperty.getGameMapId());
+		map = dao.gameMapDao.selectByPrimaryKey(map);
+		
+		CWVGameCity city = new CWVGameCity();
+		city.setCityId(map.getGameCityId());
+		city = dao.gameCityDao.selectByPrimaryKey(city);
+		
+		property.setCountryId(city.getGameCountryId() + "");
+		property.setMapId(map.getMapId() + "");
+		property.setMapTemplate(map.getTemplate()+"");
+		property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
+		property.setPropertyTemplate(gameProperty.getPropertyTemplate());
+		CWVAuthUser user = userHelper.getUserById(gameProperty.getUserId());
+		property.setOwner(user.getNickName());
+		property.setPropertyId(gameProperty.getPropertyId() + "");
+		property.setPropertyName(gameProperty.getPropertyName());
+		property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
+
+		property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
+		property.setIncomeRemark("收益说明");
+		property.setIncome(gameProperty.getIncome().doubleValue());
+		property.setImageUrl(gameProperty.getImageUrl());
+		property.setPrice(gameProperty.getLastPrice()+"");
 	}
 
 	private CWVGameProperty getDrawProperty() {
@@ -1511,25 +1247,6 @@ public class PropertyHelper implements ActorService {
 		.andPropertyTypeEqualTo("2");
 		Object o = dao.gamePropertyDao.selectOneByExample(example);
 		return (CWVGameProperty) o;
-	}
-
-	public void getUserPropertyExchangeBack(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, FramePacket pack) {
-		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
-
-		// 设置查询条件
-		StringBuffer sb = new StringBuffer();
-
-		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
-
-		propertyExchangeSql(sb, pb, authUser.getUserId().toString());
-
-		sb.append(" limit ").append(page.getOffset()).append(",").append(page.getLimit());
-
-		setExchangeRet(sb.toString(), ret, page);
-
-		ret.setPage(page.getPageOut());
-		ret.setRetCode(ReturnCodeMsgEnum.PES_SUCCESS.getRetCode());
-		ret.setRetMsg(ReturnCodeMsgEnum.PES_SUCCESS.getRetMsg());
 	}
 
 	public void getUserPropertyExchange(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, FramePacket pack) {
@@ -1598,7 +1315,7 @@ public class PropertyHelper implements ActorService {
 		// int32 property_status = 9;//房产状态
 		// string income_remark = 10;//房产说明
 
-		BidProperty.Builder bidProperty = BidProperty.newBuilder();
+		Property.Builder bidProperty = Property.newBuilder();
 		bidProperty.setCountryId(city.getGameCountryId() + "");
 		bidProperty.setIncomeRemark("收益说明");
 		bidProperty.setMapId(map.getMapId() + "");
@@ -1632,7 +1349,7 @@ public class PropertyHelper implements ActorService {
 			ret.setMaxPriceUser(userMax.getNickName());
 			ret.setMaxPrice(auctionMax.getBidPrice()+"");
 		}else{
-			ret.setMaxPrice(bid.getBidStart()+"");
+			ret.setMaxPrice("0");
 		}
 		//查询竞价最高者
 		CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(),user.getUserId());
@@ -1737,7 +1454,7 @@ public class PropertyHelper implements ActorService {
 		// string property_id = 7;//房产编码
 		// string income_remark = 10;//房产说明
 
-		BidProperty.Builder bidProperty = BidProperty.newBuilder();
+		Property.Builder bidProperty = Property.newBuilder();
 		bidProperty.setCountryId(city.getGameCountryId() + "");
 		bidProperty.setMapId(map.getMapId() + "");
 		bidProperty.setMapTemplate(map.getTemplate() + "");

@@ -37,7 +37,7 @@ message PRetPropertyBid //GPE
 		string user_price = 18;//用户出价
     	string max_price_user = 19;//最高出价者
 		string status = 5; //竞拍状态  0发起，1竞拍中 ，2完成
-		BidProperty property = 7; //房产
+		Property property = 7; //房产
 	
 	}
 	repeated BidInfo bid = 3;//竞拍信息
@@ -46,30 +46,13 @@ message PRetPropertyBid //GPE
 
 
 
-message BidProperty
-{
-	string country_id = 1;//所属国家
-	string map_id = 2;//所属地图
-	string map_template = 15;//所属地图
-    string property_template_id = 3;//房产模板Id
-    string property_template = 4;//房产模板
-    string owner = 5;//拥有者
-    string property_name = 6; //房产名称
-    string property_id = 7;//房产编码
-    int32 property_type = 8;//房产类型
-    int32 property_status = 9;//房产状态
-	string income_remark = 10;//房产说明
-	string image_url = 13;//房产说明
-    //string appearance_type = 11;//外观
-    //double income = 12;//收益
-}
 
 message PRetBidPropertyDetail //PBD
 {
 
 	string ret_code = 21; //返回状态码
 	string ret_msg = 22; //提示信息
-	BidProperty property = 10; //房产信息
+	Property property = 10; //房产信息
     string max_price = 12;//房产编码
     string bidders_count = 13;//当前参与人数
     string auction_start = 14;//开始时间
@@ -88,7 +71,7 @@ message PRetBidPropertyNotice
 {
 	string ret_code = 1; //返回状态码
 	string ret_msg = 2; //提示信息
-	BidProperty property = 3; //房产信息
+	Property property = 3; //房产信息
     double bid_price = 8;//竞拍价格
     string user_price = 18;//用户出价
     string max_price_user = 19;//最高出价者
