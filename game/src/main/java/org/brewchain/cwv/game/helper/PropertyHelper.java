@@ -827,6 +827,7 @@ public class PropertyHelper implements ActorService {
 			
 			// 设置交易信息
 			BidInfo.Builder bidRet = BidInfo.newBuilder();
+			bidInfoSet(bidRet, bid);
 			//设置本人出价
 			if(!StringUtils.isEmpty(userId)) {
 				CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(), Integer.parseInt(userId));
