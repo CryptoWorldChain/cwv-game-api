@@ -329,7 +329,7 @@ public class WalletHelper implements ActorService {
 			.setCoinType(topup.getCoinType()+"")
 			.setStatus(topup.getStatus()+"")
 			.setTopupTime(DateUtil.getDayTime(topup.getCreateTime()));
-//			ret.set
+			ret.addTopup(tr);
 		}
 		ret.setPage(page.getPageOut());
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())

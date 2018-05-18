@@ -169,6 +169,9 @@ public class PropertyHelper implements ActorService {
 		
 		if(!StringUtils.isEmpty(userId)) {
 			criteria.andUserIdEqualTo(Integer.parseInt(userId));
+			if(StringUtils.isEmpty(pb.getExchangeStatus())){//查询普通房产
+				criteria.andPropertyStatusEqualTo(PropertyStatusEnum.NOSALE.getValue());
+			}
 		}
 		
 		if(!StringUtils.isEmpty(pb.getExchangeStatus())) {
