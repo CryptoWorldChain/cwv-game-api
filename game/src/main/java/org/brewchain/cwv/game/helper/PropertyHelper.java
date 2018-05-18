@@ -173,8 +173,6 @@ public class PropertyHelper implements ActorService {
 		
 		if(!StringUtils.isEmpty(pb.getExchangeStatus())) {
 			criteria.addCriterion("property_id in (select property_id from cwv_market_exchange where status='"+pb.getExchangeStatus()+"' )");
-		}else{//默认查询售出的房产
-			criteria.addCriterion("property_id in (select property_id from cwv_market_exchange where status='"+PropertyExchangeStatusEnum.ONSALE.getValue()+"' )");
 		}
 		// 房产类型
 		if (StringUtils.isNotEmpty(pb.getPropertyType())) {
