@@ -854,6 +854,7 @@ public class PropertyHelper implements ActorService {
 		bidRet.setAuctionEnd(DateUtil.getDayTime(bid.getAuctionEnd()));
 		//查询竞价最高者
 		CWVMarketAuction auctionMax = getMaxAuction(bid.getBidId());
+		bidRet.setPrice(bid.getLastPrice() + "");
 		if(auctionMax !=null) {
 			CWVAuthUser userMax = userHelper.getUserById(auctionMax.getUserId());
 			bidRet.setMaxPriceUser(userMax.getNickName());
@@ -862,7 +863,6 @@ public class PropertyHelper implements ActorService {
 			bidRet.setPrice("0");
 		}
 		
-		bidRet.setPrice(bid.getLastPrice() + "");
 		bidRet.setStatus(bid.getStatus() + "");
 	}
 
@@ -1608,7 +1608,7 @@ public class PropertyHelper implements ActorService {
 			bid.setAnnounceTime(DateUtil.addMinute(bid.getAuctionEnd(), Integer.parseInt(pb.getAnnounceTime())));
 		}
 		
-		bid.setBidAmount(new BigDecimal(pb.getBidStart()));
+		bid.setBidAmount(new BigDecimal(0));
 		bid.setBiddersCount(0);
 		// 生成交易
 		// 调取卖出房产合约

@@ -137,6 +137,7 @@ message PRetWalletAccountBalance{ //WAB
 message PSAccountTopup{ //ATU
 	string coin_type = 1; //账户类型
 	string amount = 2; //账户金额
+	string topup_id = 3; //充值ID
 }
 
 message PRetAccountTopup{ //ATU
