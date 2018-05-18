@@ -24,6 +24,7 @@ import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.User.PRetAccountTopup;
 import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord;
+import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord.TopupRecord;
 import org.brewchain.cwv.service.game.User.PRetWalletAccount;
 import org.brewchain.cwv.service.game.User.PRetWalletAccount.WalletAccount;
 import org.brewchain.cwv.service.game.User.PRetWalletAccountBalance.Builder;
@@ -323,7 +324,12 @@ public class WalletHelper implements ActorService {
 		List<Object> list = dao.topupDao.selectByExample(example);
 		for(Object o : list){
 			CWVUserWalletTopup topup = (CWVUserWalletTopup) o;
-			
+			TopupRecord.Builder tr = TopupRecord.newBuilder();
+			tr.setAmount(topup.getAmount().doubleValue())
+			.setCoinType(topup.getCoinType()+"")
+			.setStatus(topup.getStatus()+"")
+			.setTopupTime(DateUtil.getDayTime(topup.getCreateTime()));
+//			ret.set
 		}
 		ret.setPage(page.getPageOut());
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())

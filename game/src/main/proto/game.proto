@@ -152,6 +152,18 @@ message ExchangeInfo
 	string user_price = 18;//用户出价
 	string max_price_user = 19;//最高出价者
 }
+
+message BidInfo
+{
+	string bid_id = 1; //交易ID
+	string auction_start = 2;//开始时间
+	string auction_end = 3;//结束时间
+	string price = 4; //最终价格
+	string user_price = 18;//用户出价
+	string max_price_user = 19;//最高出价者
+	string status = 5; //竞拍状态  0发起，1竞拍中 ，2完成
+}
+
 message PRetRefGameProperty //GMP 获取游戏房产
 {
 	string ret_code = 1; //返回状态码，
@@ -182,6 +194,7 @@ message PRetCommon //公共返回信息 REG
 	string page_size = 10;// 数量
 	Property property = 4; //房产信息
 	ExchangeInfo exchange = 5; //交易信息 
+	BidInfo bid = 6; //交易信息 
 }
 
 message PRetGamePropertyCharge //GPC

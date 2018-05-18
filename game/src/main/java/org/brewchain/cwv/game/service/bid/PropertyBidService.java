@@ -49,7 +49,7 @@ public class PropertyBidService extends SessionModules<PSPropertyBid> {
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetPropertyBid.Builder ret = PRetPropertyBid.newBuilder();
 		try{
-			propertyHelper.getPropertyBid(pb, ret);
+			propertyHelper.getPropertyBid(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());

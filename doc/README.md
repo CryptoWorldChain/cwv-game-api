@@ -19,6 +19,7 @@
 * [获取游戏城市](#获取游戏城市)
 * [获取游戏地图](#获取游戏地图)
 * [获取游戏房产](#获取游戏房产)
+* [发布官方公告](#发布官方公告)
 * [获取公告消息](#获取公告消息)
 
 -----------
@@ -856,6 +857,48 @@ appearance_type|string|外观||
 	    
 	}
 	
+## 发起官方公告
+### 接口说明
+	公告栏展示公告消息。
+
+### URL
+	/cwv/gns/pbgni.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+notice_type|string|官方公告 公告类型  自定义数字|
+notice_content|string|公告内容|
+start_time|string|开始时间|
+end_time|string|结束时间|
+cycle_period|string|轮播周期|
+count|string|轮播次数|
+
+	{	
+		"notice_type":"0",
+		"notice_content":"notice_content",
+		"start_time":"2018-05-17 23:00:00",
+		"end_time":"2018-05-18 10:00:00",
+		"cycle_period":"1",
+		"count":"10"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "SUCCESS"
+	}
+
+	
 ## 获取公告消息
 ### 接口说明
 	公告栏展示公告消息。
@@ -875,12 +918,12 @@ user_id|string|用户id（暂时可不传）|
 notice_type|string|公告类型（目前只支持announcement类型）|announcement
 
 	{
-		"page_index": "1",
-		"page_size": "10",
-		"page_num": "1",
-		"user_id": "1",
-		"notice_type": "announcement"
-	}
+		"notice_topic":"notice",
+		"notice_type":"0",
+		"page_index":"1",
+		"page_size":"10",
+		"page_num":"1"
+	}	
 
 
 ### 输出参数
@@ -890,7 +933,6 @@ notice_type|string|公告类型（目前只支持announcement类型）|announcem
 ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
 ret_msg|String|返回消息|
 notices|array||
-notice_type|string|消息类型|
 notice_content|string|消息内容||
 start_time|string|轮播开始时间||
 end_time|string|轮播结束时间||
@@ -902,12 +944,11 @@ count|number|循环次数||
 	    "ret_msg": "SUCCESS",
 	    "notices": [
 	        {
-	            "notice_type": "announcement",
-	            "notice_content": "llalalalallalal",
-	            "start_time": "2018-04-07",
-	            "end_time": "2018-04-07",
-	            "cycle_period": 5000,
-	            "count": 1
+	            "notice_content": "notice_content",
+	            "start_time": "2018-05-17 23:00:00",
+	            "end_time": "2018-05-19 10:00:00",
+	            "cycle_period": 1,
+	            "count": 10
 	        }
 	    ]
 	}

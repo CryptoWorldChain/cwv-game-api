@@ -156,7 +156,7 @@ message PRetAccountTopupRecord{ //ATR
 		string status = 3; //充值状态 
 		string coin_type = 4; //币种类型
 	}
-	
+	repeated TopupRecord topup = 4;
 	PageOut page = 3; //页码 
 }
 

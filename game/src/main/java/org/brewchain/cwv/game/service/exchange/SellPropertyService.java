@@ -5,9 +5,8 @@ import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.cwv.service.game.Exchange.PExchangeCommand;
 import org.brewchain.cwv.service.game.Exchange.PExchangeModule;
-import org.brewchain.cwv.service.game.Exchange.PRetSellProperty;
 import org.brewchain.cwv.service.game.Exchange.PSSellProperty;
-import org.brewchain.cwv.service.game.Game.PRetCommon.Builder;
+import org.brewchain.cwv.service.game.Game.PRetCommon;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +47,7 @@ public class SellPropertyService extends SessionModules<PSSellProperty> {
 	public void onPBPacket(final FramePacket pack, final PSSellProperty pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetSellProperty.Builder ret = PRetSellProperty.newBuilder();
+		PRetCommon.Builder ret = PRetCommon.newBuilder();
 		try{
 			propertyHelper.sellProperty(pack, pb, ret);
 		}catch(Exception e){

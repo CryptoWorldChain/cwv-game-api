@@ -101,30 +101,22 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 			if(jsonRet.get("errcode").equals("000")){
 				ret.setRetCode("01");
 				ret.setRetMsg("SUCCESS");
-				List<String> chunk =  (List<String>) jsonRet.get("data");
-				for(String jsonChunk : chunk){
-					Map<String,String> coun = JsonSerializer.getInstance().deserialize(jsonChunk, Map.class);
+				List<Map<String,Object>> chunk =  (List<Map<String,Object>>) jsonRet.get("data");
+				for(Map<String,Object> coun : chunk){
 					PRetNoticeOut.Builder noticeOut = PRetNoticeOut.newBuilder();
-					noticeOut.setNoticeTopic(coun.get("topic"));
-					noticeOut.setNoticeType(coun.get("type"));
-						Map<String,String> data = JsonSerializer.getInstance().deserialize(coun.get("data"), Map.class);
-						noticeOut.setNoticeContent(data.get("content"));
+						noticeOut.setNoticeContent(coun.get("content").toString());
 //						noticeOut.setNoticeId(content.get("notice_id"));
-						Map<String,String> time = JsonSerializer.getInstance().deserialize(coun.get("time"), Map.class);
-						if(noticeOut.getNoticeTopic().equals(NoticeTopicEnum.NOTICE.getValue())) {
-							noticeOut.setStartTime(time.get("start_time"));
-							noticeOut.setEndTime(time.get("end_time"));
-							noticeOut.setCount(Integer.parseInt(time.get("times")));
-							noticeOut.setCyclePeriod(Integer.parseInt(data.get("interval")));
-						
-						}else if(noticeOut.getNoticeTopic().equals(NoticeTopicEnum.AUCTION.getValue())){
-							noticeOut.setStartTime(time.get("start_time"));
-							noticeOut.setEndTime(time.get("end_time"));
-							noticeOut.setCyclePeriod(Integer.parseInt(time.get("publicity")));
-						
-						}
+						if(coun.get("starttime") != null)
+							noticeOut.setStartTime(coun.get("starttime").toString());
+						if(coun.get("endtime") != null)
+							noticeOut.setEndTime(coun.get("endtime").toString());
+						if(coun.get("times") != null)
+							noticeOut.setCount((Integer)coun.get("times"));
+						if(coun.get("publicity") != null)
+							noticeOut.setCyclePeriod((Integer)coun.get("publicity"));
+						if(coun.get("interval") != null)
+							noticeOut.setCyclePeriod((Integer)coun.get("interval"));
 						ret.addNotices(noticeOut);
-					
 					
 				}
 			}else{
@@ -149,10 +141,6 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		}
 		if(StringUtils.isBlank(pb.getNoticeType())){
 			throw new IllegalArgumentException("消息类型不能为空");
-		}else{
-			if(!pb.getNoticeType().equals("announcement")){
-				throw new IllegalArgumentException("目前公告类型只支持announcement类型");
-			}
 		}
 	}
 	

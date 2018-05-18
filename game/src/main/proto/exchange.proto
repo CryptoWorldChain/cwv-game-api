@@ -25,7 +25,8 @@ message PSPropertyExchange	 //PES UPE
 	string property_name = 6;//房产名称
 	string page_index = 7;//页索引
 	string page_size = 8;//页大小
-	string market_type = 9;// 状态 0交易 1竞拍
+	int32 user_only = 9;// 状态 0非限制个人  1限制个人
+	string exchange_status = 10; //交易类型 0 发起 1成功 2撤销
 }
 
 message PRetPropertyExchange //PES UPE

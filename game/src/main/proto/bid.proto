@@ -23,24 +23,18 @@ message PSPropertyBid	 //PBS
 //	string bid_id = 2; //竞拍ID
 	string page_index = 3;//页索引
 	string page_size = 4;//页大小
+	int32 user_only = 5;//页索引 0非个人限制1个人限制
 }
 
 message PRetPropertyBid //GPE
 {
 	string ret_code = 1; //返回状态码
 	string ret_msg = 2; //提示信息
-	message BidInfo{
-		string bid_id = 1; //交易ID
-		string auction_start = 2;//开始时间
-		string auction_end = 3;//结束时间
-		string price = 4; //最终价格
-		string user_price = 18;//用户出价
-    	string max_price_user = 19;//最高出价者
-		string status = 5; //竞拍状态  0发起，1竞拍中 ，2完成
-		Property property = 7; //房产
-	
+	message PropertyBid{
+		Property property = 3; //房产
+	 	BidInfo bid = 4;//竞拍信息
 	}
-	repeated BidInfo bid = 3;//竞拍信息
+	repeated PropertyBid propertyBid = 10;
 	PageOut page = 15; //分页对象
 }
 

@@ -11,6 +11,12 @@ import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSModule;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeIn;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeIn;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.util.JSONPObject;
+import org.codehaus.jackson.map.util.JSONWrappedObject;
+import org.codehaus.jackson.node.ObjectNode;
+import org.codehaus.jackson.node.TextNode;
 
 import lombok.Data;
 import lombok.val;
@@ -86,29 +92,24 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 	 * 挡板
 	 */
 	private void noticeIn(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
-		Map<String,String> jsonMap = new HashMap<>();
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode jsonMap = mapper.createObjectNode();
 		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
 		jsonMap.put("type", pb.getNoticeType());
 		
-		if(StringUtils.isEmpty(pb.getNoticeType()) || !pb.getNoticeType().equals("announcement")) {
-			ret.setRetCode("02");
-			ret.setRetMsg("公告类型错误");
-			return;
-		}
-		Map<String,String> timeMap = new HashMap<>();
-		timeMap.put("start_time", pb.getStartTime());
-		timeMap.put("end_time", pb.getEndTime());
+		
+		ObjectNode timeMap = mapper.createObjectNode();
+		timeMap.put("starttime", pb.getStartTime());
+		timeMap.put("endtime", pb.getEndTime());
 		timeMap.put("interval", pb.getCyclePeriod()+"");
 		
-		Map<String,String> dataMap = new HashMap<>();
-		String timeStr = JsonSerializer.formatToString(timeMap);
-		dataMap.put("time", timeStr);
+		ObjectNode dataMap = mapper.createObjectNode();
+		dataMap.put("time", timeMap);
 		dataMap.put("times", pb.getCount()+"");
 		dataMap.put("content", pb.getNoticeContent()+"");
 		
-		String dataStr = JsonSerializer.formatToString(dataMap);
 
-		jsonMap.put("data", dataStr);
+		jsonMap.put("data", dataMap);
 		
 		String jsonStr = JsonSerializer.formatToString(jsonMap);
 		
