@@ -86,95 +86,7 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 		PRetMsgVerificationDeal.Builder ret = PRetMsgVerificationDeal.newBuilder();
 
 		try {
-
-			// 校验类型
-
-			CWVCommonSmsVerifyExample exampleOld = new CWVCommonSmsVerifyExample();
-			exampleOld.createCriteria().andPhoneEqualTo(pb.getPhone()).andCountryCodeEqualTo(pb.getCountryCode())
-					.andVerifyTypeEqualTo(pb.getType()).andIsVerifyEqualTo("0");
-			List<Object> listOld = sysDaos.cwvcommonsmsverifyDao.selectByExample(exampleOld);
-			List<CWVCommonSmsVerify> listUpdate = new ArrayList<>();
-			String strMsg = null;
-			if (listOld != null && !listOld.isEmpty()) {
-				for (Object o : listOld) {
-					CWVCommonSmsVerify commonSmsVerify = (CWVCommonSmsVerify) listOld.get(0);
-					if (DateUtil.compare(commonSmsVerify.getExpires(), new Date()) > 0) {
-						// 判断是不是null 非null证明多个有效短信验证码 执行更新
-						if (strMsg == null) {
-							strMsg = String.format(msg, "加密世界", commonSmsVerify.getVerifyCode());
-							commonSmsVerify.setExpires(DateUtil.addMinute(new Date(), 5));
-							sysDaos.cwvcommonsmsverifyDao.updateByPrimaryKeySelective(commonSmsVerify);
-						} else {
-							listUpdate.add(commonSmsVerify);
-						}
-					} else {// 添加更新
-						listUpdate.add(commonSmsVerify);
-					}
-
-				}
-			}
-			//更新旧短信验证码状态
-			if (!listUpdate.isEmpty()) {
-				CWVCommonSmsVerify record = new CWVCommonSmsVerify();
-				record.setIsVerify("1");
-
-				CWVCommonSmsVerifyExample example = new CWVCommonSmsVerifyExample();
-				example.createCriteria().andPhoneEqualTo(pb.getPhone()).andCountryCodeEqualTo(pb.getCountryCode())
-						.andVerifyTypeEqualTo(pb.getType()).andIsVerifyEqualTo("0");
-				sysDaos.cwvcommonsmsverifyDao.updateByExampleSelective(record, example);
-			}
-
-			// 验证码生成
-			String fixVer = RandomUtill.autoNumber(4);
-			if (strMsg == null) {
-				strMsg = String.format(msg, "加密世界", fixVer);
-				// 验证码入库
-				CWVCommonSmsVerify cWVCommonSmsVerify = new CWVCommonSmsVerify();
-				cWVCommonSmsVerify.setVerifyId(UUIDGenerator.generate());
-				cWVCommonSmsVerify.setIsVerify("0");
-				cWVCommonSmsVerify.setPhone(pb.getPhone());
-				cWVCommonSmsVerify.setVerifyCode(fixVer);
-				cWVCommonSmsVerify.setCountryCode(pb.getCountryCode());
-				cWVCommonSmsVerify.setVerifyType(pb.getType());
-				// 过期时间 默认5分钟
-				cWVCommonSmsVerify.setExpires(DateUtil.addMinute(new Date(), 5));
-
-				sysDaos.cwvcommonsmsverifyDao.insertSelective(cWVCommonSmsVerify);
-			}
-			
-			mobile = pb.getCountryCode() + pb.getPhone();
-			mobile = deleteStartZero(mobile.trim());
-
-			// 验证码入库
-
-			// 组装发送json
-			Map<String, String> jsonMap = new HashMap<>();
-			jsonMap.put("account", account);
-			jsonMap.put("password", password);
-			jsonMap.put("msg", strMsg);
-			jsonMap.put("mobile", mobile);
-			String jsonStr = JsonSerializer.formatToString(jsonMap);
-			// 组装地址及信息
-			FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", url);
-			// 发送短信
-			val yearMeasureRet = sender.send(pp, 30000);
-			// 返回值处理
-			Map<String, Object> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()),
-					Map.class);
-
-			String code = jsonRet.get("code").toString();
-			String msgid = jsonRet.get("msgid").toString();
-			String error = jsonRet.get("error").toString();
-
-			log.info("状态码:" + code + ",状态码说明:" + error + ",消息id:" + msgid);
-			if (!StringUtils.equals("0", code)) {
-				ret.setRetCode(ReturnCodeMsgEnum.AUT_ERROR.getRetCode());
-				ret.setRetMsg(ReturnCodeMsgEnum.AUT_ERROR.getRetMsg());
-				return;
-			}
-			ret.setRetCode(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode());
-			ret.setRetMsg(ReturnCodeMsgEnum.AUT_SUCCESS.getRetMsg());
-
+			process(pack, pb, ret);
 		} catch (Exception e) {
 			ret.setRetCode(ReturnCodeMsgEnum.AUT_EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.AUT_EXCEPTION.getRetMsg());
@@ -184,6 +96,100 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
+	}
+	
+	public void process(FramePacket pack, PBSmsDeal pb, PRetMsgVerificationDeal.Builder ret){
+
+
+		// 校验类型
+
+		CWVCommonSmsVerifyExample exampleOld = new CWVCommonSmsVerifyExample();
+		exampleOld.createCriteria().andPhoneEqualTo(pb.getPhone()).andCountryCodeEqualTo(pb.getCountryCode())
+				.andVerifyTypeEqualTo(pb.getType()).andIsVerifyEqualTo("0");
+		List<Object> listOld = sysDaos.cwvcommonsmsverifyDao.selectByExample(exampleOld);
+		List<CWVCommonSmsVerify> listUpdate = new ArrayList<>();
+		String strMsg = null;
+		if (listOld != null && !listOld.isEmpty()) {
+			for (Object o : listOld) {
+				CWVCommonSmsVerify commonSmsVerify = (CWVCommonSmsVerify) listOld.get(0);
+				if (DateUtil.compare(commonSmsVerify.getExpires(), new Date()) > 0) {
+					// 判断是不是null 非null证明多个有效短信验证码 执行更新
+					if (strMsg == null) {
+						strMsg = String.format(msg, "加密世界", commonSmsVerify.getVerifyCode());
+						commonSmsVerify.setExpires(DateUtil.addMinute(new Date(), 5));
+						sysDaos.cwvcommonsmsverifyDao.updateByPrimaryKeySelective(commonSmsVerify);
+					} else {
+						listUpdate.add(commonSmsVerify);
+					}
+				} else {// 添加更新
+					listUpdate.add(commonSmsVerify);
+				}
+
+			}
+		}
+		//更新旧短信验证码状态
+		if (!listUpdate.isEmpty()) {
+			CWVCommonSmsVerify record = new CWVCommonSmsVerify();
+			record.setIsVerify("1");
+
+			CWVCommonSmsVerifyExample example = new CWVCommonSmsVerifyExample();
+			example.createCriteria().andPhoneEqualTo(pb.getPhone()).andCountryCodeEqualTo(pb.getCountryCode())
+					.andVerifyTypeEqualTo(pb.getType()).andIsVerifyEqualTo("0");
+			sysDaos.cwvcommonsmsverifyDao.updateByExampleSelective(record, example);
+		}
+
+		// 验证码生成
+		String fixVer = RandomUtill.autoNumber(4);
+		if (strMsg == null) {
+			strMsg = String.format(msg, "加密世界", fixVer);
+			// 验证码入库
+			CWVCommonSmsVerify cWVCommonSmsVerify = new CWVCommonSmsVerify();
+			cWVCommonSmsVerify.setVerifyId(UUIDGenerator.generate());
+			cWVCommonSmsVerify.setIsVerify("0");
+			cWVCommonSmsVerify.setPhone(pb.getPhone());
+			cWVCommonSmsVerify.setVerifyCode(fixVer);
+			cWVCommonSmsVerify.setCountryCode(pb.getCountryCode());
+			cWVCommonSmsVerify.setVerifyType(pb.getType());
+			// 过期时间 默认5分钟
+			cWVCommonSmsVerify.setExpires(DateUtil.addMinute(new Date(), 5));
+
+			sysDaos.cwvcommonsmsverifyDao.insertSelective(cWVCommonSmsVerify);
+		}
+		
+		mobile = pb.getCountryCode() + pb.getPhone();
+		mobile = deleteStartZero(mobile.trim());
+
+		// 验证码入库
+
+		// 组装发送json
+		Map<String, String> jsonMap = new HashMap<>();
+		jsonMap.put("account", account);
+		jsonMap.put("password", password);
+		jsonMap.put("msg", strMsg);
+		jsonMap.put("mobile", mobile);
+		String jsonStr = JsonSerializer.formatToString(jsonMap);
+		// 组装地址及信息
+		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", url);
+		// 发送短信
+		val yearMeasureRet = sender.send(pp, 30000);
+		// 返回值处理
+		Map<String, Object> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()),
+				Map.class);
+
+		String code = jsonRet.get("code").toString();
+		String msgid = jsonRet.get("msgid").toString();
+		String error = jsonRet.get("error").toString();
+
+		log.info("状态码:" + code + ",状态码说明:" + error + ",消息id:" + msgid);
+		if (!StringUtils.equals("0", code)) {
+			ret.setRetCode(ReturnCodeMsgEnum.AUT_ERROR.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.AUT_ERROR.getRetMsg());
+			return;
+		}
+		ret.setRetCode(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode());
+		ret.setRetMsg(ReturnCodeMsgEnum.AUT_SUCCESS.getRetMsg());
+
+	
 	}
 
 	public String deleteStartZero(String mobile) {
