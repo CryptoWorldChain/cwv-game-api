@@ -801,7 +801,9 @@ public class PropertyHelper implements ActorService {
 		// 设置查询条件
 		CWVMarketBidExample cwvMarketBidExample = new CWVMarketBidExample();
 		CWVMarketBidExample.Criteria criteria = cwvMarketBidExample.createCriteria();
-
+		cwvMarketBidExample.setOffset(page.getOffset());
+		cwvMarketBidExample.setLimit(page.getLimit());
+		
 		if (StringUtils.isNotEmpty(pb.getStatus())) {
 			criteria.andStatusEqualTo(Byte.parseByte(pb.getStatus()));
 		}
