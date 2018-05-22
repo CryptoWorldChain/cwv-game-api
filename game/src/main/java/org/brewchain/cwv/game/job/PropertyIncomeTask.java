@@ -5,13 +5,13 @@ import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.time.DateUtils;
 import org.brewchain.cwv.auth.filter.SessionFilter;
 import org.brewchain.cwv.auth.util.jwt.CheckResult;
 import org.brewchain.cwv.auth.util.jwt.TokenMgr;
@@ -81,8 +81,10 @@ public class PropertyIncomeTask implements Runnable {
 		log.info("PropertyIncomeTask execute time : "+DateUtil.getDayTime(new Date()));
 		
 		incomeProcess();
-		
-		setting.setValue(DateUtil.getDayTime(DateUtils.addDays(incomeTime, 7)));
+		Calendar a = Calendar.getInstance();
+		a.setTime(incomeTime);
+		a.add(Calendar.DATE, 7);
+		setting.setValue(DateUtil.getDayTime(a.getTime()));
 		propertyHelper.getDao().settingDao.updateByPrimaryKeySelective(setting);
 		log.info("PropertyIncomeTask execute next time : "+setting.getValue());
 		
