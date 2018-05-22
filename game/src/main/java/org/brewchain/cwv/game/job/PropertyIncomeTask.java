@@ -83,7 +83,7 @@ public class PropertyIncomeTask implements Runnable {
 		incomeProcess();
 		Calendar a = Calendar.getInstance();
 		a.setTime(incomeTime);
-		a.add(Calendar.DATE, 7);
+		a.add(Calendar.MINUTE, 7);
 		setting.setValue(DateUtil.getDayTime(a.getTime()));
 		propertyHelper.getDao().settingDao.updateByPrimaryKeySelective(setting);
 		log.info("PropertyIncomeTask execute next time : "+setting.getValue());
