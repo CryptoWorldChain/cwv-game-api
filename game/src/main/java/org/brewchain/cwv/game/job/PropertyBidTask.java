@@ -77,8 +77,8 @@ public class PropertyBidTask implements Runnable {
 				gameProperty.setPropertyId(bid.getGamePropertyId());
 				final CWVGameProperty property = propertyHelper.getDao().gamePropertyDao.selectByPrimaryKey(gameProperty);
 				
-				if(!property.getPropertyStatus().equals(PropertyStatusEnum.BIDDING.getValue()))
-					continue;
+//				if(!property.getPropertyStatus().equals(PropertyStatusEnum.BIDDING.getValue()))
+//					continue;
 				//查询竞价最高者
 				CWVMarketAuction auctionMax = propertyHelper.getMaxAuction(bid.getBidId());
 				if(auctionMax !=null) {
@@ -134,7 +134,17 @@ public class PropertyBidTask implements Runnable {
 					
 				}else{//流拍
 					bid.setStatus(Byte.parseByte(PropertyBidStatusEnum.NOBID.getValue()));
+					bid.setLastUpdateTime(new Date());
 					property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
+					propertyHelper.getDao().gamePropertyDao.doInTransaction(new TransactionExecutor() {
+						
+						@Override
+						public Object doInTransaction() {
+							propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
+							propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
+							return null;
+						}
+					});
 				}
 				
 				

@@ -72,7 +72,6 @@ public class PropertyIncomeTask implements Runnable {
 		try {
 			incomeTime = DateUtil.getDateTime(setting.getValue());
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if(org.brewchain.cwv.auth.util.DateUtil.compare(new Date(), incomeTime)<0) {
