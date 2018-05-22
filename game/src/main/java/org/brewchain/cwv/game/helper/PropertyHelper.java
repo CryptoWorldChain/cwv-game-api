@@ -189,7 +189,7 @@ public class PropertyHelper implements ActorService {
 
 		// 国家
 		if (StringUtils.isNotEmpty(pb.getCountryId())) {
-			criteria.addCriterion("game_map_id in (select map_id from cwv_game_city where game_country_id='"+pb.getCountryId()+"')");
+			criteria.addCriterion("game_map_id in (select map_id from cwv_game_map where game_city_id in (select city_id from cwv_game_city where game_country_id='"+pb.getCountryId()+"') )");
 		}
 
 		// // 城市

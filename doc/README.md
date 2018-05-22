@@ -482,10 +482,10 @@ ret_msg|string|返回消息|
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-countr_id|string|国家代码|
+country_id|string|国家代码|
 
 	{
-		"countr_id":"1"
+		"country_id":"1"
 	}
 
 ### 输出参数
