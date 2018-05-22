@@ -1,12 +1,17 @@
 package org.brewchain.cwv.game.job;
 
+import java.util.Date;
+import java.util.HashSet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.helper.PropertyHelper;
+import org.brewchain.cwv.game.util.DateUtil;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -24,15 +29,15 @@ import onight.tfw.proxy.IActor;
 @NActorProvider
 @Slf4j
 @Data
-public class PropertyBidJobHandle extends ActWrapper implements ActorService, IActor {
+public class PropertyJobHandle extends ActWrapper implements ActorService, IActor {
 	
 	private static ScheduledExecutorService service = null;
 	private final static int POOL_SIZE = 100;
-
+	
 	//间隔时间
 	private final int numIntervalTime = 10;
 	//线程大小
-	private final int numThredSize = 1;
+	private final int numThredSize = 5;
 	private final int numZero = 0;
 	private boolean bool = true;
 	
@@ -78,6 +83,8 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 							log.info("job service start....");
 							service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.SECONDS);
 							
+							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.DAYS);
+							
 						}
 					}
 				}
@@ -118,8 +125,9 @@ public class PropertyBidJobHandle extends ActWrapper implements ActorService, IA
 //			ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
 //			ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
 //			 延迟0， 间隔1， 单位：SECONDS
-			service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.MINUTES);
-			
+//			service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.MINUTES);
+//			service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, numIntervalTime, TimeUnit.MINUTES);
+//			
 		}
 
 	}

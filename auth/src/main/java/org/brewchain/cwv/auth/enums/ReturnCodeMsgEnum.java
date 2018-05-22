@@ -8,6 +8,14 @@ import lombok.Data;
  * @date 2018-03-30
  */
 public enum ReturnCodeMsgEnum {
+	
+	/**
+	 * 登陆
+	 */
+	DIS_SUCCESS("01","登录成功"),
+	DIS_DUPLICATE_PHONE("02","⼿机号重复"),
+	DIS_DUPLICATE_NAME("03","用户名重复"),
+	
 	/**
 	 * 注册
 	 */
@@ -66,8 +74,8 @@ public enum ReturnCodeMsgEnum {
 	/**
 	 * 设置头像
 	 */
-	SHI_SUCCESS("01","重置密码成功"),
-	SHI_EXCEPTION("99","未知异常"),
+	SHI_SUCCESS("01","设置头像成功"),
+	SHI_ERROR_COUNTRY_ID("02","错误的国家ID"),
 	
 	/**
 	 * 注销

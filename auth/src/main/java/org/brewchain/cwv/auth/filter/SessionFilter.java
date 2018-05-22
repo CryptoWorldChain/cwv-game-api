@@ -49,8 +49,6 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			add("/tkn/pbats.do");//校验token
 			add("/usr/pbsmc.do");
 			
-			add("/gea/pbpes.do");
-			
 			//murphy
 			add("/gga/pbgcs.do");
 			add("/gga/pbgcc.do");
@@ -60,7 +58,6 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			add("/gna/pbgno.do");
 			
 			//leo
-			add("/sms/pbaut.do");
 			add("/sms/pbmsg.do");
 			add("/sms/pbver.do");
 			add("/sms/pbmsv.do");

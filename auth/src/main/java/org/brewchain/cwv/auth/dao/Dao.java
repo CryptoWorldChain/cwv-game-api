@@ -5,6 +5,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshToken;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
@@ -39,6 +40,10 @@ public class Dao implements ActorService, IJPAClient {
 	
 	@StoreDAO
 	public OJpaDAO<CWVCommonCountry> commonCountryDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVGameCountry> gameCountryDao;
+	
 	
 	@StoreDAO
 	public OJpaDAO<CWVSysSetting> settingDao;

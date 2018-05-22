@@ -33,6 +33,8 @@ import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUserExample;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountryExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
@@ -78,7 +80,7 @@ public class UserHelper implements ActorService {
 
 	@ActorRequire(name = "Token_Helper")
 	TokenHelper tokenHelper;
-	
+
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
 
@@ -87,23 +89,26 @@ public class UserHelper implements ActorService {
 	public String toString() {
 		return "102service:";
 	}
-	
-	enum MsgCodeType{
-		REG("1"),//注册
-		STP("2"),//交易密码
-		RSP("3"),//重置登陆密码
-		SPS("4");//设置登陆密码
+
+	enum MsgCodeType {
+		REG("1"), // 注册
+		STP("2"), // 交易密码
+		RSP("3"), // 重置登陆密码
+		SPS("4");// 设置登陆密码
 		private String value;
-		MsgCodeType(String value){
+
+		MsgCodeType(String value) {
 			this.value = value;
 		}
 	}
-	
-	public HashSet<String> msgCodeLoginType = new HashSet<String>(){{
-		add(MsgCodeType.STP.value);
-		add(MsgCodeType.RSP.value);
-		add(MsgCodeType.SPS.value);
-	}};
+
+	public HashSet<String> msgCodeLoginType = new HashSet<String>() {
+		{
+			add(MsgCodeType.STP.value);
+			add(MsgCodeType.RSP.value);
+			add(MsgCodeType.SPS.value);
+		}
+	};
 
 	/**
 	 * 注册用户
@@ -131,7 +136,7 @@ public class UserHelper implements ActorService {
 		if (StringUtils.isEmpty(pb.getRegVerifyCode())) {
 			throw new IllegalArgumentException("验证码不能为空");
 		}
-		
+
 		if (StringUtils.isEmpty(pb.getPhoneCode())) {
 			throw new IllegalArgumentException("短信验证码不能为空");
 		}
@@ -142,8 +147,8 @@ public class UserHelper implements ActorService {
 		jsonMap.put("code", pb.getRegVerifyCode());
 		jsonMap = InokeInterfaceHelper.checkCode(jsonMap, sender);
 
-		if(!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals( jsonMap.get("ret_code"))) {
-				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetCode())
+		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMap.get("ret_code"))) {
+			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetMsg());
 			return;
 		}
@@ -154,9 +159,8 @@ public class UserHelper implements ActorService {
 		jsonMapPhone.put("type", MsgCodeType.REG.value);
 		jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
-		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals( jsonMapPhone.get("ret_code"))) {
-			ret.setRetCode(jsonMapPhone.get("ret_code"))
-			.setRetMsg(jsonMapPhone.get("ret_msg"));
+		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
+			ret.setRetCode(jsonMapPhone.get("ret_code")).setRetMsg(jsonMapPhone.get("ret_msg"));
 			return;
 		}
 
@@ -170,12 +174,12 @@ public class UserHelper implements ActorService {
 
 		// 2 初始化用户数据（包含默认值）
 		final CWVAuthUser authUser = new CWVAuthUser();
-		authUser.setNickName(StringUtils.isEmpty(pb.getNickName())? pb.getUserName() : pb.getNickName() );
+		authUser.setNickName(StringUtils.isEmpty(pb.getNickName()) ? pb.getUserName() : pb.getNickName());
 		authUser.setUserName(pb.getUserName());
 		CWVCommonCountryExample countryExample = new CWVCommonCountryExample();
 		countryExample.createCriteria().andRegionCodeEqualTo(pb.getCountryCode());
 		CWVCommonCountry countryOb = (CWVCommonCountry) dao.commonCountryDao.selectOneByExample(countryExample);
-		authUser.setCountryId(countryOb.getCountryId());
+//		authUser.setCountryId(countryOb.getCountryId());
 		authUser.setCountryCode(pb.getCountryCode());
 		// if(pb.getPhoneCode() !=null && pb.getPhoneCode().equals(""))
 		// authUser.setPhone(phone);
@@ -193,19 +197,19 @@ public class UserHelper implements ActorService {
 
 		// 创建账户 TODO
 		this.dao.userDao.doInTransaction(new TransactionExecutor() {
-			
+
 			@Override
 			public Object doInTransaction() {
-				
+
 				dao.userDao.insertIfNoExist(authUser);
 				CWVAuthUser userInsert = getUserByPhone(authUser.getPhone());
-				
-				for(int i=0;i<3;i++) {
+
+				for (int i = 0; i < 3; i++) {
 					CWVUserWallet userWallet = new CWVUserWallet();
 					userWallet.setAccount("http://ceshidizhi");
 					userWallet.setBalance(new BigDecimal(0));
 					userWallet.setCoinIcon("http://cwc.icon");
-					userWallet.setCoinType((byte)i);
+					userWallet.setCoinType((byte) i);
 					userWallet.setCreateTime(new Date());
 					userWallet.setDrawCount(0);
 					userWallet.setTopupBalance(new BigDecimal(0));
@@ -219,7 +223,7 @@ public class UserHelper implements ActorService {
 				return null;
 			}
 		});
-		
+
 		ret.setRetCode(ReturnCodeMsgEnum.REG_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.REG_SUCCESS.getRetMsg());
 
 	}
@@ -276,23 +280,34 @@ public class UserHelper implements ActorService {
 		CWVCommonCountryExample countryExample = new CWVCommonCountryExample();
 		countryExample.createCriteria().andRegionCodeEqualTo(authUser.getCountryCode());
 		CWVCommonCountry countryOb = (CWVCommonCountry) dao.commonCountryDao.selectOneByExample(countryExample);
-		
+
 		userInfo.setPhoneCode(countryOb.getPhoneCode());
 		CWVSysSettingExample example = new CWVSysSettingExample();
 		example.createCriteria().andNameEqualTo("super_user");
-		CWVSysSetting supperSet  = (CWVSysSetting) dao.settingDao.selectOneByExample(example);
-		if(supperSet.getValue().equals(authUser.getUserId().toString()))
+		CWVSysSetting supperSet = (CWVSysSetting) dao.settingDao.selectOneByExample(example);
+		if (supperSet.getValue().equals(authUser.getUserId().toString()))
 			userInfo.setIsSupper("1");
-		else{
+		else {
 			userInfo.setIsSupper("0");
 		}
 		// TODO 图片服务器返回URL 或者返回头像接口
-		userInfo.setImageUrl("/cwv/usr/pbghi.do");
+//		userInfo.setImageUrl(authUser.getImageUrl() == null ? "" : authUser.getImageUrl());
 		
-		//查询交易密码
+		//用户头像信息 国家Id 国家name
+		userInfo.setCountryId(authUser.getCountryId()+"");
+		if(authUser.getCountryId() != null ) {
+			CWVGameCountry country = new CWVGameCountry();
+			country.setCountryId(authUser.getCountryId());
+			country = dao.gameCountryDao.selectByPrimaryKey(country);
+			if(country != null) {
+				userInfo.setCountryName(country.getCountryName());
+			}
+		}
+		
+		// 查询交易密码
 		CWVUserTradePwd tradePwd = getTradePwd(authUser.getUserId());
-		userInfo.setTradePwdSet(tradePwd == null ? "0" : "1" );
-		//查询余额
+		userInfo.setTradePwdSet(tradePwd == null ? "0" : "1");
+		// 查询余额
 		userInfo.setAccountBalance("0");
 		ret.setUserInfo(userInfo);
 		ret.setExpiresIn(Constant.JWT_TTL / 1000l);
@@ -311,14 +326,13 @@ public class UserHelper implements ActorService {
 		}
 		return (CWVAuthUser) userList.get(0);
 	}
-	
+
 	public CWVAuthUser getUserById(Integer userId) {
 		CWVAuthUser user = new CWVAuthUser();
 		user.setUserId(userId);
 		user = dao.userDao.selectByPrimaryKey(user);
 		return user;
 	}
-
 
 	/**
 	 * 设置用户昵称
@@ -361,23 +375,22 @@ public class UserHelper implements ActorService {
 		// 更新交易密码
 		// 查询用户获取salt
 		CWVAuthUser authUser = this.getCurrentUser(pack);
-		if(StringUtils.isEmpty(pb.getPhoneVerifyCode())){
-			 ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetCode())
-		 	.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetMsg());
-		 	return;
-		 }else {
-		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
+		if (StringUtils.isEmpty(pb.getPhoneVerifyCode())) {
+			ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PHONE_CODE.getRetMsg());
+			return;
+		} else {
+			HashMap<String, String> jsonMapPhone = new HashMap<>();
 			jsonMapPhone.put("phone", authUser.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
-			jsonMapPhone.put("type", MsgCodeType.STP.value); //设置交易密码
+			jsonMapPhone.put("type", MsgCodeType.STP.value); // 设置交易密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
-	
+
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(jsonMapPhone.get("ret_code"))
-				.setRetMsg(jsonMapPhone.get("ret_msg"));
+				ret.setRetCode(jsonMapPhone.get("ret_code")).setRetMsg(jsonMapPhone.get("ret_msg"));
 				return;
 			}
-		 }
+		}
 		// 创建trade对象更新信息
 		CWVUserTradePwd userTrade = new CWVUserTradePwd();
 		userTrade.setUserId(authUser.getUserId());
@@ -391,25 +404,27 @@ public class UserHelper implements ActorService {
 			userTrade.setCreatedTime(new Date());
 			dao.tradeDao.insert(userTrade);
 		} else {
-			if(!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
+			if (!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
 				ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetCode())
-				.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetMsg());
-				return ;
+						.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetMsg());
+				return;
 			}
-			if(getPwdMd5(pb.getPassword(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
+			if (getPwdMd5(pb.getPassword(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
 				ret.setRetCode(ReturnCodeMsgEnum.STP_DUPLICATE_PWD.getRetCode())
-				.setRetMsg(ReturnCodeMsgEnum.STP_DUPLICATE_PWD.getRetMsg());
-				return ;
+						.setRetMsg(ReturnCodeMsgEnum.STP_DUPLICATE_PWD.getRetMsg());
+				return;
 			}
-			
+
 			userTrade.setTradeId(tradePwdOld.getTradeId());
 			dao.tradeDao.updateByPrimaryKeySelective(userTrade);
 		}
 
 		ret.setRetCode(ReturnCodeMsgEnum.STP_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.STP_SUCCESS.getRetMsg());
 	}
+
 	/**
 	 * 获取交易密码
+	 * 
 	 * @param userId
 	 * @return
 	 */
@@ -418,11 +433,12 @@ public class UserHelper implements ActorService {
 		CWVUserTradePwdExample.Criteria criteria = example.createCriteria();
 		criteria.andUserIdEqualTo(userId);
 		List<Object> listTrade = dao.tradeDao.selectByExample(example);
-		return listTrade == null || listTrade.isEmpty()? null : (CWVUserTradePwd) listTrade.get(0);
+		return listTrade == null || listTrade.isEmpty() ? null : (CWVUserTradePwd) listTrade.get(0);
 	}
-	
+
 	/**
 	 * 通过salt MD5 生成密码
+	 * 
 	 * @param pwd
 	 * @param salt
 	 * @return
@@ -430,7 +446,7 @@ public class UserHelper implements ActorService {
 	public String getPwdMd5(String pwd, String salt) {
 		return Md5Crypt.md5Crypt(pwd.getBytes(), salt);
 	}
-	
+
 	/**
 	 * 重置密码
 	 * 
@@ -465,25 +481,24 @@ public class UserHelper implements ActorService {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("无法更新相同密码");
 			return;
 		}
-		 //1.3校验短信验证码
-		
-		 if(StringUtils.isEmpty(pb.getPhoneVerifyCode())){
-			 ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetCode())
-		 	.setRetMsg(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetMsg());
-		 	return;
-		 }else {
-		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
+		// 1.3校验短信验证码
+
+		if (StringUtils.isEmpty(pb.getPhoneVerifyCode())) {
+			ret.setRetCode(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.RSP_ERROR_CODE.getRetMsg());
+			return;
+		} else {
+			HashMap<String, String> jsonMapPhone = new HashMap<>();
 			jsonMapPhone.put("phone", authUser.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
-			jsonMapPhone.put("type", MsgCodeType.RSP.value); //重置登陆密码
+			jsonMapPhone.put("type", MsgCodeType.RSP.value); // 重置登陆密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
 
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(jsonMapPhone.get("ret_code"))
-				.setRetMsg(jsonMapPhone.get("ret_msg"));
+				ret.setRetCode(jsonMapPhone.get("ret_code")).setRetMsg(jsonMapPhone.get("ret_msg"));
 				return;
 			}
-		 }
+		}
 
 		// 2 更新密码
 		CWVAuthUser authUserUpdate = new CWVAuthUser();
@@ -526,7 +541,35 @@ public class UserHelper implements ActorService {
 
 	}
 
+	/**
+	 * 设置头像
+	 * 
+	 * @param pack
+	 * @param pb
+	 * @param ret
+	 */
 	public void setIconName(FramePacket pack, PSCommon pb, PRetCommon.Builder ret) {
+		if (StringUtils.isEmpty(pb.getCountryId())) {
+			throw new IllegalArgumentException("国家Id不能为空");
+		}
+
+		CWVGameCountry country = new CWVGameCountry();
+		country.setCountryId(Integer.parseInt(pb.getCountryId()));
+		Object o = dao.commonCountryDao.selectByPrimaryKey(country);
+		//
+		if (o == null) {
+			ret.setRetCode(ReturnCodeMsgEnum.SHI_ERROR_COUNTRY_ID.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.SHI_ERROR_COUNTRY_ID.getRetMsg());
+			return;
+		}
+
+		CWVAuthUser authUser = getCurrentUser(pack);
+		authUser.setCountryId(Integer.parseInt(pb.getCountryId()));
+		dao.userDao.updateByPrimaryKeySelective(authUser);
+		ret.setRetCode(ReturnCodeMsgEnum.SHI_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SHI_SUCCESS.getRetMsg());
+	}
+
+	public void setIconNameBack(FramePacket pack, PSCommon pb, PRetCommon.Builder ret) {
 		if (StringUtils.isEmpty(pb.getFiledata())) {
 			throw new IllegalArgumentException("文件不能为空");
 		}
@@ -645,20 +688,19 @@ public class UserHelper implements ActorService {
 			ret.setRetMsg(ReturnCodeMsgEnum.SMC_ERROR_PHONE.getRetMsg());
 			return;
 		}
-		
-		if(StringUtils.isEmpty(pb.getPhoneCode())){
+
+		if (StringUtils.isEmpty(pb.getPhoneCode())) {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
 			ret.setRetMsg("手机代码不能为空");
 			return;
 		}
-		
-		if(StringUtils.isEmpty(pb.getType())){
+
+		if (StringUtils.isEmpty(pb.getType())) {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
 			ret.setRetMsg("类型不能为空");
 			return;
 		}
-		
-		
+
 		HashMap<String, String> jsonMap = new HashMap<>();
 		jsonMap.put("phone", pb.getPhone());
 		jsonMap.put("country_code", pb.getPhoneCode());
@@ -685,9 +727,9 @@ public class UserHelper implements ActorService {
 		return false;
 	}
 
-
 	/**
 	 * 修改密码（需要先登陆）
+	 * 
 	 * @param pack
 	 * @param pb
 	 * @param ret
@@ -701,46 +743,44 @@ public class UserHelper implements ActorService {
 					.setRetMsg(ValidateEnum.PASSWORD.getVerifyMsg());
 			return;
 		}
-		
+
 		// 1.2查询当前用户
 
 		CWVAuthUser authUser = getCurrentUser(pack);
 
 		if (authUser == null) {
 			// TODO 次数限制 +1
-			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
-					.setRetMsg("用户未登录");
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("用户未登录");
 			return;
 		}
 
-		 if(StringUtils.isEmpty(pb.getPhoneVerifyCode())){
-			 ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetCode())
-		 	.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetMsg());
-		 	return;
-		 }else {
-		 	HashMap<String, String> jsonMapPhone = new HashMap<>();
+		if (StringUtils.isEmpty(pb.getPhoneVerifyCode())) {
+			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetMsg());
+			return;
+		} else {
+			HashMap<String, String> jsonMapPhone = new HashMap<>();
 			jsonMapPhone.put("phone", authUser.getPhone());
 			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
-			jsonMapPhone.put("type", MsgCodeType.SPS.value); //设置登陆密码
+			jsonMapPhone.put("type", MsgCodeType.SPS.value); // 设置登陆密码
 			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
-	
+
 			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
-				ret.setRetCode(jsonMapPhone.get("ret_code"))
-				.setRetMsg(jsonMapPhone.get("ret_msg"));
+				ret.setRetCode(jsonMapPhone.get("ret_code")).setRetMsg(jsonMapPhone.get("ret_msg"));
 				return;
 			}
-		 }
-		 if(!getPwdMd5(pb.getPasswordOld(),authUser.getSalt()).equals(authUser.getPassword())) {
-			 ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetCode())
-				.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetMsg());
-			 return;
-		 }
-		 
+		}
+		if (!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(authUser.getPassword())) {
+			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetMsg());
+			return;
+		}
+
 		// 校验重复密码
-		String pwdMd5 = getPwdMd5(pb.getPassword(),authUser.getSalt());
+		String pwdMd5 = getPwdMd5(pb.getPassword(), authUser.getSalt());
 		if (authUser.getPassword().equals(pwdMd5)) {
 			ret.setRetCode(ReturnCodeMsgEnum.SPS_DUPLICATE_PWD.getRetCode())
-			.setRetMsg(ReturnCodeMsgEnum.SPS_DUPLICATE_PWD.getRetMsg());
+					.setRetMsg(ReturnCodeMsgEnum.SPS_DUPLICATE_PWD.getRetMsg());
 			return;
 		}
 
@@ -749,6 +789,37 @@ public class UserHelper implements ActorService {
 		dao.userDao.updateByPrimaryKeySelective(authUser);
 
 		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
+
+	}
+
+	public void duplicateInfo(PSRegistry pb, PRetCommon.Builder ret) {
+
+		if (StringUtils.isEmpty(pb.getPhone()) && StringUtils.isEmpty(pb.getUserName())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("手机或者用户名不能为空");
+			return;
+		}
+
+		if (!StringUtils.isEmpty(pb.getPhone())) {
+			CWVAuthUser authUser = getUserByPhone(pb.getPhone());
+			if (authUser != null) {
+				ret.setRetCode(ReturnCodeMsgEnum.DIS_DUPLICATE_PHONE.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.DIS_DUPLICATE_PHONE.getRetMsg());
+			} else {
+				ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+			}
+		} else if (!StringUtils.isEmpty(pb.getUserName())) {
+
+			CWVAuthUserExample authUserExample = new CWVAuthUserExample();
+			authUserExample.createCriteria().andUserNameEqualTo(pb.getUserName());
+			Object o = dao.userDao.selectOneByExample(authUserExample);
+
+			if (o != null) {
+				ret.setRetCode(ReturnCodeMsgEnum.DIS_DUPLICATE_NAME.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.DIS_DUPLICATE_NAME.getRetMsg());
+			} else {
+				ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+			}
+		}
 
 	}
 

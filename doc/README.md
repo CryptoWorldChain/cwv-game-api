@@ -21,6 +21,7 @@
 * [获取游戏房产](#获取游戏房产)
 * [发布官方公告](#发布官方公告)
 * [获取公告消息](#获取公告消息)
+* [手机用户名重复校验](#手机用户名重复校验)
 
 -----------
 ## 发送验证码
@@ -308,24 +309,27 @@ ret_msg|string|状态说明|
 |uid|string|用户标识||
 |nick_name|string|昵称||
 |phone|string|手机号||
-|image_url|string|用户头像||
 |is_supper|string|是否超级玩家  0不是，1是||
+|country_id|string|头像国家ID||
+|country_name|string|头像国家名称||
 
 	{
 	    "ret_code": "01",
 	    "ret_msg": "登录成功",
 	    "token_type": "JWT",
-	    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI1MjM2QSIsInN1YiI6IntcInVpZFwiOjEsXCJ1dHlcIjpcImthZWxcIn0iLCJpYXQiOjE1MjI1OTkwNTgsImV4cCI6MTUyMjU5OTY1OH0.ql3MZht8KyJFpODLqcQSDEKN03_1Pgae44QjZatMwDg",
+	    "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI1MjM2QSIsInN1YiI6IntcInVpZFwiOjQ0LFwidXR5XCI6XCLmooExMjNcIn0iLCJpYXQiOjE1MjY5NzUxMDMsImV4cCI6MTUyNjk3NTcwM30.SupQOHSjduLemcO9dUeD3iCynIxFVvwwL71UQr8g3ck",
 	    "expires_in": 600,
-	    "refresh_token": "40288a8400002d14016281f9db410001",
+	    "refresh_token": "40288aad0000477c016386cf013c0001",
 	    "user_info": {
-	        "uid": "1",
-	        "nick_name": "kael",
-	        "phone": "13161531208",
-	        "image_url": "/cwv/user/pbghi.do",
-	        "trade_pwd_set": "1",
-	        "account_balance": "10000.00"
-	         "is_supper": "0"
+	        "uid": "44",
+	        "nick_name": "梁123",
+	        "phone": "13801231234",
+	        "trade_pwd_set": "0",
+	        "account_balance": "0",
+	        "phone_code": "86",
+	        "is_supper": "0",
+	        "country_id": "1",
+	        "country_name": "USA"
 	    }
 	}
 
@@ -478,19 +482,18 @@ ret_msg|string|返回消息|
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-filedata|string|图片数据|base64编码
+countr_id|string|国家代码|
 
 	{
-		"password":"123456"
+		"countr_id":"1"
 	}
 
 ### 输出参数
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.设置昵称成功<br/>80.校验类错误信息<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.设置头像成功<br/>02.国家ID错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
-image_url|string|用户头像地址|
 
 
 	{
@@ -952,3 +955,38 @@ count|number|循环次数||
 	        }
 	    ]
 	}
+
+
+## 手机用户名重复校验
+### 接口说明
+	用于注册时的信息校验
+
+### URL
+	/cwv/usr/pbdis.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+phone|string|手机号|
+user_name|string|用户名|
+
+	{	
+		"user_name":"梁123"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>02.手机重复<br/>03.用户名重复<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+	
+	{
+	    "ret_code": "03",
+	    "ret_msg": "用户名重复"
+	}
+	
+	

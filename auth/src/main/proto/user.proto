@@ -17,6 +17,7 @@ enum PUSERCommand {
 	GHI = 8; //获取头像 GetHeadImageService
 	
 	SMC = 9; //短信验证码获取 SendMsgCodeService
+	DIS = 10; //重复性校验  DuplicateInfoService
 };
 
 message PSRegistry //REG 
@@ -64,6 +65,8 @@ message UserInfo
 	string account_balance = 13; //账户余额 CWB
 	string phone_code = 14;//手机代码
 	string is_supper = 15;//手机代码
+	string country_id = 16; //游戏国家
+	string country_name = 17; //游戏国家名称
 }
 
 message PSSendMsgCode //SMC   短信验证码请求信息
@@ -75,6 +78,7 @@ message PSSendMsgCode //SMC   短信验证码请求信息
 
 message PSCommon{
 	string filedata = 1;
+	string country_id = 2;
 }
 
 

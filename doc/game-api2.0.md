@@ -4,7 +4,6 @@
 * [购买房产](## 购买房产)
 * [卖出房产](## 卖出房产)
 * [交易手续费](## 交易手续费)
-* [个人房产交易](## 个人房产交易)
 * [房产竞拍列表](## 房产竞拍列表)
 * [竞拍房产](## 竞拍房产)
 * [竞拍详情](## 竞拍详情)
@@ -19,8 +18,9 @@
 * [游戏说明](## 游戏说明)
 * [收益查询](## 收益查询)
 * [收益领取](## 收益领取)
+* [撤销房产交易](## 撤销房产交易)
+* [发起竞拍](## 发起竞拍)
 以下接口暂未处理
-	* [撤销房产交易](## 撤销房产交易)
 	* [个人竞拍记录](## 个人竞拍记录)
 	* [查询抽奖记录](## 查询抽奖记录)
 
@@ -30,7 +30,7 @@
 ### 接口说明
 	空
 ### URL
-	/cwv/ges/pbpes.do
+	/cwv/gea/pbpes.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -42,6 +42,8 @@ country_id|string|国家|
 city_id|string|城市|
 property_type|string|房产类型 <br/>1：价值房产<br/>2：功能型房产<br/>3：标志性房产|
 property_name|string|房产名称|
+user_only|string|状态 0所有房产  1个人房产|
+exchange_status|string| 交易状态0 售出中 1已售出 2撤销  不传时，只查普通房产|
 page_index|string|页码|
 page_size|string|数量|
     
@@ -52,6 +54,8 @@ page_size|string|数量|
 		"city_id":"1",
 		"property_type":"1",
 		"property_name":"Statue",
+		"exchange_status":"0",
+		"user_only":"0",
 		"page_index":"1",
 		"page_size":"10"
 	}
@@ -61,13 +65,11 @@ page_size|string|数量|
 :----|:----|:----|:----
 ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
-exchange|object|交易对象数组|
-exchange_id|string|交易ID|
-price|string|卖出价格|
-status|string|交易状态  0发起，1成功，2撤销|
-property|object|交易对象中的房产对象|
+propertyExchange|object|房产对象与交易对象的数组|
+property|object|数组中的房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
+map_template|string|所属地图模板|
 property_template_id|string|房产模板ID|
 property_template|string|房产模板|
 owner|string|拥有者|
@@ -78,6 +80,10 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+exchange|object|数组中的交易对象|
+exchange_id|string|交易ID|
+price|string|卖出价格|
+status|string|交易状态  0发起，1成功，2撤销|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -86,29 +92,33 @@ total_count|string|总量|
 	{
 	    "ret_code": "01",
 	    "ret_msg": "查询成功",
-	    "exchange": [
+	    "propertyExchange": [
 	        {
-	            "exchange_id": "1",
-	            "price": 21312332.09,
-	            "status": 0,
 	            "property": {
 	                "country_id": "1",
 	                "map_id": "1",
-	                "property_template_id": "51000",
-	                "property_template": "51",
-	                "owner": "kael",
-	                "property_name": "the Statue of Liberty ",
-	                "property_id": "1",
-	                "property_type": 1,
-	                "property_status": 0,
-	                "income_remark": "收益说明123",
-	                "income": 1010010,
-	                "image_url": "wwww"
+	                "property_template_id": "11000",
+	                "property_template": "11",
+	                "owner": "simon",
+	                "property_name": "NYK 1 house",
+	                "property_id": "2",
+	                "property_type": 2,
+	                "property_status": 1,
+	                "income_remark": "收益说明",
+	                "income": 1000000,
+	                "image_url": "house/small-house/11005.png",
+	                "map_template": "2101",
+	                "price": "20000.0000"
+	            },
+	            "exchange": {
+	                "exchange_id": "37",
+	                "price": 10000,
+	                "status": 0
 	            }
 	        }
 	    ],
 	    "page": {
-	        "page_index": "0",
+	        "page_index": "1",
 	        "page_size": "10",
 	        "total_count": "1"
 	    }
@@ -120,7 +130,7 @@ total_count|string|总量|
 ### 接口说明
 	
 ### URL
-	/cwv/ges/pbbps.do
+	/cwv/gea/pbbps.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -139,12 +149,42 @@ trade_pwd|string|交易密码|
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.购买成功<br/>02.交易ID错误<br/>03.CWB不足<br/>04.该交易密码错误<br/>05.未设置交易密码<br/>06.该交易被成交或撤销<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.购买成功<br/>02.交易ID错误<br/>03.CWB不足<br/>04.该交易密码错误<br/>05.未设置交易密码<br/>06.该交易被成交或撤销<br/>07.不支持购买本人出售房产<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+property|object|房产对象|
+country_id|string|所属国家|
+map_id|string|所属地图|
+map_template|string|所属地图模板|
+property_template_id|string|房产模板ID|
+property_template|string|房产模板|
+owner|string|拥有者|
+property_name|string|房产名称|
+property_id|string|房产ID|
+property_type|string|房产类型|
+property_status|string|房产状态|
+income_remark|string|收益说明|
+income|string|收益|
+image_url|string|房产图片地址|
 	
 	{
 	    "ret_code": "01",
 	    "ret_msg": "购买成功"
+	    "property": {
+	        "country_id": "1",
+	        "map_id": "1",
+	        "property_template_id": "13009",
+	        "property_template": "13",
+	        "owner": "kael",
+	        "property_name": "NYK 38 apartment",
+	        "property_id": "39",
+	        "property_type": 2,
+	        "property_status": 1,
+	        "income_remark": "收益说明",
+	        "income": 1000000,
+	        "image_url": "house/apartment/13008.png",
+	        "map_template": "2101",
+	        "price": "3000.0000"
+	    }
 	}
 
 -----------
@@ -153,7 +193,7 @@ ret_msg|string|返回消息|
 ### 接口说明
 	
 ### URL
-	/cwv/ges/pbsps.do
+	/cwv/gea/pbsps.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -175,12 +215,46 @@ trade_pwd|string|交易密码|
 :----|:----|:----|:----
 ret_code|string|返回状态码<br/>01.卖出成功<br/>02.房产ID错误<br/>03.房产状态错误<br/>04.房产价格式错误<br/>05.交易密码错误<br/>06.未设置交易密码<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+property|object|房产对象|
+country_id|string|所属国家|
+map_id|string|所属地图|
+map_template|string|所属地图模板|
+property_template_id|string|房产模板ID|
+property_template|string|房产模板|
+owner|string|拥有者|
+property_name|string|房产名称|
+property_id|string|房产ID|
+property_type|string|房产类型|
+property_status|string|房产状态|
+income_remark|string|收益说明|
+income|string|收益|
+image_url|string|房产图片地址|
 
 	{
 	    "ret_code": "01",
-	    "ret_msg": "卖出成功"
+	    "ret_msg": "卖出成功",
+	    "property": {
+	        "country_id": "1",
+	        "map_id": "1",
+	        "property_template_id": "11005",
+	        "property_template": "11",
+	        "owner": "kael",
+	        "property_name": "NYK 6 house",
+	        "property_id": "7",
+	        "property_type": 2,
+	        "property_status": 1,
+	        "income_remark": "收益说明",
+	        "income": 1000000,
+	        "image_url": "house/small-house/11017.png",
+	        "map_template": "2101",
+	        "price": "12.0000"
+	    },
+	    "exchange": {
+	        "exchange_id": "52",
+	        "price": 4000,
+	        "status": 0
+	    }
 	}
-
 -----------
 
 ## 交易手续费
@@ -204,97 +278,7 @@ charge_rate|string|手续费比例|
 	    "ret_msg": "成功",
 	    "charge_rate": 0.1
 	}
-
------------
-
-## 个人房产交易
-### 接口说明
 	
-### URL
-	/cwv/gea/pbupe.do
-### HTTP请求方式
-	POST
-### 输入参数
-参数|类型|说明|示例
-:----|:----|:----|:----
-price_type|string|价格排序 0降序 1升序|[0]
-income_type|string|收益排序 0降序 1升序|
-country_id|string|国家|
-city_id|string|城市|
-property_type|string|房产类型 <br/>1：价值房产<br/>2：功能型房产<br/>3：标志性房产|
-property_name|string|房产名称|
-page_index|string|页码|
-page_size|string|数量|
-    
-	{
-		"price_type":"1",
-		"income_type":"0",
-		"country_id":"1",
-		"city_id":"1",
-		"property_type":"1",
-		"property_name":"Statue",
-		"page_index":"1",
-		"page_size":"10"
-	}
-	
-#### 输出参数
-参数|类型|说明|示例
-:----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
-ret_msg|string|返回消息|
-exchange|object|交易对象数组|
-exchange_id|string|交易ID|
-price|string|卖出价格|
-status|string|交易状态  0发起，1成功，2撤销|
-property|object|交易对象中的房产对象|
-country_id|string|所属国家|
-map_id|string|所属地图|
-property_template_id|string|房产模板ID|
-property_template|string|房产模板|
-owner|string|拥有者|
-property_name|string|房产名称|
-property_id|string|房产ID|
-property_type|string|房产类型|
-property_status|string|房产状态|
-income_remark|string|收益说明|
-income|string|收益|
-image_url|string|房产图片地址|
-page|object|分页对象|
-page_index|string|页码|
-page_size|string|数量|
-total_count|string|总量|
-
-	{
-	    "ret_code": "01",
-	    "ret_msg": "查询成功",
-	    "exchange": [
-	        {
-	            "exchange_id": "1",
-	            "price": 21312332.09,
-	            "status": 0,
-	            "property": {
-	                "country_id": "1",
-	                "map_id": "1",
-	                "property_template_id": "51000",
-	                "property_template": "51",
-	                "owner": "kael",
-	                "property_name": "the Statue of Liberty ",
-	                "property_id": "1",
-	                "property_type": 1,
-	                "property_status": 0,
-	                "income_remark": "收益说明123",
-	                "income": 1010010,
-	                "image_url": "wwww"
-	            }
-	        }
-	    ],
-	    "page": {
-	        "page_index": "0",
-	        "page_size": "10",
-	        "total_count": "1"
-	    }
-	}
-
 -----------
 
 ## 房产竞拍列表
@@ -310,11 +294,13 @@ total_count|string|总量|
 status|string|竞拍状态 0发起竞拍 1竞拍中 2竞拍完成|[0]
 page_index|string|页码|
 page_size|string|数量|
+user_only|string|用户标识 0 所有竞拍 1个人竞拍中|
 
 	{
 		"status":"0",
 		"page_index":"0",
 		"page_size":"0",
+		"user_only":"0"
 	}
 ### 输出参数
 参数|类型|说明|示例
@@ -323,11 +309,14 @@ ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 bid|object|竞拍对象数组|
 bid_id|string|竞拍ID|
+auction_start|string|开始时间|
+auction_end|string|结束时间|
 price|string|竞拍最终价格|
 status|string|竞拍状态  0发起，1竞拍中 ，2完成|
 property|object|竞拍对象中的房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
+map_template|string|所属地图模板|
 property_template_id|string|房产模板ID|
 property_template|string|房产模板|
 owner|string|拥有者|
@@ -345,24 +334,26 @@ total_count|string|总量|
 	{
 	    "ret_code": "01",
 	    "ret_msg": "查询成功",
-	    "bid": [
+	    "propertyBid": [
 	        {
-	            "bid_id": "2",
-	            "auction_start": "2018-05-25 10:00:00",
-	            "price": "null",
-	            "status": "0",
 	            "property": {
 	                "country_id": "1",
 	                "map_id": "1",
-	                "property_template_id": "14007",
-	                "property_template": "14",
-	                "owner": "kael",
-	                "property_name": "NYK 50 apartment",
-	                "property_id": "51",
+	                "property_template_id": "11000",
+	                "property_template": "11",
+	                "owner": "simon",
+	                "property_name": "NYK 1 house",
+	                "property_id": "2",
 	                "property_type": 2,
-	                "property_status": 1,
-	                "income_remark": "收益说明123",
-	                "image_url": "wwww"
+	                "property_status": 2,
+	                "income_remark": "收益说明",
+	                "income": 1000000,
+	                "image_url": "house/small-house/11005.png",
+	                "map_template": "2101",
+	                "price": "20000.0000"
+	            },
+	            "bid": {
+	                "user_price": "4000.0000"
 	            }
 	        }
 	    ],
@@ -397,10 +388,21 @@ price|string|价格|
 :----|:----|:----|:----
 ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+exchange|object|竞拍信息|
+price|string|竞拍最高价|
+status|string|返回消息|
+user_price|string|本人已出价|
+max_price_user|string|最高竞价者|
 
 	{
 	    "ret_code": "01",
-	    "ret_msg": "竞价成功"
+	    "ret_msg": "竞价成功",
+	    "exchange": {
+	        "price": 13000,
+	        "status": 0,
+	        "user_price": "13000",
+	        "max_price_user": "simon"
+	    }
 	}
 -----------
 
@@ -428,6 +430,7 @@ ret_msg|string|返回消息|
 property|object|竞拍对象中的房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
+map_template|string|所属地图模板|
 property_template_id|string|房产模板ID|
 property_template|string|房产模板|
 owner|string|拥有者|
@@ -493,6 +496,7 @@ ret_msg|string|返回消息|
 property|object|竞拍对象中的房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
+map_template|string|所属地图模板|
 property_template_id|string|房产模板ID|
 property_template|string|房产模板|
 owner|string|拥有者|
@@ -713,7 +717,7 @@ draw_count|string|抽奖次数|
 ### 接口说明
 	
 ### URL
-	/cwv/gua/pbwtu.do
+	/cwv/gua/pbatu.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -746,7 +750,7 @@ amount|string|总额|
 ### 接口说明
 	
 ### URL
-	/cwv/gda/pbdps.do
+	/cwv/gda/pbpds.do
 ### HTTP请求方式
 	POST
 ### 输入参数
@@ -759,6 +763,7 @@ ret_msg|string|返回消息|
 property|object|房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
+map_template|string|所属地图模板|
 property_template_id|string|房产模板ID|
 property_template|string|房产模板|
 owner|string|拥有者|
@@ -775,15 +780,18 @@ image_url|string|房产图片地址|
 	    "property": {
 	        "country_id": "1",
 	        "map_id": "1",
-	        "property_template_id": "51000",
-	        "property_template": "51",
-	        "owner": "18811879",
-	        "property_name": "the Statue of Liberty ",
-	        "property_id": "1",
-	        "property_type": 1,
-	        "price": 0,
+	        "property_template_id": "14013",
+	        "property_template": "14",
+	        "owner": "simon",
+	        "property_name": "NYK 56 apartment",
+	        "property_id": "57",
+	        "property_type": 2,
+	        "property_status": 0,
 	        "income_remark": "收益说明",
-	        "image_url": "asdadad"
+	        "income": 1000000,
+	        "image_url": "house/big-floor/14003.png",
+	        "map_template": "2101",
+	        "price": "1000.0000"
 	    }
 	}
 	
@@ -917,4 +925,72 @@ ret_msg|string|返回消息|
 	{
 	    "ret_code": "01",
 	    "ret_msg": "领取成功"
+	}
+	
+## 撤销房产交易
+### 接口说明
+	
+### URL
+	/cwv/gea/pbcpe.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+exchange_id|string|交易ID|
+
+	{
+		"exchange_id":"1"
+	}
+	
+### 输出参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.撤销成功<br/>02.交易ID错误<br/>03.交易状态不支持撤销<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "撤销成功"
+	}
+	
+	
+## 发起竞拍
+### 接口说明
+	
+### URL
+	/cwv/gba/pbcpb.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+property_id|string|房产ID|
+bid_start|string|竞拍起价|
+auction_start|string|竞拍开始时间|
+auction_end|string|竞拍结束时间|
+increase_ladder|string|竞价阶梯|
+announce_time|string|公示持续时间 单位 分钟|[60]
+
+	{
+		"property_id":"45",
+		"price":"19000.0",
+		"bid_start":"11000.0",
+		"increase_ladder":"1000",
+		"auction_start":"2018-05-22 10:00:00",
+		"auction_end":"2018-05-25 10:00:00",
+		"announce_time":"60"
+	}
+	
+### 输出参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.创建成功<br/>02.房产ID错误<br/>03.房产暂不支持竞拍<br/>04.用户暂无权限<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "创建成功"
 	}

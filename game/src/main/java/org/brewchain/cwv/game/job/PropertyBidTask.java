@@ -66,11 +66,11 @@ public class PropertyBidTask implements Runnable {
 		CWVMarketBidExample bidExample = new CWVMarketBidExample();
 		bidExample.createCriteria().andStatusLessThanOrEqualTo((byte)1)
 		.andAuctionEndLessThanOrEqualTo(new Date());
-		int count = dao.bidDao.countByExample(bidExample);
-		if(count>0) {
+		List<Object> list = dao.bidDao.selectByExample(bidExample);
+		
+		if(list != null && list.size()>0) {
 			CWVMarketBid record = new CWVMarketBid();
 			record.setStatus(Byte.parseByte(PropertyBidStatusEnum.NOTICE.getValue()));
-			List<Object> list = dao.bidDao.selectByExample(bidExample);
 			for(Object o : list) {
 				final CWVMarketBid bid = (CWVMarketBid) o;
 				CWVGameProperty gameProperty = new CWVGameProperty();
