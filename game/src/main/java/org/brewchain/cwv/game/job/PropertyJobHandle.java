@@ -82,7 +82,7 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 //								 延迟0， 间隔1， 单位：SECONDS
 							log.info("job service start....");
 							service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.SECONDS);
-							
+							//任务开启时间 设置
 							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 							
 						}

@@ -86,7 +86,7 @@ public class PropertyIncomeTask implements Runnable {
 		setting.setValue(DateUtil.getDayTime(a.getTime()));
 		propertyHelper.getDao().settingDao.updateByPrimaryKeySelective(setting);
 		log.info("PropertyIncomeTask execute next time : "+setting.getValue());
-		
+	
 		log.info("PropertyIncomeTask ended ....");
 	}
 	
@@ -98,7 +98,7 @@ public class PropertyIncomeTask implements Runnable {
 		//查询登陆有效用户ID
 		Set<String> userIdSet = SessionFilter.userMap.keySet();
 		if(userIdSet.isEmpty())
-			return;
+			return ;
 		List<Integer> listUser = new ArrayList<>();
 		for(String userId : userIdSet) {
 			CheckResult checkResult = TokenMgr.validateJWT(SessionFilter.userMap.get(userId));
@@ -125,10 +125,10 @@ public class PropertyIncomeTask implements Runnable {
 		double incomeDivided = totalIncome * RATE;
 		//单个普通房产收益
 		double singleOrdinary = incomeDivided/((listTypical.size() * TYPICAL_TO_DIVIDED/ORDINARY_TO_DIVIDED) + listOrdinary.size());
-		BigDecimal singleOrdinaryAmount = new BigDecimal(singleOrdinary).setScale(0, RoundingMode.UNNECESSARY);
+		BigDecimal singleOrdinaryAmount = new BigDecimal(singleOrdinary).setScale(0, RoundingMode.FLOOR);
 		//单个功能房产收益
 		double singleTypical = singleOrdinary * TYPICAL_TO_DIVIDED / ORDINARY_TO_DIVIDED;
-		BigDecimal singleTypicalAmount = new BigDecimal(singleTypical).setScale(0, RoundingMode.UNNECESSARY);
+		BigDecimal singleTypicalAmount = new BigDecimal(singleTypical).setScale(0, RoundingMode.FLOOR);
 		
 		//计算实际总收益
 		double remain = singleOrdinaryAmount.longValue() * listOrdinary.size()
@@ -171,8 +171,6 @@ public class PropertyIncomeTask implements Runnable {
 				jobIncomeSet.remove(o2.getIncomeId());
 			}
 		}
-	
-		
 		
 	}
 	/**

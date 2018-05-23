@@ -1272,14 +1272,15 @@ public class PropertyHelper implements ActorService {
 		CWVGameMap map = new CWVGameMap();
 		map.setMapId(gameProperty.getGameMapId());
 		map = dao.gameMapDao.selectByPrimaryKey(map);
+		if(map!= null){
+			CWVGameCity city = new CWVGameCity();
+			city.setCityId(map.getGameCityId());
+			city = dao.gameCityDao.selectByPrimaryKey(city);
+			property.setCountryId(city.getGameCountryId() + "");
+			property.setMapId(map.getMapId() + "");
+			property.setMapTemplate(map.getTemplate()+"");
+		}
 		
-		CWVGameCity city = new CWVGameCity();
-		city.setCityId(map.getGameCityId());
-		city = dao.gameCityDao.selectByPrimaryKey(city);
-		
-		property.setCountryId(city.getGameCountryId() + "");
-		property.setMapId(map.getMapId() + "");
-		property.setMapTemplate(map.getTemplate()+"");
 		property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
 		property.setPropertyTemplate(gameProperty.getPropertyTemplate());
 		if(gameProperty.getUserId()!=null){

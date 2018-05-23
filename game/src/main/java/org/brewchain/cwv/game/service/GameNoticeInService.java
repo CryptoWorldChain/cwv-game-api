@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.CommonHelper;
+import org.brewchain.cwv.game.helper.GameNoticeHelper;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSCommand;
 import org.brewchain.cwv.service.game.notice.GameNotice.GNPSModule;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeIn;
@@ -43,11 +44,12 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 	@ActorRequire(name="Daos")
 	Daos dao;
 	
-	@ActorRequire(name = "http", scope = "global")
-	IPacketSender sender;
-	
 	@ActorRequire(name = "Common_Helper")
 	CommonHelper commonHelper;
+	
+	@ActorRequire(name = "Game_Notice_Helper")
+	GameNoticeHelper gameNoticeHelper;
+	
 	
 	@Override
 	public String[] getCmds() {
@@ -59,27 +61,13 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		return GNPSModule.GNA.name();
 	}
 	
-	enum NoticeTopicEnum{
-		NOTICE("notice"),
-		TRADE("trade"),
-		AUCTION("auction");
-		private String value;
-		NoticeTopicEnum(String value){
-			this.value = value;
-		}
-		public String getValue() {
-			return value;
-		}
-		
-	}
-	
 	@Override
 	public void onPBPacket(final FramePacket pack, final PBGameNoticeIn pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetGameNoticeIn.Builder ret = PRetGameNoticeIn.newBuilder();
 		try{
-			noticeIn(pb, ret);
+			gameNoticeHelper.noticeIn(pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
@@ -88,85 +76,6 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 	}
-	/**
-	 * 挡板
-	 */
-	private void noticeIn(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectNode jsonMap = mapper.createObjectNode();
-		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
-		jsonMap.put("type", pb.getNoticeType());
-		
-		
-		ObjectNode timeMap = mapper.createObjectNode();
-		timeMap.put("starttime", pb.getStartTime());
-		timeMap.put("endtime", pb.getEndTime());
-		timeMap.put("interval", pb.getCyclePeriod()+"");
-		
-		ObjectNode dataMap = mapper.createObjectNode();
-		dataMap.put("time", timeMap);
-		dataMap.put("times", pb.getCount()+"");
-		dataMap.put("content", pb.getNoticeContent()+"");
-		
-
-		jsonMap.put("data", dataMap);
-		
-		String jsonStr = JsonSerializer.formatToString(jsonMap);
-		
-		String noticeInUrl = commonHelper.getSysSettingValue("ipfs_msg_in");
-		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", noticeInUrl);
-		val yearMeasureRet = sender.send(pp,30000);
-		Map<String,String> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()), Map.class);
-		if(jsonRet.get("errcode").equals("000")){
-			ret.setRetCode("01");
-			ret.setRetMsg("SUCCESS");
-		}else{
-			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
-			ret.setRetMsg("FAILD");
-		}
-		
-		
-		
-//		String res = "";
-//		PrintWriter out = null;
-//		BufferedReader in = null;
-//		try {
-//			URL realUrl = new URL(NOTICE_IN_URL);
-//			HttpURLConnection conn = (HttpURLConnection) realUrl.openConnection();
-//			conn.setRequestProperty("accept", "*/*");
-//			conn.setRequestProperty("connection", "Keep-Alive");
-//			conn.setDoOutput(true);
-//			conn.setDoInput(true);
-//			out = new PrintWriter(conn.getOutputStream());
-//			StringBuffer sb = new StringBuffer();
-//			int i = 0;
-//			out.print(jsonStr);
-//			out.flush();
-//			int httpStatus = conn.getResponseCode();
-//			if (httpStatus == 200) {
-//				in = new BufferedReader(new InputStreamReader(conn.getInputStream(),"UTF-8"));
-//				String line;
-//				while ((line = in.readLine()) != null) {
-//					res += line;
-//				}
-//			} else {
-//				ret = null;
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			ret = null;
-//		} finally {
-//			try {
-//				if (out != null) {
-//					out.close();
-//				}
-//				if (in != null) {
-//					in.close();
-//				}
-//			} catch (IOException ex) {
-//				ex.printStackTrace();
-//			}
-//		}
-	}
+	
 	
 }

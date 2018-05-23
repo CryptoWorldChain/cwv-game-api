@@ -865,14 +865,14 @@ appearance_type|string|外观||
 	公告栏展示公告消息。
 
 ### URL
-	/cwv/gns/pbgni.do
+	/cwv/gna/pbgni.do
 ### HTTP请求方式
 	POST
 ### 输入参数
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-notice_type|string|官方公告 公告类型  自定义数字|
+notice_type|string|公告类型  1官方公告 2用户公告|
 notice_content|string|公告内容|
 start_time|string|开始时间|
 end_time|string|结束时间|
@@ -907,18 +907,19 @@ ret_msg|String|返回消息|
 	公告栏展示公告消息。
 
 ### URL
-	/cwv/gns/pbgno.do
+	/cwv/gna/pbgno.do
 ### HTTP请求方式
 	POST
 ### 输入参数
 
 参数|类型|说明|示例
 :----|:----|:----|:----
+notice_topic|string|公告主题 ："notice" 公告 |
+notice_type|string|公告类型 0查询所有类型 1官方公告 2用户公告|
 page_index|string|页索引|
 page_size|string|页大小|
 page_num|string|页数|
-user_id|string|用户id（暂时可不传）|
-notice_type|string|公告类型（目前只支持announcement类型）|announcement
+
 
 	{
 		"notice_topic":"notice",
