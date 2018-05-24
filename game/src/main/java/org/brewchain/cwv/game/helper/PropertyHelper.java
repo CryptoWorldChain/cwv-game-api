@@ -2,6 +2,7 @@ package org.brewchain.cwv.game.helper;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -41,7 +42,10 @@ import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
+import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
+import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTradeTypeEnum;
+import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTypeEnum;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyDetail;
@@ -129,6 +133,9 @@ public class PropertyHelper implements ActorService {
 
 	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
+	
+	@ActorRequire(name="Game_Notice_Helper")
+	GameNoticeHelper gameNoticeHelper;
 	
 	private HashSet statusForSale = new HashSet<String>() {
 		{
@@ -628,6 +635,9 @@ public class PropertyHelper implements ActorService {
 				// 账户交易记录
 				dao.userTransactionRecordDao.insert(recordBuy);
 				dao.userTransactionRecordDao.insert(recordSell);
+				
+				
+				
 				return null;
 			}
 
@@ -645,8 +655,29 @@ public class PropertyHelper implements ActorService {
 		// 设置返回数据
 		ret.setRetCode(ReturnCodeMsgEnum.BPS_SUCCESS.getRetCode());
 		ret.setRetMsg(ReturnCodeMsgEnum.BPS_SUCCESS.getRetMsg());
-
+		
+		//生成公告
+		String period =  commonHelper.getSysSettingValue(GameNoticeHelper.NOTICE_TRADE_PERIOD);
+		String count =  commonHelper.getSysSettingValue(GameNoticeHelper.NOTICE_TRADE_COUNT);
+		String noticeContent = null;
+		if(propertyUpdated.getPropertyType().equals(PropertyTypeEnum.TYPICAL.getValue())) {
+			noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.TYPICAL_GET.getValue(),authUser.getNickName(),propertyUpdated.getPropertyName(), "购买房产" );
+		}else if(propertyUpdated.getPropertyType().equals(PropertyTypeEnum.FUNCTIONAL.getValue())) {
+			noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.FUNCTIONAL_GET.getValue(),authUser.getNickName(),propertyUpdated.getPropertyName(), "购买房产" );
+		}
+		
+		if(noticeContent != null ) {
+			gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), null, null, period, count, noticeContent);
+		}
+		if(noticeContent != null ) {
+			Calendar c = Calendar.getInstance();
+			String startTime = DateUtil.getDayTime(c.getTime());
+			c.add(Calendar.MINUTE, 2);
+			gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
+		}
+	
 	}
+	
 
 	/**
 	 * 卖出房产
@@ -779,6 +810,15 @@ public class PropertyHelper implements ActorService {
 		// 设置返回
 		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
 
+		
+		//创建公告
+		String noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.SELL.getValue(),user.getNickName(),propertyUpdated.getPropertyName(), null );
+	
+		Calendar c = Calendar.getInstance();
+		String startTime = DateUtil.getDayTime(c.getTime());
+		c.add(Calendar.MINUTE, 2);
+		gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
+	
 	}
 
 
@@ -1668,7 +1708,18 @@ public class PropertyHelper implements ActorService {
 
 		// 设置返回
 		ret.setRetCode(ReturnCodeMsgEnum.CPB_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.CPB_SUCCESS.getRetMsg());
+		
+		
 
+		
+		//创建公告
+		String noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.BID.getValue(),user.getNickName(),property.getPropertyName(), null );
+	
+		Calendar c = Calendar.getInstance();
+		String startTime = DateUtil.getDayTime(c.getTime());
+		c.add(Calendar.MINUTE, 2);
+		gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
+	
 	}
 
 	public void propertyIncome(FramePacket pack, PSPropertyIncome pb, PRetPropertyIncome.Builder ret) {

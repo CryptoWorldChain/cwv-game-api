@@ -257,8 +257,12 @@ public class WalletHelper implements ActorService {
 		topup.setStatus((byte) 1);
 		topup.setCreateTime(new Date());
 		dao.topupDao.insert(topup);
+		int countHistory = wallet.getBalance().intValue()/1000;
+		
 		wallet.setBalance(wallet.getBalance().add(new BigDecimal(pb.getAmount())));
-		wallet.setDrawCount(wallet.getDrawCount()+Integer.parseInt(pb.getAmount())/1000);
+		int countNew = wallet.getBalance().intValue()/1000;
+		
+		wallet.setDrawCount(wallet.getDrawCount()+(countNew-countHistory));
 		wallet.setTopupBalance(wallet.getTopupBalance().add(new BigDecimal(pb.getAmount())));
 		dao.walletDao.updateByPrimaryKeySelective(wallet);
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
@@ -334,6 +338,25 @@ public class WalletHelper implements ActorService {
 		ret.setPage(page.getPageOut());
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+		
+	}
+
+
+
+
+	public void accountTopupConfirm(FramePacket pack, PSAccountTopup pb,
+			PRetCommon.Builder ret) {
+		//校验入参
+		if(StringUtils.isEmpty(pb.getTopupId())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+			.setRetMsg("充值ID不能为空");
+			return ; 
+		}
+		
+		//校验用户
+		
+		CWVUserWalletTopup topup = new CWVUserWalletTopup();
+		topup.setTopupId(Integer.parseInt(pb.getTopupId()));
 		
 	}
 	

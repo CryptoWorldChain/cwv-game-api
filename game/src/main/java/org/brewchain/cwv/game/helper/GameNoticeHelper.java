@@ -68,35 +68,45 @@ public class GameNoticeHelper implements ActorService {
 		
 	}
 	
+	enum NoticeTypeEnum{
+		ALL("0"),//无此类型，用于查询所有
+		OFFICE("1"),
+		TRADE("2");
+		private String value;
+		NoticeTypeEnum(String value){
+			this.value = value;
+		}
+		public String getValue() {
+			return value;
+		}
+		
+	}
+	
+	enum NoticeTradeTypeEnum{
+		TYPICAL_GET("0"),//无此类型，用于查询所有
+		SELL("1"),
+		FUNCTIONAL_GET("2"),
+		BID("3");
+		private String value;
+		NoticeTradeTypeEnum(String value){
+			this.value = value;
+		}
+		public String getValue() {
+			return value;
+		}
+		
+	}
+	
+	public static String NOTICE_TRADE_PERIOD = "notice_trade_period";
+	
+	public static String NOTICE_TRADE_COUNT = "notice_trade_count";
+	
 	/**
 	 * 新增官方公告
 	 */
 	public void noticeIn(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectNode jsonMap = mapper.createObjectNode();
-		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
-		jsonMap.put("type", pb.getNoticeType());
 		
-		
-		ObjectNode timeMap = mapper.createObjectNode();
-		timeMap.put("starttime", pb.getStartTime());
-		timeMap.put("endtime", pb.getEndTime());
-		timeMap.put("interval", pb.getCyclePeriod()+"");
-		
-		ObjectNode dataMap = mapper.createObjectNode();
-		dataMap.put("time", timeMap);
-		dataMap.put("times", pb.getCount()+"");
-		dataMap.put("content", pb.getNoticeContent()+"");
-		
-
-		jsonMap.put("data", dataMap);
-		
-		String jsonStr = JsonSerializer.formatToString(jsonMap);
-		
-		String noticeInUrl = commonHelper.getSysSettingValue("ipfs_msg_in");
-		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", noticeInUrl);
-		val yearMeasureRet = sender.send(pp,30000);
-		Map<String,String> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()), Map.class);
+		Map<String,String> jsonRet = noticeCreate(pb.getNoticeType(), pb.getStartTime(), pb.getEndTime(), pb.getCyclePeriod()+"", pb.getCount()+"", pb.getNoticeContent());
 		if(jsonRet.get("errcode").equals("000")){
 			ret.setRetCode("01");
 			ret.setRetMsg("SUCCESS");
@@ -106,6 +116,35 @@ public class GameNoticeHelper implements ActorService {
 		}
 		
 	}
+	
+	public Map<String,String> noticeCreate(String noticeType,String startTime,String endTime,String cyclePeriod,String count,String noticeContent) {
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode jsonMap = mapper.createObjectNode();
+		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
+		jsonMap.put("type", noticeType);
+		
+		
+		ObjectNode timeMap = mapper.createObjectNode();
+		timeMap.put("starttime", startTime);
+		timeMap.put("endtime", endTime);
+		timeMap.put("interval", cyclePeriod+"");
+		
+		ObjectNode dataMap = mapper.createObjectNode();
+		dataMap.put("time", timeMap);
+		dataMap.put("times", count);
+		dataMap.put("content", noticeContent);
+		
+
+		jsonMap.put("data", dataMap);
+		
+		String jsonStr = JsonSerializer.formatToString(jsonMap);
+		
+		String noticeInUrl = commonHelper.getSysSettingValue("ipfs_msg_in");
+		FramePacket pp = PacketHelper.buildUrlFromJson(jsonStr, "POST", noticeInUrl);
+		val yearMeasureRet = sender.send(pp,30000);
+		return JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()), Map.class);
+	}
+			
 
 	/**
 	 * 查询公告
@@ -176,6 +215,21 @@ public class GameNoticeHelper implements ActorService {
 			log.warn("GameNoticeOutService baffle error....",e);
 		}
 		
+	}
+
+	public String noticeTradeTpl(String type, String nickName, String propertyName, String operate) {
+
+		if(NoticeTradeTypeEnum.TYPICAL_GET.getValue().equals(type)) {
+			return "恭喜 “"+nickName+"” 通过 “"+operate+"” 获得标志性房产 “" +propertyName +"” ";
+		}else if(NoticeTradeTypeEnum.SELL.getValue().equals(type)){
+			return " “"+nickName+"” 开始出售 “" +propertyName +"” ";
+		}else if(NoticeTradeTypeEnum.FUNCTIONAL_GET.getValue().equals(type)){
+			return "恭喜 “"+nickName+"” 获得功能性房产 “" +propertyName +"” ";
+		}else if(NoticeTradeTypeEnum.BID.getValue().equals(type)){
+			return " “"+propertyName+"” 已开始公开竞拍，大家可以前往交易所查看 ";
+		}
+		
+		return null;
 	}
 
 
