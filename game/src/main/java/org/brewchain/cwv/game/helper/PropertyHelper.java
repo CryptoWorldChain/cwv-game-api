@@ -1792,6 +1792,7 @@ public class PropertyHelper implements ActorService {
 			CWVUserPropertyIncome propertyIncome = (CWVUserPropertyIncome) list.get(0);
 			income.setAmount(propertyIncome.getAmount().toString());
 			income.setIncomeId(propertyIncome.getIncomeId() + "");
+			income.setStatus(propertyIncome.getStatus()+"");
 		}
 		
 		income.setCoinType(CoinEnum.CWB.getValue() + "");
@@ -1838,14 +1839,14 @@ public class PropertyHelper implements ActorService {
 			.setRetMsg(ReturnCodeMsgEnum.PIC_ERROR_ID.getRetMsg());
 			return ; 
 		}
-		if(propertyIncome2.getStatus() !=0) {
+		if(propertyIncome2.getStatus() !=0) {//0 未领取
 			ret.setRetCode(ReturnCodeMsgEnum.PIC_ERROR_STATUS.getRetCode())
 			.setRetMsg(ReturnCodeMsgEnum.PIC_ERROR_STATUS.getRetMsg());
 			return ; 
 		}
 		final CWVUserWallet wallet = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
 		//更新信息
-		propertyIncome2.setStatus((byte)1);
+		propertyIncome2.setStatus((byte)1);//已领取
 		
 		// 调取合约领取收益
 		PRetCommon.Builder retCommon = incomeInvoker.claimIncome(wallet.getAccount(), propertyIncome2.getType(), propertyIncome2.getAmount());

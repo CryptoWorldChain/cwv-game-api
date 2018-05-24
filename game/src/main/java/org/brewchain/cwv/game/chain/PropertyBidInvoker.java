@@ -26,7 +26,7 @@ import onight.tfw.ntrans.api.ActorService;
 @Data
 @Instantiate(name="Property_Bid_Invoker")
 public class PropertyBidInvoker implements ActorService {
-	
+	private static String CONTRACT_BID_URL = "contract_bid_url";
 	/**
 	 * 创建竞拍
 	 * @param buyAddress

@@ -22,6 +22,8 @@ import onight.tfw.ntrans.api.ActorService;
 @Instantiate(name="Property_Draw_Invoker")
 public class PropertyDrawInvoker implements ActorService {
 	
+	private static String CONTRACT_DRAW_URL = "contract_draw_url";
+	
 	/**
 	 * 抽奖房产
 	 * @param buyAddress

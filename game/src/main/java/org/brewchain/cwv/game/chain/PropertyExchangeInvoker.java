@@ -23,6 +23,7 @@ import onight.tfw.ntrans.api.ActorService;
 @Data
 @Instantiate(name="Property_Exchange_Invoker")
 public class PropertyExchangeInvoker implements ActorService {
+	private static String CONTRACT_DRAW_URL = "contract_draw_url";
 	
 	/**
 	 * 购买房产

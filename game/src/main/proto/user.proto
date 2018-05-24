@@ -97,6 +97,7 @@ message PRetPropertyIncome	 //PIS
 		string income_id = 1; //收益ID
 		string coin_type = 2; //币种类型
 		string amount = 3; //收益金额
+		string status = 4; //状态
 	}
 	PropertyIncome income = 6; //未领取收益
 	message PropertyInfo 
