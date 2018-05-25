@@ -30,7 +30,7 @@ public class PropertyIncomeClaimService extends SessionModules<PSPropertyIncomeC
 	@ActorRequire(name="Daos")
 	Daos dao;
 		
-	@ActorRequire
+	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;
 	
 	@Override

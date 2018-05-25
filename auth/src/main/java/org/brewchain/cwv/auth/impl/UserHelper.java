@@ -137,8 +137,11 @@ public class UserHelper implements ActorService {
 			throw new IllegalArgumentException("验证码不能为空");
 		}
 
-		if (StringUtils.isEmpty(pb.getPhoneCode())) {
+		if (StringUtils.isEmpty(pb.getPhoneVerifyCode())) {
 			throw new IllegalArgumentException("短信验证码不能为空");
+		}
+		if (StringUtils.isEmpty(pb.getPhoneCode())) {
+			throw new IllegalArgumentException("手机代码不能为空");
 		}
 		// 1.2 短信验证码 前端调取 common by leo 验证码校验接口
 

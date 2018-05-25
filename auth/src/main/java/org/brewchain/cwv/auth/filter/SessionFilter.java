@@ -59,6 +59,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			add("/sms/pbmsg.do");
 			add("/sms/pbver.do");
 			add("/sms/pbmsv.do");
+			add("/sms/pbatu.do");
 			add("/nsd/pbcol.do");
 			
 		}
