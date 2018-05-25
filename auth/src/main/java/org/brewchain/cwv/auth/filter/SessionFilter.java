@@ -47,15 +47,13 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			add("/usr/pbrsp.do");//重置密码
 			add("/tkn/pbrts.do");//刷新token
 			add("/tkn/pbats.do");//校验token
-			add("/usr/pbsmc.do");
+			add("/usr/pbsmc.do");//发送短信
+			add("/usr/pbdis.do");//校验重复
 			
 			//murphy
 			add("/gga/pbgcs.do");
 			add("/gga/pbgcc.do");
 			add("/gga/pbgcm.do");
-			add("/gga/pbgmp.do");
-			add("/gna/pbgni.do");
-			add("/gna/pbgno.do");
 			
 			//leo
 			add("/sms/pbmsg.do");

@@ -864,7 +864,7 @@ content|string|内容|
 ### 输入参数
 参数|类型|说明|示例
 :----|:----|:----|:----
-type|string|房产类型|
+type|string|收益类型 1分红收益 2挖矿收益 3税收收益|
 
 	{
 		"type":"1"
@@ -881,6 +881,7 @@ income|object|收益对象|
 income_id|string|收益ID|
 coin_type|string|币种类型 0 CWB, 1 CWV, 2 ETH|
 amount|string|收益金额|
+status|string|状态 0 未领取  1已领取|
 propertyInfo|object|房产信息对象|
 total_value|string|房产总价值（普通房产才有）|
 	
@@ -893,6 +894,7 @@ total_value|string|房产总价值（普通房产才有）|
 	    "income": {
 	        "income_id": "1",
 	        "coin_type": "0",
+	        "status": "1",
 	        "amount": "10000.0000"
 	    },
 	    "propertyInfo": {
