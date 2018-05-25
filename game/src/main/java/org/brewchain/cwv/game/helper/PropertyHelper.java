@@ -1778,8 +1778,8 @@ public class PropertyHelper implements ActorService {
 				propertyCriteria.andUserIdEqualTo(authUser.getUserId()).andPropertyTypeEqualTo(pb.getType());
 				CWVGameDic dic = (CWVGameDic) o;
 				SubTypeInfo.Builder subType = SubTypeInfo.newBuilder();
-				subType.setPropertySubType(dic.getKey());
-				propertyCriteria.andPropertySubTypeEqualTo(Byte.parseByte(dic.getKey()));
+				subType.setPropertySubType(dic.getDicKey());
+				propertyCriteria.andPropertySubTypeEqualTo(Byte.parseByte(dic.getDicKey()));
 				int countType = dao.gamePropertyDao.countByExample(propertyExample);
 				subType.setCount(countType + "");
 				propertyInfo.addSubTypeInfo(subType);
