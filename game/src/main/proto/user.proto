@@ -169,4 +169,13 @@ message PRetGameShare //GSS
 	string url = 3;//分享链接
 }
 
+message PSRechargeDeposit { //充值
+	string coin = 1;//币种
+}
 
+message PRetStatusMsg //统一输出参数
+{
+	string err_code = 1; //  0失败  1成功 
+	string msg = 2;  //返回信息	
+   
+}

@@ -153,6 +153,9 @@ public class WltHelper implements ActorService {
 			
 			//获取账户nonce
 			RespGetAccount.Builder respGetAccount = getAccountInfo(address, "CWC");
+			//TODO 需要校验账户是否有此721
+			
+			
 			multiTransactionInputImpl.setNonce(respGetAccount.getAccount().getNonce());//交易次数 *
 			multiTransactionInputImpl.setAddress(address);//发起方地址 *
 			multiTransactionInputImpl.setAmount(amount.longValue());//交易金额 *
@@ -188,6 +191,11 @@ public class WltHelper implements ActorService {
 			MultiTransactionBodyImpl.Builder txBody = MultiTransactionBodyImpl.newBuilder();
 			//获取发起发账户nonce
 			RespGetAccount.Builder respGetAccount = getAccountInfo(inputAddress, "CWC");
+			if(respGetAccount.getAccount().getBalance()<amount.longValue()){
+				respCreateTransaction.setRetCode(-1);
+				respCreateTransaction.setRetMsg("账户余额不足");
+				return respCreateTransaction;
+			}
 			//发起方详情
 			MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
 			input.setAmount(amount.longValue());//交易金额 *
