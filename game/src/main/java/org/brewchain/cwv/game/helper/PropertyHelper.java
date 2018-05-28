@@ -51,8 +51,8 @@ import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyDetail;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyNotice;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyNotice.AuctionRank;
-import org.brewchain.cwv.service.game.Bid.PRetPropertyBid.PropertyBid;
 import org.brewchain.cwv.service.game.Bid.PRetPropertyBid;
+import org.brewchain.cwv.service.game.Bid.PRetPropertyBid.PropertyBid;
 import org.brewchain.cwv.service.game.Bid.PRetPropertyBidAuction;
 import org.brewchain.cwv.service.game.Bid.PRetPropertyBidAuction.PropertyBidAuction;
 import org.brewchain.cwv.service.game.Bid.PSAuctionProperty;
@@ -67,7 +67,6 @@ import org.brewchain.cwv.service.game.Draw.PSCommonDraw;
 import org.brewchain.cwv.service.game.Draw.PSPropertyDrawRecord;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.PropertyExchange;
-import org.brewchain.cwv.service.game.Exchange.PRetSellProperty;
 import org.brewchain.cwv.service.game.Exchange.PSBuyProperty;
 import org.brewchain.cwv.service.game.Exchange.PSCommonExchange;
 import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
@@ -155,30 +154,29 @@ public class PropertyHelper implements ActorService {
 
 		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 		String userId = null;
-		if(pb.getUserOnly() == 1){
-			CWVAuthUser user = userHelper.getCurrentUser(pack);
-			userId = user.getUserId()+"";
-		}
 			
-		setExchangeRet(pb, ret, page, userId);
+		setExchangeRet(pb, ret, page, pack);
 		ret.setPage(page.getPageOut());
 		ret.setRetCode(ReturnCodeMsgEnum.PES_SUCCESS.getRetCode());
 		ret.setRetMsg(ReturnCodeMsgEnum.PES_SUCCESS.getRetMsg());
 
 	}
 
-	private void setExchangeRet(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, PageUtil page, String userId) {
+	private void setExchangeRet(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, PageUtil page, FramePacket pack) {
 		// 设置查询条件
 		CWVGamePropertyExample cwvPropertyExample = new CWVGamePropertyExample();
 		CWVGamePropertyExample.Criteria criteria = cwvPropertyExample.createCriteria();
 		cwvPropertyExample.setLimit(page.getLimit());
 		cwvPropertyExample.setOffset(page.getOffset());
 		
-		if(!StringUtils.isEmpty(userId)) {
-			criteria.andUserIdEqualTo(Integer.parseInt(userId));
+		CWVAuthUser user = userHelper.getCurrentUser(pack);
+		if(pb.getUserOnly() == 1){
+			criteria.andUserIdEqualTo(user.getUserId());
 			if(StringUtils.isEmpty(pb.getExchangeStatus())){//查询普通房产
 				criteria.andPropertyStatusEqualTo(PropertyStatusEnum.NOSALE.getValue());
 			}
+		}else{
+			criteria.andUserIdNotEqualTo(user.getUserId());
 		}
 		
 		if(!StringUtils.isEmpty(pb.getExchangeStatus())) {
@@ -254,12 +252,14 @@ public class PropertyHelper implements ActorService {
 		exchangeRet.setPrice(exchange.getSellPrice().doubleValue());
 		exchangeRet.setStatus(exchange.getStatus());
 	}
-	private void setBidRet(PSPropertyBid pb, PRetPropertyBid.Builder ret, PageUtil page, String userId) {
+	private void setBidRet(PSPropertyBid pb, PRetPropertyBid.Builder ret, PageUtil page, FramePacket pack) {
 		// 设置查询条件
 		CWVGamePropertyExample cwvPropertyExample = new CWVGamePropertyExample();
 		CWVGamePropertyExample.Criteria criteria = cwvPropertyExample.createCriteria();
 		cwvPropertyExample.setLimit(page.getLimit());
 		cwvPropertyExample.setOffset(page.getOffset());
+		
+		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		
 		// 竞拍中
 		criteria.andPropertyStatusEqualTo(PropertyStatusEnum.BIDDING.getValue());
@@ -268,63 +268,98 @@ public class PropertyHelper implements ActorService {
 		// if (StringUtils.isNotEmpty(pb.getCityId())) {
 		// criteria.andCountryId(Integer.parseInt(pb.getCityId()));
 		// }
-		CWVAuthUser authUser = null;
-		
-		if(!StringUtils.isEmpty(userId)) {
-			authUser = userHelper.getUserById(Integer.parseInt(userId));
-			
+		CWVAuthUser user = userHelper.getCurrentUser(pack);
+		if(pb.getUserOnly() == 1){
 			// 用户
 			criteria.addCriterion("property_id in (select game_property_id from cwv_market_bid where status='"
-			+PropertyBidStatusEnum.BIDDING.getValue()+"' and bid_id in (select bid_id from cwv_market_auction  where user_id='"+authUser.getUserId()+"' and status='1' ))");
+			+PropertyBidStatusEnum.BIDDING.getValue()+"' and bid_id in (select bid_id from cwv_market_auction  where user_id='"+user.getUserId()+"' and status='1' ))");
 			
 		}else{
+			
 			if(!StringUtils.isEmpty(pb.getStatus())) {
 				criteria.addCriterion("property_id in (select game_property_id from cwv_market_bid where status='"
 						+pb.getStatus()+"' )");
 			}
 		}
-		
+		// 房产类型
+		if (StringUtils.isNotEmpty(pb.getPropertyType())) {
+			criteria.andPropertyTypeEqualTo(pb.getPropertyType());
+		}
+
+		// 房产名称
+		if (StringUtils.isNotEmpty(pb.getPropertyName())) {
+			criteria.andPropertyNameLike("%" + pb.getPropertyName() + "%");
+		}
+
+		// 国家
+		if (StringUtils.isNotEmpty(pb.getCountryId())) {
+			criteria.addCriterion("game_map_id in (select map_id from cwv_game_map where game_city_id in (select city_id from cwv_game_city where game_country_id='"+pb.getCountryId()+"') )");
+		}
+
+		// // 城市
+		// if (StringUtils.isNotEmpty(pb.getCityId())) {
+		// criteria.andCountryId(Integer.parseInt(pb.getCityId()));
+		// }
+
+		// 价格排序
+		if (StringUtils.isNotEmpty(pb.getPriceType())) {
+			if (pb.getPriceType().equals("0"))
+				cwvPropertyExample.setOrderByClause(" last_price desc ");
+			if (pb.getPriceType().equals("1"))
+				cwvPropertyExample.setOrderByClause(" last_price ");
+		}
+
+		// 收益排序
+		if (StringUtils.isNotEmpty(pb.getIncomeType())) {
+			if (pb.getIncomeType().equals("0"))
+				cwvPropertyExample.setOrderByClause(" income desc ");
+			else if (pb.getIncomeType().equals("1"))
+				cwvPropertyExample.setOrderByClause(" income ");
+		}
 		// 收益排序
 		int count = dao.gamePropertyDao.countByExample(cwvPropertyExample);
 		page.setTotalCount(count);
 		List<Object> list = dao.gamePropertyDao.selectByExample(cwvPropertyExample);
+		
 		for (Object o : list) {
-			CWVMarketBid bid = (CWVMarketBid) o;
-			CWVGameProperty gameProperty = getByPropertyId(bid.getGamePropertyId());
-			
+			CWVGameProperty gameProperty = (CWVGameProperty) o;
 			// 设置房产信息
 			Property.Builder property = Property.newBuilder();
+			
 			propertyCopy(property, gameProperty);
-			// 设置交易信息
-			BidInfo.Builder bidRet = BidInfo.newBuilder();
-			bidRet.setBidId(bid.getBidId() + "");
-			bidRet.setAuctionStart(DateUtil.getDayTime(bid.getAuctionStart()));
-			bidRet.setAuctionEnd(DateUtil.getDayTime(bid.getAuctionEnd()));
-			//查询竞价最高者
-			CWVMarketAuction auctionMax = getMaxAuction(bid.getBidId());
-			if(auctionMax !=null) {
-				CWVAuthUser userMax = userHelper.getUserById(auctionMax.getUserId());
-				bidRet.setMaxPriceUser(userMax.getNickName());
-				bidRet.setPrice(auctionMax.getBidPrice()+"");
-			}else{
-				bidRet.setPrice("0");
-			}
-			//查询竞价最高者
-			if(!StringUtils.isEmpty(userId)) {
-				CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(), authUser.getUserId());
-				bidRet.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
-			
-			}
-			
-			bidRet.setPrice(bid.getLastPrice() + "");
-			bidRet.setStatus(bid.getStatus() + "");
 			
 			PropertyBid.Builder  propertyBid = PropertyBid.newBuilder();
 			propertyBid.setProperty(property);
-			propertyBid.setBid(bidRet);
+			// 设置交易信息
+			CWVMarketBidExample bidExample = new CWVMarketBidExample();
+			CWVMarketBidExample.Criteria criteria2 = bidExample.createCriteria();
+					criteria2.andGamePropertyIdEqualTo(gameProperty.getPropertyId())
+			.andStatusNotEqualTo(Byte.parseByte(PropertyBidStatusEnum.NOBID.getValue()));
+			//判断是否查询本用户信息
+			if(pb.getUserOnly() == 1){
+				criteria2.andStatusEqualTo(Byte.parseByte(PropertyBidStatusEnum.BIDDING.getValue()));
+			}
+			List<Object> listBid = dao.bidDao.selectByExample(bidExample);
+			for(Object ob : listBid) {
+				
+				CWVMarketBid bid = (CWVMarketBid) ob;
+				BidInfo.Builder bidRet = BidInfo.newBuilder();
+				bidInfoSet(bidRet, bid);
+				//设置用户竞价
+				if(pb.getUserOnly() == 1){
+					CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(), authUser.getUserId());
+					bidRet.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
+				
+				}
+				propertyBid.setBid(bidRet);
+			}
+			
 			ret.addPropertyBid(propertyBid);
+			
 
 		}
+		
+		
 		
 	}
 
@@ -831,58 +866,8 @@ public class PropertyHelper implements ActorService {
 	public void getPropertyBid(FramePacket pack, PSPropertyBid pb, PRetPropertyBid.Builder ret) {
 		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 
-		String userId = null;
-		if(pb.getUserOnly() == 1){
-			CWVAuthUser user = userHelper.getCurrentUser(pack);
-			userId = user.getUserId()+"";
-		}
-			
-//		setBidRet(pb,ret,page,userId);
-		// 设置查询条件
-		CWVMarketBidExample cwvMarketBidExample = new CWVMarketBidExample();
-		CWVMarketBidExample.Criteria criteria = cwvMarketBidExample.createCriteria();
-		cwvMarketBidExample.setOffset(page.getOffset());
-		cwvMarketBidExample.setLimit(page.getLimit());
-		
-		if (StringUtils.isNotEmpty(pb.getStatus())) {
-			criteria.andStatusEqualTo(Byte.parseByte(pb.getStatus()));
-		}
-		if(!StringUtils.isEmpty(userId)) {
-			
-			// 用户
-			criteria.addCriterion(" bid_id in (select bid_id from cwv_market_auction  where user_id='"+userId+"' and status='1' )");
-			
-		}
-		criteria.andStatusNotEqualTo(Byte.parseByte(PropertyBidStatusEnum.NOBID.getValue()));
-		cwvMarketBidExample.setOrderByClause("auction_start desc");
-		int count = dao.bidDao.countByExample(cwvMarketBidExample);
-		page.setTotalCount(count);
-		List<Object> list = dao.bidDao.selectByExample(cwvMarketBidExample);
 
-		for (Object o : list) {
-			CWVMarketBid bid = (CWVMarketBid) o;
-			CWVGameProperty gameProperty = getByPropertyId(bid.getGamePropertyId());
-			
-			// 设置房产信息
-			Property.Builder property = Property.newBuilder();
-			propertyCopy(property, gameProperty);
-			
-			// 设置交易信息
-			BidInfo.Builder bidRet = BidInfo.newBuilder();
-			bidInfoSet(bidRet, bid);
-			//设置本人出价
-			if(!StringUtils.isEmpty(userId)) {
-				CWVMarketAuction auctionUser = getUserAuction(bid.getBidId(), Integer.parseInt(userId));
-				bidRet.setUserPrice(auctionUser==null? "0":auctionUser.getBidPrice()+"");	
-			}
-			
-			PropertyBid.Builder  propertyBid = PropertyBid.newBuilder();
-			propertyBid.setProperty(property);
-			propertyBid.setBid(bidRet);
-			ret.addPropertyBid(propertyBid);
-
-		}
-
+		setBidRet(pb, ret, page, pack);
 		ret.setPage(page.getPageOut());
 		ret.setRetCode(ReturnCodeMsgEnum.PBS_SUCCESS.getRetCode());
 		ret.setRetMsg(ReturnCodeMsgEnum.PBS_SUCCESS.getRetMsg());
@@ -1961,6 +1946,11 @@ public class PropertyHelper implements ActorService {
 		CWVGameProperty gameProperty = new CWVGameProperty();
 		gameProperty.setPropertyId(propertyId);
 		return dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
+	}
+
+	public void getPropertyGame(PSCommon pb, PRetGamePropertyCharge.Builder ret) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

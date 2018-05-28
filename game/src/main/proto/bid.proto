@@ -19,11 +19,18 @@ enum PBidCommand {
 
 message PSPropertyBid	 //PBS
 {
-	string status = 1;//竞拍状态 0发起竞拍 1竞拍中 2竞拍完成
+	
 //	string bid_id = 2; //竞拍ID
-	string page_index = 3;//页索引
-	string page_size = 4;//页大小
-	int32 user_only = 5;//页索引 0非个人限制1个人限制
+	string price_type = 1; // 价格排序
+	string income_type = 2; // 收益排序
+	string country_id = 3; // 国家
+	string city_id = 4; // 城市
+	string property_type = 5; //房产类型 
+	string property_name = 6;//房产名称
+	string page_index = 7;//页索引
+	string page_size = 8;//页大小
+	string status = 9;//竞拍状态 0发起竞拍 1竞拍中 2竞拍完成
+	int32 user_only = 10;//页索引 0非个人限制1个人限制
 }
 
 message PRetPropertyBid //GPE

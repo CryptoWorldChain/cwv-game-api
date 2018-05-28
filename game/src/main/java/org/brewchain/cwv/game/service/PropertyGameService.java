@@ -1,13 +1,12 @@
-package org.brewchain.cwv.game.service.user;
+package org.brewchain.cwv.game.service;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
-import org.brewchain.cwv.game.helper.WalletHelper;
+import org.brewchain.cwv.game.helper.PropertyHelper;
+import org.brewchain.cwv.service.game.Game.PRetGamePropertyCharge;
 import org.brewchain.cwv.service.game.Game.PSCommon;
-import org.brewchain.cwv.service.game.Game.RetCodeMsg;
-import org.brewchain.cwv.service.game.User.PRetWalletInfo;
-import org.brewchain.cwv.service.game.User.PUserCommand;
-import org.brewchain.cwv.service.game.User.PUserModule;
+import org.brewchain.cwv.service.game.Game.PTPSCommand;
+import org.brewchain.cwv.service.game.Game.PTPSModule;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -21,42 +20,36 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class WalletInfoService extends SessionModules<PSCommon> {
+public class PropertyGameService extends SessionModules<PSCommon> {
 	
-//	@ActorRequire
-//	AppSmHelper appSmHelper;
+	@ActorRequire(name="Property_Helper")
+	PropertyHelper propertyHelper;
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
 	@ActorRequire(name="Daos")
 	Daos dao;
-		
-	@ActorRequire(name="Wallet_Helper")
-	WalletHelper walletHelper;
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PUserCommand.WIS.name() };
+		return new String[] { PTPSCommand.PGS.name() };
 	}
 
 	@Override
 	public String getModule() {
-		return PUserModule.GUA.name();
+		return PTPSModule.GGA.name();
 	}
 	
 	@Override
 	public void onPBPacket(final FramePacket pack, final PSCommon pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetWalletInfo.Builder ret = PRetWalletInfo.newBuilder();
+		PRetGamePropertyCharge.Builder ret = PRetGamePropertyCharge.newBuilder();
 		try{
-			walletHelper.walletInfo(pack, pb, ret);
+			propertyHelper.getPropertyGame(pb, ret);
 		}catch(Exception e){
-			RetCodeMsg.Builder builder =  RetCodeMsg.newBuilder();
-			builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
-			.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
-			ret.setCodeMsg(builder);
-			log.warn("WalletAccountService waletAccount  error......",e);
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

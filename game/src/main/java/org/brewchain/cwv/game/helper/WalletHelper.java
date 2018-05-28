@@ -22,12 +22,13 @@ import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PSCommon;
+import org.brewchain.cwv.service.game.Game.RetCodeMsg;
 import org.brewchain.cwv.service.game.User.PRetAccountTopup;
 import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord;
 import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord.TopupRecord;
 import org.brewchain.cwv.service.game.User.PRetWalletAccount;
-import org.brewchain.cwv.service.game.User.PRetWalletAccount.WalletAccount;
 import org.brewchain.cwv.service.game.User.PRetWalletAccountBalance.Builder;
+import org.brewchain.cwv.service.game.User.PRetWalletInfo.AccountInfo;
 import org.brewchain.cwv.service.game.User.PRetWalletInfo;
 import org.brewchain.cwv.service.game.User.PRetWalletRecord;
 import org.brewchain.cwv.service.game.User.PRetWalletRecord.WalletRecord;
@@ -35,6 +36,7 @@ import org.brewchain.cwv.service.game.User.PSAccountTopup;
 import org.brewchain.cwv.service.game.User.PSWalletAccount;
 import org.brewchain.cwv.service.game.User.PSWalletAccountBalance;
 import org.brewchain.cwv.service.game.User.PSWalletRecord;
+import org.brewchain.cwv.service.game.User.WalletAccount;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -281,22 +283,35 @@ public class WalletHelper implements ActorService {
 		
 		double total = 0;
 		List<Object> list = dao.walletDao.selectByExample(example);
+		AccountInfo.Builder accountInfo = AccountInfo.newBuilder();
+		
 		if(list != null && !list.isEmpty()) {
 			for(Object o: list) {
 				CWVUserWallet wallet = (CWVUserWallet) o;
 				total = total + wallet.getBalance().doubleValue() * 0.002;
 				if(wallet.getCoinType().intValue() == CoinEnum.CWB.getValue()) {
-					ret.setCwbTopup(wallet.getTopupBalance().toString());//充值CWB
-					ret.setCwbAmount(wallet.getBalance().doubleValue());
-					ret.setDrawCount(wallet.getDrawCount());
+					accountInfo.setCwcTopup(wallet.getTopupBalance().toString());//充值CWB
+					accountInfo.setCwcAmount(wallet.getBalance().doubleValue());
+					accountInfo.setDrawCount(wallet.getDrawCount());
 				}
-				
+				WalletAccount.Builder account = WalletAccount.newBuilder();
+				account.setAccountId(wallet.getWalletId()+"");
+				account.setAssert(wallet.getBalance().doubleValue());
+				//实时查询行情 TODO
+				account.setMarketPrice(0.002);
+				account.setCoinType(wallet.getCoinType().toString());
+				account.setIcon(wallet.getCoinIcon());
+				ret.addAccount(account);
 			}
 		}
 		
-		ret.setTotalValueCNY(total);
-		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
+		ret.setAccountInfo(accountInfo);
+		RetCodeMsg.Builder builder =  RetCodeMsg.newBuilder();
+		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+		ret.setCodeMsg(builder);
+		
+		
 	}
 
 

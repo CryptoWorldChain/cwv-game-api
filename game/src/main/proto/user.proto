@@ -33,26 +33,34 @@ message PRetWalletAccount //WAS
 {
 	string ret_code = 1; //返回状态码
 	string ret_msg = 2; //提示信息
-	message WalletAccount{
+	
+	repeated WalletAccount account = 13;
+	PageOut page = 15; //分页对象
+}
+
+message WalletAccount
+{
 		string account_id = 3; //账户ID
 		string coin_type = 7; // 币种类型
 		double market_price = 8; // 价格CNY
 		double assert = 9;// 资产
 		string icon = 11;//缩略图
 	}
-	repeated WalletAccount account = 13;
-	PageOut page = 15; //分页对象
-}
-
 message PRetWalletInfo
 {
-	string ret_code = 1; //返回状态码
-	string ret_msg = 2; //提示信息
-	double total_value_CNY = 3; //总额
-	double cwb_amount = 4;//CWB数
-	string cwb_topup = 5;//CWB充值
-	int32 draw_count = 6;//抽奖次数
+	RetCodeMsg codeMsg = 1;
+	
+	message AccountInfo{
+		double total_value_CNY = 3; //总额
+		double cwc_amount = 4;//CWC数
+		string cwc_topup = 5;//CWC充值
+		int32 draw_count = 6;//抽奖次数
+	}
+	AccountInfo accountInfo = 4;
+	repeated WalletAccount account = 13;
 }
+
+
 
 message PRetWalletRecord{
 	string ret_code = 1; //返回状态码

@@ -5,6 +5,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.cwv.game.helper.WalletHelper;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
@@ -13,6 +14,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
+import onight.tfw.ntrans.api.annotation.ActorRequire;
 
 
 /**
@@ -26,7 +28,10 @@ import onight.tfw.ntrans.api.ActorService;
 @Data
 @Instantiate(name="Property_Bid_Invoker")
 public class PropertyBidInvoker implements ActorService {
-	private static String CONTRACT_BID_URL = "contract_bid_url";
+	@ActorRequire(name="Common_Helper")
+	CommonHelper commonHelper;
+	
+	private static String CONTRACT_BID = "contract_bid";
 	/**
 	 * 创建竞拍
 	 * @param buyAddress
@@ -66,5 +71,8 @@ public class PropertyBidInvoker implements ActorService {
 		return ret.setRetCode("01").setRetMsg("成功");
 	}
 	
+	private String getAddress() {
+		return commonHelper.getSysSettingValue(CONTRACT_BID);
+	}
 	
 }

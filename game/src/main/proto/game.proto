@@ -14,6 +14,8 @@ enum PTPSCommand {
 	GPC = 4; //查询手续费 -GamePropertyChargeService
 	GIS = 5; //游戏说明 -GameIntroductionService
 	
+	PGS = 6; //房产游戏 -PropertyGameService
+	
 };
 
 message PageOut{
@@ -184,6 +186,7 @@ message PSCommon //公共入参
 {
 	string page_index = 1;//页码
 	string page_size = 2;//数量
+	string property_id = 3;//房产
 }
 
 message PRetCommon //公共返回信息 REG
@@ -215,4 +218,48 @@ message PRetGameIntroduction //GIS
 		string content = 4;//内容
 	}
 	repeated Introduction introdcution = 3;//游戏说明
+}
+
+message PRetPropertyGame //PGS
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+	message PropertyGameInfo {
+		Property property = 3; //房产信息
+		message GameInfo{
+			string name = 1;//游戏类型
+			string type = 2;//游戏类型
+			string status = 3; // 状态 0发起 1进行 2结束
+		}
+		GameInfo gameInfo = 4; //游戏信息
+		
+	}
+	repeated PropertyGameInfo propertyGameInfo = 3;//游戏说明
+}
+
+message PRetPropertyGameDetail//PGD
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+	message PropertyGameDetail {
+		Property property = 3; //房产信息
+		message GameDetail{
+			string name = 1;//游戏类型
+			string type = 2;//游戏类型
+			string status = 3; // 状态 0发起 1进行 2结束
+			string developers = 4; // 
+			string players = 5; // 玩家数
+			string instructions = 6; // 游戏介绍
+			string images = 7; // 图片多个以英文,分隔
+		}
+		GameDetail gameDetail = 4; //游戏信息
+		
+	}
+	repeated PropertyGameDetail propertyGameDetail = 3;//游戏说明
+}
+
+message RetCodeMsg
+{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
 }
