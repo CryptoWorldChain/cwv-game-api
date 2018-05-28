@@ -1,9 +1,3 @@
-buildscript {
-	dependencies { 
-		classpath "org.brewchain:org.brewchain.bcapi:3.3.3"
-		classpath "org.brewchain:org.brewchain.account:1.0.5"
-	 }
-}
 
 dependencies {
  includeInJar 'org.freemarker:freemarker:2.3.26-incubating'
@@ -12,8 +6,6 @@ dependencies {
 
  includeInJar 'io.jsonwebtoken:jjwt:0.9.0'
  includeInJar 'com.github.penggle:kaptcha:2.3.2'
- compile 'org.brewchain:org.brewchain.bcapi:3.3.3'
- compile 'org.brewchain:org.brewchain.account:1.0.5'
 
  //compile 'org.fc.zippo:org.fc.zippo.psm:1.0.3'
 }
