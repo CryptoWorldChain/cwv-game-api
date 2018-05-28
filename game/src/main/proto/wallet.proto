@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package org.brewchain.wallet.service;
+
+//enum PWLTModule {
+//	WLT = 0;//钱包模块
+//};
+//enum PWLTCommand {
+//	NAD = 0;//创建地址；请求：ReqNewAddress；返回：RetNewAddress
+//	QAD = 1;//查询地址；请求：ReqGetAccount；返回：RespGetAccount
+//	NTS = 2;//创建交易；请求：ReqCreateMultiTransaction；返回：RespCreateTransaction
+//	QTS = 3;//查询交易；请求：ReqGetTxByHash；返回：RespGetTxByHash
+//	NCR = 4;//创建合约；请求：ReqCreateContractTransaction；返回：RespCreateContractTransaction
+//	DCR = 5;//执行合约；请求：ReqDoContractTransaction；返回：RespCreateTransaction
+//};
+
+//game需要提供的参数 均标注 * 强调
+//地址相关
+
+message ReqNewAddress{//创建地址请求
+	string type = 1;//地址类型 *
+	string seed = 2;//地址助记词
+};
+
+message RetNewAddress{//创建地址返回
+	int32 retCode = 1;//返回码
+	string msg = 2;//返回信息
+	string address = 3;//地址
+};
+
+message ReqGetAccount {//查询地址请求
+    string address = 1;//地址 *
+    string type = 2;//地址类型
+};
+
+message RespGetAccount {//查询地址返回
+    int32 retCode = 1;//返回吗
+    string address = 2;//地址
+    AccountValueImpl account = 3;//地址详细信息
+    
+};
+
+message AccountValueImpl {//地址详细信息
+    int32 nonce = 1;//交易次数
+    int64 balance = 2;//账户余额
+    string pubKey = 3;//账户公钥
+    int64 max = 4;//
+    int64 acceptMax = 5;//
+    int32 acceptLimit = 6;//
+    repeated string address = 7;//地址
+    repeated AccountTokenValueImpl tokens = 8;//ERC20 token
+    repeated AccountCryptoValueImpl cryptos = 9;//ERC721 token
+};
+
+message AccountTokenValueImpl {//ERC20 token详情
+    string token = 1;//token
+    int64 balance = 2;//账户余额
+};
+
+message AccountCryptoValueImpl {//ERC721 token详情
+    string symbol = 1; // 用于分类ERC721 Token的标记
+    repeated AccountCryptoTokenImpl tokens = 2;//token详情
+};
+
+message AccountCryptoTokenImpl {//token详情
+    string hash = 1; // Token的hash，hash(index,total,code,name,timestamp)
+    int64 timestamp = 2; // Token创建时间
+    int32 index = 3; // 该Token发行时的索引
+    int32 total = 4; // 该Token的发行总数量
+    string code = 5; // Token的编号
+    string name = 6; // Token的名称
+    string owner = 7; // 所有人的账户地址
+    int32 nonce = 8; // 交易次数
+    int64 ownertime = 9; // 所有人获取时间
+};
+
+//合约相关
+message ReqCreateContractTransaction {//创建合约请求
+	MultiTransactionInputImpl input = 1;//合约发起方 *
+	string data = 2;//合约内容 *
+};
+
+message RespCreateContractTransaction {//创建合约返回
+	string txHash = 1;//交易hash
+	string contractAddress = 2;//合约地址
+	int32 retCode = 3;//返回码
+	string retMsg = 4;//返回信息
+};
+
+message ReqDoContractTransaction {//执行合约请求,与创建交易相同。执行合约返回为：RespCreateTransaction
+	MultiTransactionImpl transaction = 1;//交易内容 *
+};
+
+
+//交易相关参数
+message ReqGetTxByHash {//根据交易hash查询交易请求
+	string hexTxHash = 1;//交易hash * 
+};
+
+message RespGetTxByHash {//根据交易hash查询交易返回
+	MultiTransactionImpl transaction = 1;//交易详情 *
+	int32 retCode = 2;//返回码
+};
+
+message ReqCreateMultiTransaction {//创建交易请求
+	MultiTransactionImpl transaction = 1;//交易内容 *
+};
+
+message RespCreateTransaction {//创建交易返回;执行合约返回
+    string txHash = 1;//交易hash
+	int32 retCode = 2;//返回码
+	string retMsg = 3;//返回信息
+};
+
+message MultiTransactionImpl {//交易详情
+    string txHash = 1;//交易hash
+	MultiTransactionBodyImpl txBody = 2;//交易内容体 *
+	MultiTransactionNodeImpl node = 3;//交易节点
+	string status = 4;//交易状态
+};
+
+message MultiTransactionBodyImpl {//交易内容体详情
+	repeated MultiTransactionInputImpl inputs = 1;//发起方 *
+	repeated MultiTransactionOutputImpl outputs = 2;//接收方 *
+	string exdata = 3;//附属信息
+	repeated MultiTransactionSignatureImpl signatures = 4;//签名
+	repeated string delegate = 5;//代理
+	string data = 6;//合约内容 *
+	int64 timestamp = 7;//时间戳
+};
+
+message MultiTransactionInputImpl {//发起方详情
+	int32 nonce = 1;//交易次数 *
+	int32 fee = 2;//手续费
+	int32 feeLimit = 3;//。。。。
+	string address = 4;//发起方地址 *
+	int64 amount= 5;//交易金额 *
+	string pubKey = 6;//发起方公钥 *
+	string token = 7;//ERC20 token名字 *
+	string symbol = 8;//ERC721 token标记 *
+	string cryptoToken = 9;//ERC721 token名字 *
+};
+
+message MultiTransactionOutputImpl {//接收方详情
+	string address= 1;//接收方地址 *
+	int64 amount= 2;//交易金额 *
+	string symbol = 3;//ERC721 token 标记 *
+	string cryptoToken = 4;//ERC721 token名字 *
+};
+
+message MultiTransactionSignatureImpl {//签名详情
+	string signature = 1;//签名信息
+	string pubKey = 2;//公钥（用于验证签名）
+};
+
+
+message MultiTransactionNodeImpl {//交易节点信息
+	string node = 1;//节点名称
+	string ip = 2;//节点IP
+	string bcuid = 3;//节点唯一标识
+};
+
