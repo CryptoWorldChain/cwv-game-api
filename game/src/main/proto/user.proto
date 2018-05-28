@@ -20,6 +20,9 @@ enum PUserCommand {
 	UPS = 10; //个人房产收益
 	
 	ATC = 11; //钱包充值记录 - AccountTopupConfirmService
+	
+	RCH = 12;//钱包充值预约
+	PAC = 13;//预约队列
 };
 
 message PSWalletAccount	 //WAS
