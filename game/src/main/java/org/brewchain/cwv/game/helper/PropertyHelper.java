@@ -2,6 +2,7 @@ package org.brewchain.cwv.game.helper;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import org.brewchain.cwv.dbgens.game.entity.CWVGameDicExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGame;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuctionExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
@@ -78,9 +80,18 @@ import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PRetCommon.Builder;
 import org.brewchain.cwv.service.game.Game.PRetGamePropertyCharge;
 import org.brewchain.cwv.service.game.Game.PRetProperty;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGame;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGame.PropertyGameInfo;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGame.PropertyGameInfo.GameInfo;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail.PropertyGameDetail;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail.PropertyGameDetail.GameDetail;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty;
 import org.brewchain.cwv.service.game.Game.PSCommon;
+import org.brewchain.cwv.service.game.Game.PSPropertyGame;
+import org.brewchain.cwv.service.game.Game.PSPropertyGameDetail;
 import org.brewchain.cwv.service.game.Game.Property;
+import org.brewchain.cwv.service.game.Game.RetCodeMsg;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo;
@@ -1948,10 +1959,68 @@ public class PropertyHelper implements ActorService {
 		return dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 	}
 
-	public void getPropertyGame(PSCommon pb, PRetGamePropertyCharge.Builder ret) {
-		// TODO Auto-generated method stub
+	public void getPropertyGame(PSPropertyGame pb, PRetPropertyGame.Builder ret,RetCodeMsg.Builder builder) {
+		
+		
+		List<Object> list = dao.gamePropertyGameDao.findAll(new ArrayList<>());
+		
+		for(Object o :list) {
+			CWVGamePropertyGame game = (CWVGamePropertyGame)o;
+			CWVGameProperty gameProperty = new CWVGameProperty();
+			gameProperty.setPropertyId(game.getPropertyId());
+			gameProperty = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
+			Property.Builder property = Property.newBuilder();
+			propertyCopy(property, gameProperty);
+			GameInfo.Builder gameInfo = GameInfo.newBuilder();
+			gameInfo.setName(game.getName())
+			.setGameId(game.getGameId()+"")
+			.setStatus(game.getStatus() + "")
+			.setType(game.getType() + "");
+			PropertyGameInfo.Builder propetyGameInfo = PropertyGameInfo.newBuilder();
+			propetyGameInfo.setProperty(property);
+			propetyGameInfo.setGameInfo(gameInfo);
+			ret.addPropertyGameInfo(propetyGameInfo);
+		}
+		
+		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
+		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
 		
 	}
+
+	public void getPropertyGameDetail(PSPropertyGameDetail pb,
+			PRetPropertyGameDetail.Builder ret, RetCodeMsg.Builder builder) {
+		if(StringUtils.isEmpty(pb.getGameId())) {
+			
+			builder.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+			builder.setRetMsg("游戏ID不能为空");
+		}
+		
+		CWVGamePropertyGame game = new CWVGamePropertyGame();
+		game.setGameId(Integer.parseInt(pb.getGameId()));
+		game = dao.gamePropertyGameDao.selectByPrimaryKey(game);
+		if(game == null) {
+
+			builder.setRetCode(ReturnCodeMsgEnum.PGD_ERROR_ID.getRetCode());
+			builder.setRetMsg(ReturnCodeMsgEnum.PGD_ERROR_ID.getRetMsg());
+			return;
+		}
+		GameDetail.Builder gameDetail = GameDetail.newBuilder();
+		gameDetail.setDevelopers(game.getDevelopersCount() + "")
+		.setGameId(game.getGameId()+"")
+		.setImages(game.getImages())
+		.setInstructions(game.getInstructions())
+		.setPlayers(game.getPlayersCount()+"")
+		.setStatus(game.getStatus()+"")
+		.setType(game.getType()+"");
+		PropertyGameDetail.Builder detail = PropertyGameDetail.newBuilder();
+		detail.setGameDetail(gameDetail);
+	
+		ret.setPropertyGameDetail(detail);
+		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode());
+		builder.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+		
+	}
+	
 	
 	
 

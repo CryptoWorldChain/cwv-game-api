@@ -3,9 +3,8 @@ package org.brewchain.cwv.game.service;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGame;
-import org.brewchain.cwv.service.game.Game.PSCommon;
-import org.brewchain.cwv.service.game.Game.PSPropertyGame;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail;
+import org.brewchain.cwv.service.game.Game.PSPropertyGameDetail;
 import org.brewchain.cwv.service.game.Game.PTPSCommand;
 import org.brewchain.cwv.service.game.Game.PTPSModule;
 import org.brewchain.cwv.service.game.Game.RetCodeMsg;
@@ -22,7 +21,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class PropertyGameService extends SessionModules<PSPropertyGame> {
+public class PropertyGameDetailService extends SessionModules<PSPropertyGameDetail> {
 	
 	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;
@@ -34,7 +33,7 @@ public class PropertyGameService extends SessionModules<PSPropertyGame> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PTPSCommand.PGS.name() };
+		return new String[] { PTPSCommand.PGD.name() };
 	}
 
 	@Override
@@ -43,14 +42,13 @@ public class PropertyGameService extends SessionModules<PSPropertyGame> {
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSPropertyGame pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSPropertyGameDetail pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetPropertyGame.Builder ret = PRetPropertyGame.newBuilder();
+		PRetPropertyGameDetail.Builder ret = PRetPropertyGameDetail.newBuilder();
 		RetCodeMsg.Builder builder = RetCodeMsg.newBuilder();
-		
 		try{
-			propertyHelper.getPropertyGame(pb, ret, builder);
+			propertyHelper.getPropertyGameDetail(pb, ret, builder);
 			ret.setRet(builder);
 		}catch(Exception e){
 			builder.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());

@@ -2,20 +2,18 @@ package org.brewchain.cwv.game.dao;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
-import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshToken;
-import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCity;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDic;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
+import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGame;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
-import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
@@ -48,6 +46,9 @@ public class Daos implements ActorService, IJPAClient{
 	
 	@StoreDAO
 	public OJpaDAO<CWVGameProperty> gamePropertyDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVGamePropertyGame> gamePropertyGameDao;
 	
 	@StoreDAO
 	public OJpaDAO<CWVMarketExchange> exchangeDao;

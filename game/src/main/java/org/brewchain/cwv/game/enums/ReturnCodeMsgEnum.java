@@ -7,6 +7,12 @@ package org.brewchain.cwv.game.enums;
  */
 public enum ReturnCodeMsgEnum {
 	
+	
+	/**
+	 * 查询房产游戏详细
+	 */
+	PGD_ERROR_ID("02","游戏ID错误"),
+	
 	/**
 	 * 取消房产交易
 	 */
