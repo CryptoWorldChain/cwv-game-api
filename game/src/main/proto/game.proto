@@ -222,9 +222,12 @@ message PRetGameIntroduction //GIS
 }
 message PSPropertyGame
 {
+
 	string name = 1;//游戏类型
 	string type = 2;//游戏类型
 	string status = 3; // 状态 0发起 1进行 2结束
+	string page_index = 7;//页索引
+	string page_size = 8;//页大小
 }
 
 message PRetPropertyGame //PGS
@@ -242,6 +245,8 @@ message PRetPropertyGame //PGS
 		
 	}
 	repeated PropertyGameInfo propertyGameInfo = 3;//游戏说明
+	
+	PageOut page = 4;//分页对象
 }
 
 message PSPropertyGameDetail
@@ -252,22 +257,17 @@ message PSPropertyGameDetail
 message PRetPropertyGameDetail//PGD
 {
 	RetCodeMsg ret = 1; //返回状态
-	message PropertyGameDetail {
-		Property property = 3; //房产信息
-		message GameDetail{
-			string game_id = 1;//游戏Id
-			string name = 2;//游戏类型
-			string type = 3;//游戏类型
-			string status = 4; // 状态 0发起 1进行 2结束
-			string developers = 5; // 
-			string players = 6; // 玩家数
-			string instructions = 7; // 游戏介绍
-			string images = 8; // 图片多个以英文,分隔
-		}
-		GameDetail gameDetail = 4; //游戏信息
-		
+	message GameDetail{
+		string game_id = 1;//游戏Id
+		string name = 2;//游戏类型
+		string type = 3;//游戏类型
+		string status = 4; // 状态 0发起 1进行 2结束
+		string developers = 5; // 
+		string players = 6; // 玩家数
+		string instructions = 7; // 游戏介绍
+		string images = 8; // 图片多个以英文,分隔
 	}
-	PropertyGameDetail propertyGameDetail = 3;//游戏说明
+	GameDetail gameDetail = 4; //游戏信息
 }
 
 message RetCodeMsg

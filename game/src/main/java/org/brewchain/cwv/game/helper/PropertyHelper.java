@@ -2,7 +2,6 @@ package org.brewchain.cwv.game.helper;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -21,6 +20,7 @@ import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGame;
+import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGameExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuctionExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
@@ -83,9 +83,8 @@ import org.brewchain.cwv.service.game.Game.PRetProperty;
 import org.brewchain.cwv.service.game.Game.PRetPropertyGame;
 import org.brewchain.cwv.service.game.Game.PRetPropertyGame.PropertyGameInfo;
 import org.brewchain.cwv.service.game.Game.PRetPropertyGame.PropertyGameInfo.GameInfo;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail.PropertyGameDetail;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail.PropertyGameDetail.GameDetail;
 import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail;
+import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail.GameDetail;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty;
 import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.Game.PSPropertyGame;
@@ -1960,9 +1959,13 @@ public class PropertyHelper implements ActorService {
 	}
 
 	public void getPropertyGame(PSPropertyGame pb, PRetPropertyGame.Builder ret,RetCodeMsg.Builder builder) {
+		CWVGamePropertyGameExample example = new CWVGamePropertyGameExample();
+		PageUtil pageUtil = new PageUtil(pb.getPageIndex(), pb.getPageSize());
+		example.setLimit(pageUtil.getLimit());
+		example.setOffset(pageUtil.getOffset());
 		
-		
-		List<Object> list = dao.gamePropertyGameDao.findAll(new ArrayList<>());
+		pageUtil.setTotalCount(dao.gamePropertyGameDao.countByExample(example));
+		List<Object> list = dao.gamePropertyGameDao.selectByExample(example);
 		
 		for(Object o :list) {
 			CWVGamePropertyGame game = (CWVGamePropertyGame)o;
@@ -1984,7 +1987,7 @@ public class PropertyHelper implements ActorService {
 		
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
-		
+		ret.setPage(pageUtil.getPageOut());
 	}
 
 	public void getPropertyGameDetail(PSPropertyGameDetail pb,
@@ -2007,15 +2010,14 @@ public class PropertyHelper implements ActorService {
 		GameDetail.Builder gameDetail = GameDetail.newBuilder();
 		gameDetail.setDevelopers(game.getDevelopersCount() + "")
 		.setGameId(game.getGameId()+"")
+		.setName(game.getName())
 		.setImages(game.getImages())
 		.setInstructions(game.getInstructions())
 		.setPlayers(game.getPlayersCount()+"")
 		.setStatus(game.getStatus()+"")
 		.setType(game.getType()+"");
-		PropertyGameDetail.Builder detail = PropertyGameDetail.newBuilder();
-		detail.setGameDetail(gameDetail);
+		ret.setGameDetail(gameDetail);
 	
-		ret.setPropertyGameDetail(detail);
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode());
 		builder.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
 		

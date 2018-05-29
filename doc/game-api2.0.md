@@ -20,6 +20,9 @@
 * [收益领取](## 收益领取)
 * [撤销房产交易](## 撤销房产交易)
 * [发起竞拍](## 发起竞拍)
+* [房产游戏列表](## 房产游戏列表)
+* [房产游戏详情](## 房产游戏详情)
+
 以下接口暂未处理
 	* [个人竞拍记录](## 个人竞拍记录)
 	* [查询抽奖记录](## 查询抽奖记录)
@@ -695,20 +698,55 @@ total_count|string|总量|
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
+codeMsg|object|返回状态对象|
 ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+accountInfo|object|账户信息对象|
 total_value_CNY|string|总额|
 cwb_amount|string|CWB数量|
 cwb_topup|string|充值数量|
 draw_count|string|抽奖次数|
+account|object|账户对象数组|
+account_id|string|账户ID|
+coin_type|string|币种类型|
+market_price|string|价格CNY|
+assert|string|资产|
+icon|string|币种缩略图|
 
 	{
-	    "ret_code": "01",
-	    "ret_msg": "成功",
-	    "total_value_CNY": 19872052.007459998,
-	    "cwb_amount": 9936026003.73,
-	    "cwb_topup": "10000000000.0000",
-	    "draw_count": 111111
+	    "codeMsg": {
+	        "ret_code": "01",
+	        "ret_msg": "成功"
+	    },
+	    "accountInfo": {
+	        "total_value_CNY": 0,
+	        "cwc_amount": 274285,
+	        "cwc_topup": "12400.0000",
+	        "draw_count": 12
+	    },
+	    "account": [
+	        {
+	            "account_id": "39",
+	            "coin_type": "0",
+	            "market_price": 0.002,
+	            "assert": 274285,
+	            "icon": "http://cwc.icon"
+	        },
+	        {
+	            "account_id": "40",
+	            "coin_type": "1",
+	            "market_price": 0.002,
+	            "assert": 0,
+	            "icon": "http://cwc.icon"
+	        },
+	        {
+	            "account_id": "41",
+	            "coin_type": "2",
+	            "market_price": 0.002,
+	            "assert": 0,
+	            "icon": "http://cwc.icon"
+	        }
+	    ]
 	}
     
 -----------
@@ -995,4 +1033,136 @@ ret_msg|string|返回消息|
 	{
 	    "ret_code": "01",
 	    "ret_msg": "创建成功"
+	}
+	
+	
+	
+## 房产游戏列表
+### 接口说明
+	
+### URL
+	/cwv/gga/pbpgs.do
+### HTTP请求方式
+	POST
+### 输入参数
+	{
+		"page_index":"1",
+		"page_size":"10"
+	}
+	
+### 输出参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret|object|返回状态对象|
+ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+propertyGameInfo|object|房产游戏对象的数组|
+property|object|数组中的房产对象|
+country_id|string|所属国家|
+map_id|string|所属地图|
+map_template|string|所属地图模板|
+property_template_id|string|房产模板ID|
+property_template|string|房产模板|
+owner|string|拥有者|
+property_name|string|房产名称|
+property_id|string|房产ID|
+property_type|string|房产类型|
+property_status|string|房产状态|
+income_remark|string|收益说明|
+income|string|收益|
+image_url|string|房产图片地址|
+gameInfo|object|数组中的游戏信息对象|
+game_id|string|交易ID|
+name|string|游戏名称|
+type|string|游戏类型  0 sports|
+status|string|交易状态  0发起，1进行中，2结束|
+page|object|分页对象|
+page_index|string|页码|
+page_size|string|数量|
+total_count|string|总量|
+
+	{
+	    "ret": {
+	        "ret_code": "01",
+	        "ret_msg": "成功"
+	    },
+	    "propertyGameInfo": [
+	        {
+	            "property": {
+	                "country_id": "1",
+	                "map_id": "1",
+	                "property_template_id": "51000",
+	                "property_template": "51",
+	                "property_name": "Crypto Statue of Liberty ",
+	                "property_id": "1",
+	                "property_type": 1,
+	                "property_status": 0,
+	                "income_remark": "收益说明",
+	                "income": 1000000,
+	                "image_url": "unique/1.png",
+	                "map_template": "2101",
+	                "price": "0.0000"
+	            },
+	            "gameInfo": {
+	                "game_id": "1",
+	                "name": "game1",
+	                "type": "1",
+	                "status": "0"
+	            }
+	        }
+	    ],
+	    "page": {
+	        "page_index": "1",
+	        "page_size": "10",
+	        "total_count": "1"
+	    }
+	}
+	
+## 房产游戏详情
+### 接口说明
+	
+### URL
+	/cwv/gga/pbpgd.do
+### HTTP请求方式
+	POST
+### 输入参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+game_id|string|游戏ID|
+
+	{
+		"game_id":"1"
+	}
+	
+### 输出参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret|object|返回状态对象|
+ret_code|string|返回状态码<br/>01.查询成功<br/>02.游戏Id错误<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+gameDetail|object|游戏信息对象|
+game_id|string|交易ID|
+name|string|游戏名称|
+type|string|游戏类型  0 sports|
+status|string|交易状态  0发起，1进行中，2结束|
+developers|string||
+players|string|玩家数量|
+developers|string|游戏类型  0 sports|
+images|string|图片信息|
+
+	{
+	    "ret": {
+	        "ret_code": "01",
+	        "ret_msg": "成功"
+	    },
+	    "gameDetail": {
+	        "game_id": "1",
+	        "name": "game1",
+	        "type": "1",
+	        "status": "0",
+	        "developers": "1",
+	        "players": "1",
+	        "instructions": "1111",
+	        "images": "image"
+	    }
 	}
