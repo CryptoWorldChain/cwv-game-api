@@ -38,7 +38,6 @@ import org.brewchain.cwv.game.chain.PropertyBidInvoker;
 import org.brewchain.cwv.game.chain.PropertyDrawInvoker;
 import org.brewchain.cwv.game.chain.PropertyExchangeInvoker;
 import org.brewchain.cwv.game.chain.PropertyIncomeInvoker;
-import org.brewchain.cwv.game.chain.ret.RetDraw;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
@@ -1211,12 +1210,12 @@ public class PropertyHelper implements ActorService {
 		// 抽奖
 		// 调取抽奖合约
 		final CWVUserWallet wallet = walletHelper.getUserAccount(authUser.getUserId(), CoinEnum.CWB);
-		RetDraw retDraw = drawInvoker.drawProperty(wallet.getAccount());
-		if (!retDraw.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-			ret.setRetCode(retDraw.getRetCode());
-			ret.setRetMsg(retDraw.getRetMsg());
-			return;
-		}
+//		RetDraw retDraw = drawInvoker.drawProperty(wallet.getAccount());
+//		if (!retDraw.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
+//			ret.setRetCode(retDraw.getRetCode());
+//			ret.setRetMsg(retDraw.getRetMsg());
+//			return;
+//		}
 
 		// 更新房产信息
 		final CWVGameProperty gameProperty = getDrawProperty();
@@ -1280,8 +1279,8 @@ public class PropertyHelper implements ActorService {
 			property.setIncome(gameProperty.getIncome().doubleValue());
 			property.setImageUrl(gameProperty.getImageUrl());
 			property.setPrice(gameProperty.getLastPrice()+"");
-			property.setLongitude(property.getLongitude()+"");
-			property.setLatitude(property.getLatitude()+"");
+			property.setLongitude(gameProperty.getLongitude()+"");
+			property.setLatitude(gameProperty.getLatitude()+"");
 		} catch (Exception e) {
 			log.error("propertyCopy exception:",e);
 		}
@@ -1291,6 +1290,11 @@ public class PropertyHelper implements ActorService {
 		CWVGamePropertyExample example = new CWVGamePropertyExample();
 		example.createCriteria().andUserIdIsNull()
 		.andPropertyTypeEqualTo("2");
+		
+		int count = dao.gamePropertyDao.countByExample(example);
+		int offset = (int) (Math.random() * count);
+		example.setOffset(offset);
+		example.setLimit(1);
 		Object o = dao.gamePropertyDao.selectOneByExample(example);
 		return (CWVGameProperty) o;
 	}
