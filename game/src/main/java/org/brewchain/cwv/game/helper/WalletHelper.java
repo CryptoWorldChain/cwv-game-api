@@ -23,20 +23,20 @@ import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.Game.RetCodeMsg;
+import org.brewchain.cwv.service.game.Game.RetData;
+import org.brewchain.cwv.service.game.Game.RetData.AccountInfo;
+import org.brewchain.cwv.service.game.Game.WalletAccount;
 import org.brewchain.cwv.service.game.User.PRetAccountTopup;
 import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord;
 import org.brewchain.cwv.service.game.User.PRetAccountTopupRecord.TopupRecord;
 import org.brewchain.cwv.service.game.User.PRetWalletAccount;
 import org.brewchain.cwv.service.game.User.PRetWalletAccountBalance.Builder;
-import org.brewchain.cwv.service.game.User.PRetWalletInfo.AccountInfo;
-import org.brewchain.cwv.service.game.User.PRetWalletInfo;
 import org.brewchain.cwv.service.game.User.PRetWalletRecord;
 import org.brewchain.cwv.service.game.User.PRetWalletRecord.WalletRecord;
 import org.brewchain.cwv.service.game.User.PSAccountTopup;
 import org.brewchain.cwv.service.game.User.PSWalletAccount;
 import org.brewchain.cwv.service.game.User.PSWalletAccountBalance;
 import org.brewchain.cwv.service.game.User.PSWalletRecord;
-import org.brewchain.cwv.service.game.User.WalletAccount;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -275,7 +275,7 @@ public class WalletHelper implements ActorService {
 
 
 	public void walletInfo(FramePacket pack, PSCommon pb,
-			PRetWalletInfo.Builder ret) {
+			PRetCommon.Builder ret, RetCodeMsg.Builder builder) {
 		// TODO Auto-generated method stub
 		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		CWVUserWalletExample example = new CWVUserWalletExample();
@@ -284,7 +284,7 @@ public class WalletHelper implements ActorService {
 		double total = 0;
 		List<Object> list = dao.walletDao.selectByExample(example);
 		AccountInfo.Builder accountInfo = AccountInfo.newBuilder();
-		
+		RetData.Builder data = RetData.newBuilder();
 		if(list != null && !list.isEmpty()) {
 			for(Object o: list) {
 				CWVUserWallet wallet = (CWVUserWallet) o;
@@ -301,17 +301,14 @@ public class WalletHelper implements ActorService {
 				account.setMarketPrice(0.002);
 				account.setCoinType(wallet.getCoinType().toString());
 				account.setIcon(wallet.getCoinIcon());
-				ret.addAccount(account);
+				data.addAccount(account);
 			}
 		}
 		
-		ret.setAccountInfo(accountInfo);
-		RetCodeMsg.Builder builder =  RetCodeMsg.newBuilder();
+		data.setAccountInfo(accountInfo);
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
-		ret.setCodeMsg(builder);
-		
-		
+		ret.setData(data);
 	}
 
 

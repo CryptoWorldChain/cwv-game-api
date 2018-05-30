@@ -3,9 +3,9 @@ package org.brewchain.cwv.game.service.user;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.WalletHelper;
+import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.Game.RetCodeMsg;
-import org.brewchain.cwv.service.game.User.PRetWalletInfo;
 import org.brewchain.cwv.service.game.User.PUserCommand;
 import org.brewchain.cwv.service.game.User.PUserModule;
 
@@ -48,11 +48,12 @@ public class WalletInfoService extends SessionModules<PSCommon> {
 	public void onPBPacket(final FramePacket pack, final PSCommon pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetWalletInfo.Builder ret = PRetWalletInfo.newBuilder();
+		PRetCommon.Builder ret = PRetCommon.newBuilder();
+		RetCodeMsg.Builder builder = RetCodeMsg.newBuilder();
 		try{
-			walletHelper.walletInfo(pack, pb, ret);
+			walletHelper.walletInfo(pack, pb, ret, builder);
+			ret.setCodeMsg(builder);
 		}catch(Exception e){
-			RetCodeMsg.Builder builder =  RetCodeMsg.newBuilder();
 			builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 			.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
 			ret.setCodeMsg(builder);

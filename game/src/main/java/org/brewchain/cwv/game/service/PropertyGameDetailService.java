@@ -3,7 +3,7 @@ package org.brewchain.cwv.game.service;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail;
+import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PSPropertyGameDetail;
 import org.brewchain.cwv.service.game.Game.PTPSCommand;
 import org.brewchain.cwv.service.game.Game.PTPSModule;
@@ -45,15 +45,15 @@ public class PropertyGameDetailService extends SessionModules<PSPropertyGameDeta
 	public void onPBPacket(final FramePacket pack, final PSPropertyGameDetail pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
-		PRetPropertyGameDetail.Builder ret = PRetPropertyGameDetail.newBuilder();
+		PRetCommon.Builder ret = PRetCommon.newBuilder();
 		RetCodeMsg.Builder builder = RetCodeMsg.newBuilder();
 		try{
 			propertyHelper.getPropertyGameDetail(pb, ret, builder);
-			ret.setRet(builder);
+			ret.setCodeMsg(builder);
 		}catch(Exception e){
 			builder.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			builder.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
-			ret.setRet(builder);
+			ret.setCodeMsg(builder);
 		}
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));

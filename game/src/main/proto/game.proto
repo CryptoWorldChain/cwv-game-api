@@ -110,22 +110,6 @@ message PBGameProperty //GMP 获取游戏房产
 	string is_page = 7;//是否分页，0：不分页，1分页
 }
 
-message PRetProperty
-{
-	string map_id = 1;//所属地图
-	string map_template = 15;//所属地图
-	string owner = 2;//拥有者
-	string property_name = 3; //房产名称
-	string property_id = 4;//房产编码
-	string property_type = 5;//房产类型
-	string property_status = 6;//房产状态
-	string appearance_type = 7;//外观
-	string income = 8;//房产模板
-	string price = 9;//房产模板
-	string property_template_id = 10;//房产模板Id
-	string property_template = 11;//房产模板
-	string url=12;//图片地址
-}
 
 
 message Property
@@ -145,6 +129,8 @@ message Property
     string image_url = 13;//房产说明
     string map_template = 15;//所属地图
     string price = 16;//价格
+    string longitude = 17;//经度
+    string latitude = 18;//纬度
 }
 message ExchangeInfo
 {
@@ -172,7 +158,7 @@ message PRetRefGameProperty //GMP 获取游戏房产
 	string ret_code = 1; //返回状态码，
 	string ret_msg = 2; //操作参数
 	
-	repeated PRetProperty properties = 3;
+	repeated Property properties = 3;
 	string total_count = 4;//总条数
 }
 
@@ -199,6 +185,9 @@ message PRetCommon //公共返回信息 REG
 	Property property = 4; //房产信息
 	ExchangeInfo exchange = 5; //交易信息 
 	BidInfo bid = 6; //交易信息 
+	RetCodeMsg codeMsg = 7;// 返回状态信息
+	RetData data = 8;//返回数据信息
+	
 }
 
 message PRetGamePropertyCharge //GPC
@@ -230,23 +219,16 @@ message PSPropertyGame
 	string page_size = 8;//页大小
 }
 
-message PRetPropertyGame //PGS
-{
-	RetCodeMsg ret = 1; //返回状态
-	message PropertyGameInfo {
-		Property property = 3; //房产信息
-		message GameInfo{
-			string game_id = 1;//游戏Id
-			string name = 2;//游戏类型
-			string type = 3;//游戏类型
-			string status = 4; // 状态 0发起 1进行 2结束
-		}
-		GameInfo gameInfo = 4; //游戏信息
-		
+message PropertyGameInfo {
+	Property property = 3; //房产信息
+	message GameInfo{
+		string game_id = 1;//游戏Id
+		string name = 2;//游戏类型
+		string type = 3;//游戏类型
+		string status = 4; // 状态 0发起 1进行 2结束
 	}
-	repeated PropertyGameInfo propertyGameInfo = 3;//游戏说明
+	GameInfo gameInfo = 4; //游戏信息
 	
-	PageOut page = 4;//分页对象
 }
 
 message PSPropertyGameDetail
@@ -254,10 +236,7 @@ message PSPropertyGameDetail
 	string game_id = 1;//游戏ID
 }
 
-message PRetPropertyGameDetail//PGD
-{
-	RetCodeMsg ret = 1; //返回状态
-	message GameDetail{
+message GameDetail{
 		string game_id = 1;//游戏Id
 		string name = 2;//游戏类型
 		string type = 3;//游戏类型
@@ -266,12 +245,44 @@ message PRetPropertyGameDetail//PGD
 		string players = 6; // 玩家数
 		string instructions = 7; // 游戏介绍
 		string images = 8; // 图片多个以英文,分隔
-	}
-	GameDetail gameDetail = 4; //游戏信息
 }
 
 message RetCodeMsg
 {
 	string ret_code = 1; //错误代码
 	string ret_msg = 2; //提示信息
+}
+
+
+message RetData {
+	//房产游戏详情 start
+	GameDetail gameDetail = 4; //游戏信息
+	//房产游戏详情 end
+	
+	//房产游戏列表 start
+	repeated PropertyGameInfo propertyGameInfo = 5;//游戏说明
+	//房产游戏列表 end
+	
+	//钱包信息 start
+	message AccountInfo{
+		double total_value_CNY = 3; //总额
+		double cwc_amount = 4;//CWC数
+		string cwc_topup = 5;//CWC充值
+		int32 draw_count = 6;//抽奖次数
+		int32 draw_trigger_amount = 7;//抽奖触发金额
+	}
+	AccountInfo accountInfo = 6;
+	
+	repeated WalletAccount account = 7;
+	//钱包信息 end
+	
+	PageOut page = 24;//分页对象
+}
+
+message WalletAccount{
+	string account_id = 3; //账户ID
+	string coin_type = 7; // 币种类型
+	double market_price = 8; // 价格CNY
+	double assert = 9;// 资产
+	string icon = 11;//缩略图
 }

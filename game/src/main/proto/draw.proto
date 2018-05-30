@@ -28,7 +28,7 @@ message PRetPropertyDrawRecord //PDR
 		string draw_id = 1; //交易ID
 		string draw_time = 2;//开始时间
 		string property_id = 3;//结束时间
-		PRetProperty property = 7; //房产
+		Property property = 7; //房产
 	}
 	PageOut page = 15; //分页对象
 }

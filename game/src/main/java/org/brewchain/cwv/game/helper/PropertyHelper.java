@@ -75,22 +75,20 @@ import org.brewchain.cwv.service.game.Exchange.PSPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PSSellProperty;
 import org.brewchain.cwv.service.game.Game.BidInfo;
 import org.brewchain.cwv.service.game.Game.ExchangeInfo;
+import org.brewchain.cwv.service.game.Game.GameDetail;
 import org.brewchain.cwv.service.game.Game.PBGameProperty;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PRetCommon.Builder;
 import org.brewchain.cwv.service.game.Game.PRetGamePropertyCharge;
-import org.brewchain.cwv.service.game.Game.PRetProperty;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGame;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGame.PropertyGameInfo;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGame.PropertyGameInfo.GameInfo;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail;
-import org.brewchain.cwv.service.game.Game.PRetPropertyGameDetail.GameDetail;
 import org.brewchain.cwv.service.game.Game.PRetRefGameProperty;
 import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.Game.PSPropertyGame;
 import org.brewchain.cwv.service.game.Game.PSPropertyGameDetail;
 import org.brewchain.cwv.service.game.Game.Property;
+import org.brewchain.cwv.service.game.Game.PropertyGameInfo;
+import org.brewchain.cwv.service.game.Game.PropertyGameInfo.GameInfo;
 import org.brewchain.cwv.service.game.Game.RetCodeMsg;
+import org.brewchain.cwv.service.game.Game.RetData;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo;
@@ -163,7 +161,6 @@ public class PropertyHelper implements ActorService {
 	public void getPropertyExchange(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, FramePacket pack) {
 
 		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
-		String userId = null;
 			
 		setExchangeRet(pb, ret, page, pack);
 		ret.setPage(page.getPageOut());
@@ -271,9 +268,6 @@ public class PropertyHelper implements ActorService {
 		
 		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		
-		// 竞拍中
-		criteria.andPropertyStatusEqualTo(PropertyStatusEnum.BIDDING.getValue());
-	
 		// // 城市
 		// if (StringUtils.isNotEmpty(pb.getCityId())) {
 		// criteria.andCountryId(Integer.parseInt(pb.getCityId()));
@@ -903,53 +897,6 @@ public class PropertyHelper implements ActorService {
 		bidRet.setStatus(bid.getStatus() + "");
 	}
 
-	private PRetProperty.Builder getRetProperty(Map<String, Object> map) {
-		PRetProperty.Builder pProperty = PRetProperty.newBuilder();
-		pProperty.setMapId(map.get("map_id").toString());
-		pProperty.setPropertyId(map.get("property_id").toString());
-		pProperty.setPropertyName(map.get("property_name").toString());
-		pProperty.setPropertyStatus(map.get("property_name").toString());
-		pProperty.setPropertyType(map.get("property_type").toString());
-
-		if (pProperty.getPropertyStatus().equals("3") || pProperty.getPropertyStatus().equals("2")) {
-			pProperty.setOwner(map.get("owner").toString());
-			pProperty.setPrice(map.get("price").toString());
-		} else if (pProperty.getPropertyStatus().equals("0") || pProperty.getPropertyStatus().equals("1")) {
-			pProperty.setPrice("0.000");
-			pProperty.setOwner("No");
-		}
-		pProperty.setIncome(map.get("income").toString());
-		pProperty.setPropertyTemplateId(map.get("property_template_id").toString());
-		pProperty.setPropertyTemplate(map.get("property_template").toString());
-		pProperty.setAppearanceType("1");
-		return pProperty;
-	}
-
-	private PRetProperty.Builder getRetProperty(CWVGameProperty property) {
-
-		PRetProperty.Builder pProperty = PRetProperty.newBuilder();
-		pProperty.setMapId(property.getGameMapId() + "");
-		CWVGameMap gameMap = new CWVGameMap();
-		gameMap.setMapId(property.getGameMapId());
-		gameMap = dao.gameMapDao.selectByPrimaryKey(gameMap);
-		pProperty.setMapTemplate(gameMap.getTemplate() + "");
-		pProperty.setPropertyId(property.getPropertyId() + "");
-		pProperty.setPropertyName(property.getPropertyName());
-		pProperty.setPropertyStatus(property.getPropertyStatus());
-		pProperty.setPropertyType(property.getPropertyType());
-		if(property.getUserId()!=null) {
-			CWVAuthUser authUser = userHelper.getUserById(property.getUserId());
-			pProperty.setOwner(authUser.getNickName());
-		}
-		pProperty.setPrice(property.getLastPrice()+"");
-		pProperty.setIncome(property.getIncome()+"");
-		pProperty.setPropertyTemplateId(property.getPropertyTemplateId() + "");
-		pProperty.setPropertyTemplate(property.getPropertyTemplate());
-		pProperty.setAppearanceType("1");
-		pProperty.setUrl(property.getImageUrl());
-		return pProperty;
-
-	}
 
 	/**
 	 * 地区房产列表
@@ -992,9 +939,10 @@ public class PropertyHelper implements ActorService {
 		}
 		List<Object> properties = dao.gamePropertyDao.selectByExample(propertyExample);
 		for (Object coun : properties) {
-			CWVGameProperty property = (CWVGameProperty) coun;
-			PRetProperty.Builder pProperty = this.getRetProperty(property);
-			ret.addProperties(pProperty);
+			CWVGameProperty gameProperty = (CWVGameProperty) coun;
+			Property.Builder property = Property.newBuilder();
+			propertyCopy(property, gameProperty);
+			ret.addProperties(property);
 		}
 
 	}
@@ -1304,33 +1252,39 @@ public class PropertyHelper implements ActorService {
 	}
 	
 	private void propertyCopy(Property.Builder property, CWVGameProperty gameProperty) {
-		CWVGameMap map = new CWVGameMap();
-		map.setMapId(gameProperty.getGameMapId());
-		map = dao.gameMapDao.selectByPrimaryKey(map);
-		if(map!= null){
-			CWVGameCity city = new CWVGameCity();
-			city.setCityId(map.getGameCityId());
-			city = dao.gameCityDao.selectByPrimaryKey(city);
-			property.setCountryId(city.getGameCountryId() + "");
-			property.setMapId(map.getMapId() + "");
-			property.setMapTemplate(map.getTemplate()+"");
-		}
-		
-		property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
-		property.setPropertyTemplate(gameProperty.getPropertyTemplate());
-		if(gameProperty.getUserId()!=null){
-			CWVAuthUser user = userHelper.getUserById(gameProperty.getUserId());
-			property.setOwner(user.getNickName());
-		}
-		property.setPropertyId(gameProperty.getPropertyId() + "");
-		property.setPropertyName(gameProperty.getPropertyName());
-		property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
+		try {
+			CWVGameMap map = new CWVGameMap();
+			map.setMapId(gameProperty.getGameMapId());
+			map = dao.gameMapDao.selectByPrimaryKey(map);
+			if(map!= null){
+				CWVGameCity city = new CWVGameCity();
+				city.setCityId(map.getGameCityId());
+				city = dao.gameCityDao.selectByPrimaryKey(city);
+				property.setCountryId(city.getGameCountryId() + "");
+				property.setMapId(map.getMapId() + "");
+				property.setMapTemplate(map.getTemplate()+"");
+			}
+			
+			property.setPropertyTemplateId(gameProperty.getPropertyTemplateId());
+			property.setPropertyTemplate(gameProperty.getPropertyTemplate());
+			if(gameProperty.getUserId()!=null){
+				CWVAuthUser user = userHelper.getUserById(gameProperty.getUserId());
+				property.setOwner(user.getNickName());
+			}
+			property.setPropertyId(gameProperty.getPropertyId() + "");
+			property.setPropertyName(gameProperty.getPropertyName());
+			property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
 
-		property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
-		property.setIncomeRemark("收益说明");
-		property.setIncome(gameProperty.getIncome().doubleValue());
-		property.setImageUrl(gameProperty.getImageUrl());
-		property.setPrice(gameProperty.getLastPrice()+"");
+			property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
+			property.setIncomeRemark("收益说明");
+			property.setIncome(gameProperty.getIncome().doubleValue());
+			property.setImageUrl(gameProperty.getImageUrl());
+			property.setPrice(gameProperty.getLastPrice()+"");
+			property.setLongitude(property.getLongitude()+"");
+			property.setLatitude(property.getLatitude()+"");
+		} catch (Exception e) {
+			log.error("propertyCopy exception:",e);
+		}
 	}
 
 	private CWVGameProperty getDrawProperty() {
@@ -1958,7 +1912,7 @@ public class PropertyHelper implements ActorService {
 		return dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 	}
 
-	public void getPropertyGame(PSPropertyGame pb, PRetPropertyGame.Builder ret,RetCodeMsg.Builder builder) {
+	public void getPropertyGame(PSPropertyGame pb, PRetCommon.Builder ret,RetCodeMsg.Builder builder) {
 		CWVGamePropertyGameExample example = new CWVGamePropertyGameExample();
 		PageUtil pageUtil = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 		example.setLimit(pageUtil.getLimit());
@@ -1966,7 +1920,7 @@ public class PropertyHelper implements ActorService {
 		
 		pageUtil.setTotalCount(dao.gamePropertyGameDao.countByExample(example));
 		List<Object> list = dao.gamePropertyGameDao.selectByExample(example);
-		
+		RetData.Builder data = RetData.newBuilder();
 		for(Object o :list) {
 			CWVGamePropertyGame game = (CWVGamePropertyGame)o;
 			CWVGameProperty gameProperty = new CWVGameProperty();
@@ -1982,16 +1936,17 @@ public class PropertyHelper implements ActorService {
 			PropertyGameInfo.Builder propetyGameInfo = PropertyGameInfo.newBuilder();
 			propetyGameInfo.setProperty(property);
 			propetyGameInfo.setGameInfo(gameInfo);
-			ret.addPropertyGameInfo(propetyGameInfo);
+			data.addPropertyGameInfo(propetyGameInfo);
 		}
 		
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
-		ret.setPage(pageUtil.getPageOut());
+		data.setPage(pageUtil.getPageOut());
+		ret.setData(data);
 	}
 
 	public void getPropertyGameDetail(PSPropertyGameDetail pb,
-			PRetPropertyGameDetail.Builder ret, RetCodeMsg.Builder builder) {
+			PRetCommon.Builder ret, RetCodeMsg.Builder builder) {
 		if(StringUtils.isEmpty(pb.getGameId())) {
 			
 			builder.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
@@ -2007,6 +1962,7 @@ public class PropertyHelper implements ActorService {
 			builder.setRetMsg(ReturnCodeMsgEnum.PGD_ERROR_ID.getRetMsg());
 			return;
 		}
+		RetData.Builder data = RetData.newBuilder();
 		GameDetail.Builder gameDetail = GameDetail.newBuilder();
 		gameDetail.setDevelopers(game.getDevelopersCount() + "")
 		.setGameId(game.getGameId()+"")
@@ -2016,10 +1972,11 @@ public class PropertyHelper implements ActorService {
 		.setPlayers(game.getPlayersCount()+"")
 		.setStatus(game.getStatus()+"")
 		.setType(game.getType()+"");
-		ret.setGameDetail(gameDetail);
+		data.setGameDetail(gameDetail);
 	
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode());
 		builder.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+		ret.setData(data);
 		
 	}
 	

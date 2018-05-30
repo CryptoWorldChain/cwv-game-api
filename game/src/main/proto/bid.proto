@@ -102,7 +102,7 @@ message PRetPropertyBidAuction	 //GPA
 		string amount = 3;
 		string nick_name = 4; // 昵称
 		string bid_price = 6; // 出价
-		PRetProperty property = 7; //房产
+		Property property = 7; //房产
 	}
 	repeated PropertyBidAuction auction = 3;
 	PageOut page = 13;//分页对象
