@@ -288,23 +288,36 @@ charge_rate|string|手续费比例|
 ### 接口说明
 	
 ### URL
-	/cwv/gba/pbpb.do
+	/cwv/gba/pbpbs.do
 ### HTTP请求方式
 	POST
 ### 输入参数
 参数|类型|说明|示例
 :----|:----|:----|:----
+price_type|string|价格排序 0降序 1升序|[0]
+income_type|string|收益排序 0降序 1升序|
+country_id|string|国家|
+city_id|string|城市|
+property_type|string|房产类型 <br/>1：价值房产<br/>2：功能型房产<br/>3：标志性房产|
+property_name|string|房产名称|
+user_only|string|用户标识 0 所有竞拍 1个人竞拍中|
 status|string|竞拍状态 0发起竞拍 1竞拍中 2竞拍完成|[0]
 page_index|string|页码|
 page_size|string|数量|
-user_only|string|用户标识 0 所有竞拍 1个人竞拍中|
-
+    
 	{
+		"price_type":"1",
+		"income_type":"0",
+		"country_id":"1",
+		"city_id":"1",
+		"property_type":"1",
+		"property_name":"Statue",
 		"status":"0",
-		"page_index":"0",
-		"page_size":"0",
-		"user_only":"0"
+		"user_only":"0",
+		"page_index":"1",
+		"page_size":"10"
 	}
+
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
@@ -701,6 +714,7 @@ total_count|string|总量|
 codeMsg|object|返回状态对象|
 ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+data|object|返回数据|
 accountInfo|object|账户信息对象|
 total_value_CNY|string|总额|
 cwb_amount|string|CWB数量|
@@ -718,35 +732,38 @@ icon|string|币种缩略图|
 	        "ret_code": "01",
 	        "ret_msg": "成功"
 	    },
-	    "accountInfo": {
-	        "total_value_CNY": 0,
-	        "cwc_amount": 274285,
-	        "cwc_topup": "12400.0000",
-	        "draw_count": 12
-	    },
-	    "account": [
-	        {
-	            "account_id": "39",
-	            "coin_type": "0",
-	            "market_price": 0.002,
-	            "assert": 274285,
-	            "icon": "http://cwc.icon"
+	    "data": {
+	        "accountInfo": {
+	            "total_value_CNY": 0,
+	            "cwc_amount": 274285,
+	            "cwc_topup": "12400.0000",
+	            "draw_count": 12,
+	            "draw_trigger_amount": 0
 	        },
-	        {
-	            "account_id": "40",
-	            "coin_type": "1",
-	            "market_price": 0.002,
-	            "assert": 0,
-	            "icon": "http://cwc.icon"
-	        },
-	        {
-	            "account_id": "41",
-	            "coin_type": "2",
-	            "market_price": 0.002,
-	            "assert": 0,
-	            "icon": "http://cwc.icon"
-	        }
-	    ]
+	        "account": [
+	            {
+	                "account_id": "39",
+	                "coin_type": "0",
+	                "market_price": 0.002,
+	                "assert": 274285,
+	                "icon": "http://cwc.icon"
+	            },
+	            {
+	                "account_id": "40",
+	                "coin_type": "1",
+	                "market_price": 0.002,
+	                "assert": 0,
+	                "icon": "http://cwc.icon"
+	            },
+	            {
+	                "account_id": "41",
+	                "coin_type": "2",
+	                "market_price": 0.002,
+	                "assert": 0,
+	                "icon": "http://cwc.icon"
+	            }
+	        ]
+	    }
 	}
     
 -----------
@@ -1056,6 +1073,7 @@ ret_msg|string|返回消息|
 ret|object|返回状态对象|
 ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+data|object|返回数据|
 propertyGameInfo|object|房产游戏对象的数组|
 property|object|数组中的房产对象|
 country_id|string|所属国家|
@@ -1082,39 +1100,41 @@ page_size|string|数量|
 total_count|string|总量|
 
 	{
-	    "ret": {
+	    "codeMsg": {
 	        "ret_code": "01",
 	        "ret_msg": "成功"
 	    },
-	    "propertyGameInfo": [
-	        {
-	            "property": {
-	                "country_id": "1",
-	                "map_id": "1",
-	                "property_template_id": "51000",
-	                "property_template": "51",
-	                "property_name": "Crypto Statue of Liberty ",
-	                "property_id": "1",
-	                "property_type": 1,
-	                "property_status": 0,
-	                "income_remark": "收益说明",
-	                "income": 1000000,
-	                "image_url": "unique/1.png",
-	                "map_template": "2101",
-	                "price": "0.0000"
-	            },
-	            "gameInfo": {
-	                "game_id": "1",
-	                "name": "game1",
-	                "type": "1",
-	                "status": "0"
+	    "data": {
+	        "propertyGameInfo": [
+	            {
+	                "property": {
+	                    "country_id": "1",
+	                    "map_id": "1",
+	                    "property_template_id": "51000",
+	                    "property_template": "51",
+	                    "property_name": "Crypto Statue of Liberty ",
+	                    "property_id": "1",
+	                    "property_type": 1,
+	                    "property_status": 0,
+	                    "income_remark": "收益说明",
+	                    "income": 1000000,
+	                    "image_url": "unique/1.png",
+	                    "map_template": "2101",
+	                    "price": "0.0000"
+	                },
+	                "gameInfo": {
+	                    "game_id": "1",
+	                    "name": "game1",
+	                    "type": "1",
+	                    "status": "0"
+	                }
 	            }
+	        ],
+	        "page": {
+	            "page_index": "1",
+	            "page_size": "10",
+	            "total_count": "1"
 	        }
-	    ],
-	    "page": {
-	        "page_index": "1",
-	        "page_size": "10",
-	        "total_count": "1"
 	    }
 	}
 	
@@ -1140,6 +1160,21 @@ game_id|string|游戏ID|
 ret|object|返回状态对象|
 ret_code|string|返回状态码<br/>01.查询成功<br/>02.游戏Id错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+data|object|返回数据|
+property|object|数组中的房产对象|
+country_id|string|所属国家|
+map_id|string|所属地图|
+map_template|string|所属地图模板|
+property_template_id|string|房产模板ID|
+property_template|string|房产模板|
+owner|string|拥有者|
+property_name|string|房产名称|
+property_id|string|房产ID|
+property_type|string|房产类型|
+property_status|string|房产状态|
+income_remark|string|收益说明|
+income|string|收益|
+image_url|string|房产图片地址|
 gameDetail|object|游戏信息对象|
 game_id|string|交易ID|
 name|string|游戏名称|
@@ -1151,18 +1186,37 @@ developers|string|游戏类型  0 sports|
 images|string|图片信息|
 
 	{
-	    "ret": {
+	    "codeMsg": {
 	        "ret_code": "01",
 	        "ret_msg": "成功"
 	    },
-	    "gameDetail": {
-	        "game_id": "1",
-	        "name": "game1",
-	        "type": "1",
-	        "status": "0",
-	        "developers": "1",
-	        "players": "1",
-	        "instructions": "1111",
-	        "images": "image"
+	    "data": {
+	        "property": {
+	            "country_id": "1",
+	            "map_id": "1",
+	            "property_template_id": "51000",
+	            "property_template": "51",
+	            "property_name": "Crypto Statue of Liberty ",
+	            "property_id": "1",
+	            "property_type": 1,
+	            "property_status": 0,
+	            "income_remark": "收益说明",
+	            "income": 1000000,
+	            "image_url": "unique/1.png",
+	            "map_template": "2101",
+	            "price": "0.0000",
+	            "longitude": "-74.0445",
+	            "latitude": "40.691983"
+	        },
+	        "gameDetail": {
+	            "game_id": "1",
+	            "name": "game1",
+	            "type": "1",
+	            "status": "0",
+	            "developers": "1",
+	            "players": "1",
+	            "instructions": "1111",
+	            "images": "image"
+	        }
 	    }
 	}

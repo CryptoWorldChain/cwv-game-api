@@ -143,6 +143,9 @@ public class PropertyHelper implements ActorService {
 	@ActorRequire(name="Game_Notice_Helper")
 	GameNoticeHelper gameNoticeHelper;
 	
+	@ActorRequire(name="Wlt_Helper")
+	WltHelper wltHelper;
+	
 	private HashSet statusForSale = new HashSet<String>() {
 		{
 			add("0"); // 未出售
@@ -1219,6 +1222,8 @@ public class PropertyHelper implements ActorService {
 
 		// 更新房产信息
 		final CWVGameProperty gameProperty = getDrawProperty();
+		
+//		wltHelper.excuteContract("", "", "");
 		//设置抽奖合约返回ID
 //		gameProperty.setPropertyId(1);
 		gameProperty.setUserId(authUser.getUserId());
@@ -1955,6 +1960,7 @@ public class PropertyHelper implements ActorService {
 			
 			builder.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
 			builder.setRetMsg("游戏ID不能为空");
+			return;
 		}
 		
 		CWVGamePropertyGame game = new CWVGamePropertyGame();
@@ -1966,7 +1972,15 @@ public class PropertyHelper implements ActorService {
 			builder.setRetMsg(ReturnCodeMsgEnum.PGD_ERROR_ID.getRetMsg());
 			return;
 		}
+		Property.Builder property = Property.newBuilder();
+		CWVGameProperty gameProperty = new CWVGameProperty();
+		gameProperty.setPropertyId(game.getPropertyId());
+		gameProperty = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
+		propertyCopy(property, gameProperty);
+		
 		RetData.Builder data = RetData.newBuilder();
+		data.setProperty(property);
+		
 		GameDetail.Builder gameDetail = GameDetail.newBuilder();
 		gameDetail.setDevelopers(game.getDevelopersCount() + "")
 		.setGameId(game.getGameId()+"")

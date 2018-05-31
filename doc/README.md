@@ -809,6 +809,7 @@ property_name|string|房产名称的模糊搜索|
 property_type|string|房产类型，1：价值房产，2：功能型房产，3：标志性房产|
 property_status|string|房产状态，0：未出售，1：竞拍中，2：出售中，3：已出售|
 
+
 	{
 		"page_index": "1",
 		"page_size": "10",
@@ -828,36 +829,44 @@ ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
 ret_msg|String|返回消息|
 total_count|string|总条数|
 properties|array||
-map_id|string|地图编码|
-property_id|string|房产编号|
+country_id|string|所属国家|
+map_id|string|所属地图|
+map_template|string|所属地图模板|
+property_template_id|string|房产模板ID|
+property_template|string|房产模板|
+owner|string|拥有者|
 property_name|string|房产名称|
+property_id|string|房产ID|
 property_type|string|房产类型|
 property_status|string|房产状态|
-appearance_type|string|外观||
+income_remark|string|收益说明|
+image_url|string|房产图片地址|
+longitude|string|经度|
+latitude|string|纬度|
+
 	
 	{
 	    "ret_code": "01",
-	    "ret_msg": "获取成功",
-	    "total_count": "16",
-	    "countries": [{
-	    		"map_id": "1",
-	    		"property_id": "1",
-			   "property_name": "帝国大厦1",
-			   "property_type": "1",
-			   "property_status": "1",
-			   "appearance_type": "1"
-	    },
-	    ...
-	    ,
-	    {
-	    		"map_id": "1",
-	    		"property_id": "2",
-			   "property_name": "帝国大厦2",
-			   "property_type": "1",
-			   "property_status": "1",
-			   "appearance_type": "1"
-	    }]
-	    
+	    "ret_msg": "SUCCESS",
+	    "properties": [
+	        {
+	            "country_id": "1",
+	            "map_id": "1",
+	            "property_template_id": "51000",
+	            "property_template": "51",
+	            "property_name": "Crypto Statue of Liberty ",
+	            "property_id": "1",
+	            "property_type": 1,
+	            "property_status": 0,
+	            "income_remark": "收益说明",
+	            "income": 1000000,
+	            "image_url": "unique/1.png",
+	            "map_template": "2101",
+	            "longitude": "37.0000",
+	            "latitude": "13.0000",
+	            "price": "0.0000"
+	        }
+	     ]
 	}
 	
 ## 发起官方公告

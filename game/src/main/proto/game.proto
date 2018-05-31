@@ -256,6 +256,7 @@ message RetCodeMsg
 
 message RetData {
 	//房产游戏详情 start
+	Property property = 3; //房产信息
 	GameDetail gameDetail = 4; //游戏信息
 	//房产游戏详情 end
 	
