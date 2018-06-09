@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package org.brewchain.test.service;
+
+enum PWLTTestModule {
+	TTS = 0;//钱包模块
+};
+enum PWLTTestCommand {
+	NAD = 0;//创建地址；请求：ReqNewAddress；返回：RetNewAddress
+	QAD = 1;//查询地址；请求：ReqGetAccount；返回：RespGetAccount
+	NTS = 2;//创建交易；请求：ReqCreateMultiTransaction；返回：RespCreateTransaction
+	QTS = 3;//查询交易；请求：ReqGetTxByHash；返回：RespGetTxByHash
+	NCR = 4;//创建合约；请求：ReqCreateContractTransaction；返回：RespCreateContractTransaction
+	DCR = 5;//执行合约；请求：ReqDoContractTransaction；返回：RespCreateTransaction
+};
+
+//game需要提供的参数 均标注 * 强调
+//地址相关
+
+message ReqAddress{//创建地址请求
+	string seed = 1;//地址助记词
+};
+
+message RetAddress{//创建地址返回
+	int32 retCode = 1;//返回码
+	string msg = 2;//返回信息
+	string address = 3;//地址
+};
+
+message ReqGetAccountInfo{
+	string address = 1;
+}
+
+message ReqCreateTx{
+	string amount = 1;
+	string inputAddress = 2;
+	string outputAddress = 3;
+	string symbol = 4;
+	string token = 5;
+}
+
+message RetCreateTx{
+	int32 retCode=1;
+	string txHash=2;
+}
+
+message ReqGetTxInfo{
+	string txHash = 1;
+}
+
+message RetGetTxInfo{
+	int32 retCode =1;
+	MultiTransactionImpl transaction = 2;//交易详情 
+}
+
+message MultiTransactionImpl {//交易详情
+    string txHash = 1;//交易hash
+	//MultiTransactionBodyImpl txBody = 2;//交易内容体 *
+	//MultiTransactionNodeImpl node = 3;//交易节点
+	string status = 4;//交易状态
+}
+
+//合约相关
+message ReqCreateContract {//创建合约请求
+	string address = 1;//合约发起方 
+	string amount = 2;//金额
+	string type = 3;//合约类型
+};
+
+message RespCreateContract {//创建合约返回
+	string txHash = 1;//交易hash
+	string contractAddress = 2;//合约地址
+	int32 retCode = 3;//返回码
+	string retMsg = 4;//返回信息
+};
+
+message ReqExcuteContract {
+	string amount = 1;
+	string address = 2;
+	string contractAddress = 3;
+}
+
+message RespCreateTransaction {//创建交易返回;执行合约返回
+    string txHash = 1;//交易hash
+	int32 retCode = 2;//返回码
+	string retMsg = 3;//返回信息
+};

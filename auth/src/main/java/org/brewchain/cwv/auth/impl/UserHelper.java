@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +41,7 @@ import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
+import org.brewchain.wallet.service.Wallet.RetNewAddress;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
 import org.fc.hzq.service.sys.User.PRetLogin;
@@ -83,6 +85,9 @@ public class UserHelper implements ActorService {
 
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
+	
+	@ActorRequire(name="Wlt_Helper")
+	WltHelper wltHelper;
 
 	// 防止相互引用死循环
 	@Override
@@ -203,26 +208,27 @@ public class UserHelper implements ActorService {
 
 			@Override
 			public Object doInTransaction() {
-
+				RetNewAddress.Builder address=  wltHelper.createAccount(null);
+				if(address.getRetCode()!=1){
+					throw new IllegalArgumentException("获取钱包账户失败");
+				}
 				dao.userDao.insertIfNoExist(authUser);
 				CWVAuthUser userInsert = getUserByPhone(authUser.getPhone());
-
-				for (int i = 0; i < 3; i++) {
-					CWVUserWallet userWallet = new CWVUserWallet();
-					userWallet.setAccount("http://ceshidizhi");
-					userWallet.setBalance(new BigDecimal(0));
-					userWallet.setCoinIcon("http://cwc.icon");
-					userWallet.setCoinType((byte) i);
-					userWallet.setCreateTime(new Date());
-					userWallet.setDrawCount(0);
-					userWallet.setTopupBalance(new BigDecimal(0));
-					userWallet.setUpdateTime(new Date());
-					userWallet.setUserId(userInsert.getUserId());
-					userWallet.setIncomeFunctional(new BigDecimal(0));
-					userWallet.setIncomeOrdinary(new BigDecimal(0));
-					userWallet.setIncomeTypical(new BigDecimal(0));
-					dao.walletDao.insertSelective(userWallet);
-				}
+				
+				CWVUserWallet userWallet = new CWVUserWallet();
+				userWallet.setAccount(address.getAddress());
+				userWallet.setBalance(new BigDecimal(0));
+				userWallet.setCoinIcon("http://cwc.icon");
+				userWallet.setCoinType(Byte.valueOf("0"));
+				userWallet.setCreateTime(new Date());
+				userWallet.setDrawCount(0);
+				userWallet.setTopupBalance(new BigDecimal(0));
+				userWallet.setUpdateTime(new Date());
+				userWallet.setUserId(userInsert.getUserId());
+				userWallet.setIncomeFunctional(new BigDecimal(0));
+				userWallet.setIncomeOrdinary(new BigDecimal(0));
+				userWallet.setIncomeTypical(new BigDecimal(0));
+				dao.walletDao.insertSelective(userWallet);
 				return null;
 			}
 		});

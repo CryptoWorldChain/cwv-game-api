@@ -2,6 +2,7 @@ package org.brewchain.cwv.auth.service.user;
 
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.impl.UserHelper;
+import org.brewchain.cwv.auth.impl.WltHelper;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PSRegistry;
 import org.fc.hzq.service.sys.User.PUSERCommand;
@@ -28,6 +29,7 @@ public class RegisterUserService extends SessionModules<PSRegistry> {
 
 	@ActorRequire(name="User_Helper")
 	UserHelper userHelper;
+	
 
 	@Override
 	public String[] getCmds() {

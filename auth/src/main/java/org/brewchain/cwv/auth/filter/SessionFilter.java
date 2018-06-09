@@ -62,6 +62,14 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			add("/sms/pbaut.do");
 			add("/nsd/pbcol.do");
 			
+			//test
+			add("/tts/pbnad.do");
+			add("/tts/pbqad.do");
+			add("/tts/pbnts.do");
+			add("/tts/pbqts.do");
+			add("/tts/pbncr.do");
+			add("/tts/pbdcr.do");
+			
 		}
 	}; // 可配置
 	public static HashMap<String,String> userMap = new HashMap<String,String>();

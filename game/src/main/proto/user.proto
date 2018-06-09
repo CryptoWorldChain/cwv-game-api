@@ -21,8 +21,8 @@ enum PUserCommand {
 	
 	ATC = 11; //钱包充值记录 - AccountTopupConfirmService
 	
-	RCH = 12;//钱包充值预约
-	PAC = 13;//预约队列
+	RCH = 12;//钱包充值
+	PAC = 13;//充值映射
 };
 
 message PSWalletAccount	 //WAS
@@ -169,4 +169,10 @@ message PRetStatusMsg //统一输出参数
 	string err_code = 1; //  0失败  1成功 
 	string msg = 2;  //返回信息	
    
+}
+
+message PSRecharge{ //PTC
+	string inputAddress = 1; //客服平台钱包地址
+	string amount = 2; //账户金额
+	string outputAddress = 3; //用户钱包地址
 }

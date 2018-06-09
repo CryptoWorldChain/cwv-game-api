@@ -20,6 +20,7 @@ package org.brewchain.wallet.service;
 message ReqNewAddress{//创建地址请求
 	string type = 1;//地址类型 *
 	string seed = 2;//地址助记词
+	int64 timestamp = 3;//时间戳
 };
 
 message RetNewAddress{//创建地址返回
@@ -29,8 +30,9 @@ message RetNewAddress{//创建地址返回
 };
 
 message ReqGetAccount {//查询地址请求
-    string address = 1;//地址 *
+    string address = 1;//地址
     string type = 2;//地址类型
+    int64 timestamp = 3;//时间戳
 };
 
 message RespGetAccount {//查询地址返回
@@ -78,6 +80,7 @@ message AccountCryptoTokenImpl {//token详情
 message ReqCreateContractTransaction {//创建合约请求
 	MultiTransactionInputImpl input = 1;//合约发起方 *
 	string data = 2;//合约内容 *
+	int64 timestamp = 3;//时间戳
 };
 
 message RespCreateContractTransaction {//创建合约返回
@@ -89,12 +92,14 @@ message RespCreateContractTransaction {//创建合约返回
 
 message ReqDoContractTransaction {//执行合约请求,与创建交易相同。执行合约返回为：RespCreateTransaction
 	MultiTransactionImpl transaction = 1;//交易内容 *
+	int64 timestamp = 2;//时间戳
 };
 
 
 //交易相关参数
 message ReqGetTxByHash {//根据交易hash查询交易请求
 	string hexTxHash = 1;//交易hash * 
+	int64 timestamp = 2;//时间戳
 };
 
 message RespGetTxByHash {//根据交易hash查询交易返回
@@ -104,6 +109,7 @@ message RespGetTxByHash {//根据交易hash查询交易返回
 
 message ReqCreateMultiTransaction {//创建交易请求
 	MultiTransactionImpl transaction = 1;//交易内容 *
+	int64 timestamp = 2;//时间戳
 };
 
 message RespCreateTransaction {//创建交易返回;执行合约返回

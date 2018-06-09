@@ -16,8 +16,28 @@ subprojects {
 	apply plugin: 'zippo'
 
     if(project.name=='game') {
+	    buildscript {
+			dependencies { 
+				classpath "org.brewchain.cwv:org.brewchain.cwv.auth:1.0.8"
+			 }
+		}
     	dependencies {
  			compile ("org.brewchain.cwv:org.brewchain.cwv.auth:1.0.8")
+		}
+    }
+    
+    if(project.name=='auth') {
+	    buildscript {
+			dependencies { 
+				
+				classpath "org.brewchain:org.brewchain.ecrypto:3.0.5"
+				classpath "org.brewchain:org.brewchain.bcvm:1.0.0"
+			 }
+		}
+    	dependencies {
+ 			
+ 			compile ("org.brewchain:org.brewchain.ecrypto:3.0.5")
+ 			compile ("org.brewchain:org.brewchain.bcvm:1.0.0")
 		}
     }
     
@@ -34,7 +54,7 @@ subprojects {
 	buildscript {
 	
 		dependencies { 
-			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.16" 
+			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.18" 
 		 }
 	}
 	
@@ -42,7 +62,7 @@ subprojects {
 	dependencies {
 		compile ("org.fc.zippo:org.fc.zippo.oapi:3.3.0")
 
-		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.16")
+		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.18")
 		// compile group: 'commons-net', name: 'commons-net', version: '3.5'
 		
 	}
