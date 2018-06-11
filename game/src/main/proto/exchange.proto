@@ -93,8 +93,8 @@ message ReqGetTxRecord{
 }
 
 message ResGetTxRecord{
-	string retCode = 1;
-	string retMsg = 2;
+	string ret_code = 1;
+	string ret_msg = 2;
 	repeated TxRecord record = 3;
 }
 
