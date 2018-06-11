@@ -344,6 +344,73 @@ public class WltHelper implements ActorService {
 	}
 	
 	/**
+	 * 创建交易
+	 * @param amount 交易金额
+	 * @param outputAddress 接收方账户地址
+	 * @param accountInfo 发送方账户信息
+	 * @return RespCreateTransaction.Builder 包含交易hash
+	 * @throws Exception 
+	 */
+	public RespCreateTransaction.Builder createTx(BigDecimal amount,String outputAddress,RespGetAccount.Builder accountMap) {
+		//返回参数
+		RespCreateTransaction.Builder respCreateTransaction = RespCreateTransaction.newBuilder();
+		Map<String,Object> ret = new HashMap<>();
+		//创建交易请求
+		ReqCreateMultiTransaction.Builder reqCreateMultiTransaction = ReqCreateMultiTransaction.newBuilder();
+		MultiTransactionImpl.Builder transaction = MultiTransactionImpl.newBuilder();
+		//交易内容体详情
+		MultiTransactionBodyImpl.Builder txBody = MultiTransactionBodyImpl.newBuilder();
+		//获取发起发账户nonce
+		
+		if(accountMap==null){
+			respCreateTransaction.setRetMsg("查询账户发生错误");
+			respCreateTransaction.setRetCode(-1);
+			log.debug("查询账户发生错误");
+			return respCreateTransaction;
+		}
+		AccountValueImpl account = accountMap.getAccount();
+		if(account.getBalance()<amount.longValue()){
+			respCreateTransaction.setRetCode(-1);
+			respCreateTransaction.setRetMsg("账户余额不足");
+			return respCreateTransaction;
+		}
+		//发起方详情
+		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
+		input.setAmount(amount.longValue());//交易金额 *
+		input.setAddress(accountMap.getAddress());//发起方地址 *
+		input.setNonce(account.getNonce());//交易次数 *
+		//接收方详情
+		MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
+		output.setAmount(amount.longValue());//交易金额 *
+		output.setAddress(outputAddress);//接收方地址 *
+		
+		txBody.addInputs(input);//发起方 *
+		txBody.addOutputs(output);//接收方 *
+		
+		transaction.setTxBody(txBody);//交易内容体 *
+		
+		reqCreateMultiTransaction.setTransaction(transaction);//交易内容 *
+		reqCreateMultiTransaction.setTimestamp(new Date().getTime());
+		
+		FramePacket fposttx = send(reqCreateMultiTransaction.build(),WLT_NTS);
+//		FramePacket fposttx = PacketHelper.buildUrlFromJson(new JsonPBFormat().printToString(reqCreateMultiTransaction.build()),"POST", getWltUrl(WLT_NTS));
+		val retReg = sender.send(fposttx, 30000);
+		ret = JsonSerializer.getInstance().deserialize(new String(retReg.getBody()), Map.class);
+		if(ret.get("retCode")!=null&&ret.get("retCode").toString().equals("1")){
+			respCreateTransaction.setTxHash(ret.get("txHash").toString()).setRetCode(1);
+		}else{
+			if(ret.get("retMsg")!=null){
+				respCreateTransaction.setRetMsg(ret.get("retMsg").toString());
+			}else{
+				respCreateTransaction.setRetMsg("创建交易失败");
+			}
+			respCreateTransaction.setRetCode(-1);
+		}
+		
+		return respCreateTransaction;
+	}
+	
+	/**
 	 * 创建交易 721
 	 * @param amount 交易金额
 	 * @param outputAddress 接收方账户地址

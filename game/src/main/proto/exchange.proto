@@ -11,7 +11,9 @@ enum PExchangeCommand {
 	SPS = 3; //卖出房产-SellPropertyService
 	CPE = 4; //撤销房产交易-CancelPropertyTradeService
 	UPE = 5; //查询个人房产交易-UserPropertyExchangeService
-	PED = 6; //交易详情 
+	PED = 6; //交易详情
+	CTS = 7;//创建交易CreateTxService 
+	GTR = 8;//查询转账交易GetTxRecordService
 };
 
 
@@ -73,5 +75,38 @@ message PSCancelExchange{
 	string exchange_id = 1;//交易ID
 }
 
+message ReqCreateTx{
+	string amount = 1;//金额
+	string address = 2;//地址 
+}
+
+message ResCreateTx{
+	string ret_code = 1; //错误代码
+	string ret_msg = 2; //提示信息
+}
+
+message ReqGetTxRecord{
+	string coinType=1;//币种类型，0:cwc，目前只支持cwc，待扩展
+	string recordType = 2;//交易类型：0，全部，1转入，2转出
+	string page_index = 3;//页索引
+	string page_size = 4;//页大小
+}
+
+message ResGetTxRecord{
+	string retCode = 1;
+	string retMsg = 2;
+	repeated TxRecord record = 3;
+}
+
+message TxRecord{
+	int64 recordId = 1;//主键
+	int64 userId = 2;//用户id
+	int32 coinType = 3;//币种类型，0:cwc，目前只支持cwc，待扩展
+	string inputAddress = 4;//发送方地址
+	string outAddress = 5;//接收方地址
+	int64 amount = 6;//金额
+	int32 status = 7;//状态，0发起成功 1转账成功 2转账失败
+	string createTime = 8;//创建时间
+}
 
 

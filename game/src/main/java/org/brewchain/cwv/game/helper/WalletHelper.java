@@ -1,6 +1,7 @@
 package org.brewchain.cwv.game.helper;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,8 @@ import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserRechargeAddress;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserRechargeAddressExample;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserSendRecord;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserSendRecordExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecordExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
@@ -23,6 +26,11 @@ import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
+import org.brewchain.cwv.service.game.Exchange.ReqCreateTx;
+import org.brewchain.cwv.service.game.Exchange.ReqGetTxRecord;
+import org.brewchain.cwv.service.game.Exchange.ResCreateTx;
+import org.brewchain.cwv.service.game.Exchange.ResGetTxRecord;
+import org.brewchain.cwv.service.game.Exchange.TxRecord;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.Game.RetCodeMsg;
@@ -482,6 +490,78 @@ public class WalletHelper implements ActorService {
 		}else{
 			return (CWVUserWallet) list.get(0);
 		}
+	}
+	
+	public void createTx(FramePacket pack, ReqCreateTx pb, ResCreateTx.Builder ret){
+		if(StringUtils.isBlank(pb.getAmount())){
+			ret.setRetCode("02");
+			ret.setRetMsg("金额不能为空");
+			return;
+		}
+		if(new BigDecimal(pb.getAmount()).compareTo(new BigDecimal(0))<=0){
+			ret.setRetCode("02");
+			ret.setRetMsg("金额不能为空");
+			return;
+		}
+		CWVAuthUser user = userHelper.getCurrentUser(pack);
+		CWVUserWallet wallet = getUserAccount(user.getUserId(), CoinEnum.CWB);
+		RespGetAccount.Builder accountMap = wltHelper.getAccountInfo(wallet.getAccount());
+		RespCreateTransaction.Builder res = wltHelper.createTx(new BigDecimal(pb.getAmount()), pb.getAddress(), accountMap);
+		if(res!=null&&res.getRetCode()==1){
+			CWVUserSendRecord sendRecord = new CWVUserSendRecord();
+			sendRecord.setCreateTime(new Date());
+			sendRecord.setStatus((byte)0);
+			sendRecord.setUserId(user.getUserId());
+			sendRecord.setAmount(new BigDecimal(pb.getAmount()));
+			sendRecord.setCoinType((byte)0);
+			sendRecord.setTxHash(res.getTxHash());
+			sendRecord.setInputAddress(wallet.getAccount());
+			sendRecord.setOutAddress(pb.getAddress());
+			dao.sendRecordDao.insert(sendRecord);
+			ret.setRetCode("01").setRetMsg(res.getRetMsg());
+			
+		}else{
+			ret.setRetCode("02").setRetMsg(res.getRetMsg());
+		}
+	}
+	
+	public void getTxRecord(FramePacket pack, ReqGetTxRecord pb, ResGetTxRecord.Builder ret){
+		CWVAuthUser user = userHelper.getCurrentUser(pack);
+		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
+		
+		CWVUserSendRecordExample sendRecordExample = new CWVUserSendRecordExample();
+		
+		sendRecordExample.createCriteria().andStatusEqualTo((byte)1).andUserIdEqualTo(user.getUserId());
+		sendRecordExample.setLimit(page.getLimit());
+		sendRecordExample.setOffset(page.getOffset());
+		
+//		if(StringUtils.isNoneBlank(pb.getRecordType())){
+//			ret.setRetCode("02").setRetMsg("输入参数中未找到交易类型");
+//			return;
+//		}
+//		if(pb.getRecordType().equals("2")){
+//			criteria.andUserIdEqualTo(user.getUserId());
+//			criteria.andStatusEqualTo((byte)1);
+//		}else if(pb.getRecordType().equals("1")){
+//			criteria.andoutEqualTo(user.getUserId());
+//			criteria.andStatusEqualTo((byte)1);
+//		}
+		List<Object> recordList = dao.sendRecordDao.selectByExample(sendRecordExample);
+		for(int i = 0;i<recordList.size();i++){
+			CWVUserSendRecord sr = (CWVUserSendRecord) recordList.get(i); 
+			TxRecord.Builder tr = TxRecord.newBuilder();
+			tr.setRecordId(sr.getRecordId());
+			tr.setUserId(sr.getUserId());
+			tr.setCoinType(sr.getCoinType());
+			tr.setInputAddress(sr.getInputAddress());
+			tr.setOutAddress(sr.getOutAddress());
+			tr.setAmount(sr.getAmount().longValue());
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			tr.setCreateTime(sdf.format(sr.getCreateTime()));
+			ret.addRecord(tr);
+		}
+		ret.setRetCode("01");
+		
 	}
 	
 }
