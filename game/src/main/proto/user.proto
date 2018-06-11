@@ -135,7 +135,8 @@ message PSAccountTopup{ //ATU
 message PRetAccountTopup{ //ATU
 	string ret_code = 1;
 	string ret_msg = 2;
-	double amount = 3;//充值金额
+	string address = 3;
+	double amount = 4;//充值金额
 }
 
 message PRetAccountTopupRecord{ //ATR

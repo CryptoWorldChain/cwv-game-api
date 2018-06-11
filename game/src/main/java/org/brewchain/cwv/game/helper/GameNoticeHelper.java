@@ -10,14 +10,10 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.PageUtil;
-import org.brewchain.cwv.service.game.Game.PRetGameIntroduction;
-import org.brewchain.cwv.service.game.Game.PRetGameIntroduction.Introduction;
-import org.brewchain.cwv.service.game.Game.PSCommon;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeIn;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeOut;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeIn;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeOut;
-import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeOut.Builder;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeOut.PRetNoticeOut;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
@@ -54,7 +50,7 @@ public class GameNoticeHelper implements ActorService {
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
 	
-	enum NoticeTopicEnum{
+	public enum NoticeTopicEnum{
 		NOTICE("notice"),
 		TRADE("trade"),
 		AUCTION("auction");
@@ -68,7 +64,7 @@ public class GameNoticeHelper implements ActorService {
 		
 	}
 	
-	enum NoticeTypeEnum{
+	public enum NoticeTypeEnum{
 		ALL("0"),//无此类型，用于查询所有
 		OFFICE("1"),
 		TRADE("2");
@@ -82,7 +78,7 @@ public class GameNoticeHelper implements ActorService {
 		
 	}
 	
-	enum NoticeTradeTypeEnum{
+	public enum NoticeTradeTypeEnum{
 		TYPICAL_GET("0"),//无此类型，用于查询所有
 		SELL("1"),
 		FUNCTIONAL_GET("2"),

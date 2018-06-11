@@ -20,6 +20,15 @@ public enum ReturnCodeMsgEnum {
 	CPE_ERROR_ID("02","交易ID错误"),
 	CPE_ERROR_STATUS("03","交易状态不支持撤销"),
 	
+
+	/**
+	 * 取消房产竞拍
+	 */
+	CPC_SUCCESS("01","撤销成功"),
+	CPC_ERROR_ID("02","竞拍ID错误"),
+	CPC_ERROR_STATUS("03","交易状态不支持撤销"),
+	CPC_ERROR_PROPERTY("04","房产暂不支持竞拍"),
+	CPC_ERROR_USER("05","用户暂无权限"),
 	
 	/**
 	 * 领取房产收益
@@ -48,6 +57,9 @@ public enum ReturnCodeMsgEnum {
 	CPB_ERROR_ID("02","房产ID错误"),
 	CPB_ERROR_PROPERTY("03","房产暂不支持竞拍"),
 	CPB_ERROR_USER("04","用户暂无权限"),
+	CPB_ERROR_STATUS("05","房产状态错误"),
+	CPB_VALIDATE_PWD_SET("06","未设置交易密码"),
+	CPB_ERROR_TRADE_PWD("07","交易密码错误"),
 	
 	/**
 	 * 查询账户余额

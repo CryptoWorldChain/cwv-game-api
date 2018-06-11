@@ -14,6 +14,7 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserRechargeAddress;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
@@ -79,6 +80,9 @@ public class Daos implements ActorService, IJPAClient{
 	
 	@StoreDAO
 	public OJpaDAO<CWVSysSetting> settingDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVUserRechargeAddress> rechargeAddressDao;
 	
 	
 	@ActorRequire(name="DB_Provider")

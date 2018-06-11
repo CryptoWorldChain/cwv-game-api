@@ -3,7 +3,6 @@ package org.brewchain.cwv.game.helper;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
@@ -11,6 +10,8 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserRechargeAddress;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserRechargeAddressExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecordExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
@@ -35,14 +36,13 @@ import org.brewchain.cwv.service.game.User.PRetWalletAccount;
 import org.brewchain.cwv.service.game.User.PRetWalletAccountBalance.Builder;
 import org.brewchain.cwv.service.game.User.PRetWalletRecord;
 import org.brewchain.cwv.service.game.User.PRetWalletRecord.WalletRecord;
-import org.brewchain.test.service.Test.RetCreateTx;
-import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
-import org.brewchain.wallet.service.Wallet.RespGetAccount;
 import org.brewchain.cwv.service.game.User.PSAccountTopup;
 import org.brewchain.cwv.service.game.User.PSRecharge;
 import org.brewchain.cwv.service.game.User.PSWalletAccount;
 import org.brewchain.cwv.service.game.User.PSWalletAccountBalance;
 import org.brewchain.cwv.service.game.User.PSWalletRecord;
+import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
+import org.brewchain.wallet.service.Wallet.RespGetAccount;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -157,8 +157,6 @@ public class WalletHelper implements ActorService {
 				ret.addAccount(account);
 			}
 		}
-
-		
 		
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
@@ -211,7 +209,14 @@ public class WalletHelper implements ActorService {
 			.setRetMsg(ReturnCodeMsgEnum.WAB_ERROR_TYPE.getRetMsg());
 			return ;
 		}
-
+		RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(account.getAccount());
+		if(accInfo.getRetCode()==1){
+			if(account.getBalance().longValue() != accInfo.getAccount().getBalance()) {
+				account.setBalance(new BigDecimal(accInfo.getAccount().getBalance()));
+				dao.walletDao.updateByPrimaryKeySelective(account);
+			}
+			
+		}
 		ret.setBalance(account.getBalance().doubleValue());
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
@@ -285,6 +290,15 @@ public class WalletHelper implements ActorService {
 		wallet.setDrawCount(wallet.getDrawCount()+(countNew-countHistory));
 		wallet.setTopupBalance(wallet.getTopupBalance().add(new BigDecimal(pb.getAmount())));
 		dao.walletDao.updateByPrimaryKeySelective(wallet);
+		
+		CWVUserRechargeAddressExample example = new CWVUserRechargeAddressExample();
+		
+		int count = dao.rechargeAddressDao.countByExample(example);
+		int offset = (int) (Math.random() * count);
+		example.setOffset(offset);
+		example.setLimit(1);
+		CWVUserRechargeAddress address = (CWVUserRechargeAddress) dao.rechargeAddressDao.selectOneByExample(example);
+		ret.setAddress(address.getRechargeAddress());
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
 		ret.setAmount(topup.getAmount().doubleValue());
@@ -306,17 +320,23 @@ public class WalletHelper implements ActorService {
 		if(list != null && !list.isEmpty()) {
 			for(Object o: list) {
 				CWVUserWallet wallet = (CWVUserWallet) o;
-				total = total + wallet.getBalance().doubleValue() * 0.002;
 				if(wallet.getCoinType().intValue() == CoinEnum.CWB.getValue()) {
+					
+					RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(wallet.getAccount());
+					if(accInfo.getRetCode()==1){
+						if(wallet.getBalance().longValue() != accInfo.getAccount().getBalance()) {
+							wallet.setBalance(new BigDecimal(accInfo.getAccount().getBalance()));
+							dao.walletDao.updateByPrimaryKeySelective(wallet);
+						}
+						
+					}
+					
 					accountInfo.setCwcTopup(wallet.getTopupBalance().toString());//充值CWB
 					accountInfo.setCwcAmount(wallet.getBalance().doubleValue());
 					accountInfo.setDrawCount(wallet.getDrawCount());
 					
-					RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(wallet.getAccount());
-					if(accInfo.getRetCode()==1){
-						wallet.setBalance(new BigDecimal(accInfo.getAccount().getBalance()));
-					}
 				}
+				total = total + wallet.getBalance().doubleValue() * 0.002;
 				
 				WalletAccount.Builder account = WalletAccount.newBuilder();
 				account.setAccountId(wallet.getWalletId()+"");
@@ -328,7 +348,7 @@ public class WalletHelper implements ActorService {
 				data.addAccount(account);
 			}
 		}
-		
+		accountInfo.setTotalValueCNY(total);
 		data.setAccountInfo(accountInfo);
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());

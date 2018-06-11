@@ -11,6 +11,7 @@ import org.brewchain.cwv.auth.util.jwt.CheckResult;
 import org.brewchain.cwv.auth.util.jwt.GsonUtil;
 import org.brewchain.cwv.auth.util.jwt.SubjectModel;
 import org.brewchain.cwv.auth.util.jwt.TokenMgr;
+import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.zippo.filter.FilterConfig;
 import org.fc.zippo.filter.exception.FilterException;
 
@@ -24,6 +25,7 @@ import onight.tfw.ntrans.api.ActorService;
 import onight.tfw.ntrans.api.annotation.ActorRequire;
 import onight.tfw.otransio.api.PackHeader;
 import onight.tfw.otransio.api.PacketFilter;
+import onight.tfw.otransio.api.PacketHelper;
 import onight.tfw.otransio.api.SimplePacketFilter;
 import onight.tfw.otransio.api.beans.ExtHeader;
 import onight.tfw.otransio.api.beans.FramePacket;
@@ -203,7 +205,11 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 		if (StringUtils.isBlank(smid)) {
 			pack.getExtHead().append(STR_IS_SESSION, "0");
 			// 无smid 就是没有session，判断当前请求是否走session块验证，即是否走filter
-			throw new FilterException("filter: [this request no session...]");
+//			throw new FilterException("filter: [this request no session...]");
+			PRetCommon.Builder ret = PRetCommon.newBuilder();
+			ret.setRetCode("100").setRetMsg("未登录");
+			// 返回给客户端
+			handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 		}
 
 		// 有session，获取当前session

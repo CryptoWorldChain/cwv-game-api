@@ -3,7 +3,6 @@ package org.brewchain.cwv.game.helper;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -31,11 +30,8 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDrawExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeExample;
-import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
-import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeExample;
-import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeKey;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
@@ -45,15 +41,14 @@ import org.brewchain.cwv.game.chain.PropertyDrawInvoker;
 import org.brewchain.cwv.game.chain.PropertyExchangeInvoker;
 import org.brewchain.cwv.game.chain.PropertyIncomeInvoker;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.CryptoTokenEnum;
+import org.brewchain.cwv.game.enums.MarketTypeEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
-import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
-import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTradeTypeEnum;
-import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTypeEnum;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyDetail;
@@ -99,12 +94,12 @@ import org.brewchain.cwv.service.game.User.PRetPropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo.SubTypeInfo;
+import org.brewchain.cwv.service.game.User.PSPropertyIncome;
+import org.brewchain.cwv.service.game.User.PSPropertyIncomeClaim;
 import org.brewchain.wallet.service.Wallet.AccountCryptoTokenImpl;
 import org.brewchain.wallet.service.Wallet.AccountCryptoValueImpl;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetAccount;
-import org.brewchain.cwv.service.game.User.PSPropertyIncome;
-import org.brewchain.cwv.service.game.User.PSPropertyIncomeClaim;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -154,7 +149,7 @@ public class PropertyHelper implements ActorService {
 	@ActorRequire(name="Game_Notice_Helper")
 	GameNoticeHelper gameNoticeHelper;
 	
-	@ActorRequire(name="Wlt_Helper")
+	@ActorRequire(name="Wlt_Helper", scope = "global")
 	WltHelper wltHelper;
 	
 	private HashSet statusForSale = new HashSet<String>() {
@@ -190,7 +185,6 @@ public class PropertyHelper implements ActorService {
 		cwvPropertyExample.setOffset(page.getOffset());
 		
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
-		
 		if(pb.getUserOnly() == 1){
 			CWVUserWalletExample wltExample = new CWVUserWalletExample();
 			wltExample.createCriteria().andUserIdEqualTo(user.getUserId()).andCoinTypeEqualTo((byte)0);
@@ -234,7 +228,10 @@ public class PropertyHelper implements ActorService {
 			}
 			
 //			criteria.andUserIdEqualTo(user.getUserId());
-			criteria.andPropertyIdIn(ids);
+			if(ids.size()>0)
+				criteria.andPropertyIdIn(ids);
+			else
+				return ;
 			if(StringUtils.isNotBlank(pb.getExchangeStatus())){
 				criteria.andPropertyStatusEqualTo(pb.getExchangeStatus());
 			}
@@ -394,10 +391,10 @@ public class PropertyHelper implements ActorService {
 			CWVMarketBidExample bidExample = new CWVMarketBidExample();
 			CWVMarketBidExample.Criteria criteria2 = bidExample.createCriteria();
 					criteria2.andGamePropertyIdEqualTo(gameProperty.getPropertyId())
-			.andStatusNotEqualTo(Byte.parseByte(PropertyBidStatusEnum.NOBID.getValue()));
+			.andStatusNotEqualTo(PropertyBidStatusEnum.NOBID.getValue());
 			//判断是否查询本用户信息
 			if(pb.getUserOnly() == 1){
-				criteria2.andStatusEqualTo(Byte.parseByte(PropertyBidStatusEnum.BIDDING.getValue()));
+				criteria2.andStatusEqualTo(PropertyBidStatusEnum.BIDDING.getValue());
 			}
 			List<Object> listBid = dao.bidDao.selectByExample(bidExample);
 			for(Object ob : listBid) {
@@ -637,8 +634,8 @@ public class PropertyHelper implements ActorService {
 		// 交易密码
 		CWVUserTradePwd userTradePwd = userHelper.getTradePwd(authUser.getUserId());
 		if (userTradePwd == null) {
-			ret.setRetCode(ReturnCodeMsgEnum.BPS_ERROR_TRADE_PWD.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.BPS_ERROR_TRADE_PWD.getRetMsg());
+			ret.setRetCode(ReturnCodeMsgEnum.BPS_VALIDATE_PWD_SET.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.BPS_VALIDATE_PWD_SET.getRetMsg());
 			return;
 		} else {
 			if (!userTradePwd.getTradePassword().equals(userHelper.getPwdMd5(pb.getTradePwd(), authUser.getSalt()))) {
@@ -660,12 +657,11 @@ public class PropertyHelper implements ActorService {
 
 		// 调取合约，发起购买
 
-		PRetCommon.Builder exchangeRet = exchangeInvoker.buyProperty(userWalletBuyer.getAccount(),
-				exchange.getPropertyId().toString());
+		RespCreateTransaction.Builder exchangeRet = exchangeInvoker.buyProperty(exchange);
 		// 添加调取合约日志 TODO
 
-		if (!exchangeRet.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-			ret.setRetCode(exchangeRet.getRetCode());
+		if (exchangeRet.getRetCode() !=  1) {
+			ret.setRetCode("99");
 			ret.setRetMsg(exchangeRet.getRetMsg());
 			return;
 		}
@@ -673,23 +669,15 @@ public class PropertyHelper implements ActorService {
 		// 设置 交易成功数据 start
 
 		// 设置房产交易
-		exchange.setStatus((byte) 1);
+		exchange.setStatus(PropertyExchangeStatusEnum.SOLD.getValue());
 		exchange.setUserId(authUser.getUserId());
 
-		// 房产信息更新
-		final CWVGameProperty property = new CWVGameProperty();
-		property.setPropertyId(exchange.getPropertyId());
-		property.setLastPrice(exchange.getSellPrice());
-		property.setLastPriceTime(new Date());
-		property.setUserId(exchange.getUserId());
-		property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
-
+		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
+//		exchange.setChainContract();
+		exchange.setChainTransHash(exchangeRet.getTxHash());
+		
 		// 设置账户信息
 		userWalletBuyer.setBalance(userWalletBuyer.getBalance().subtract(exchange.getSellPrice()));
-
-		final CWVUserWallet userWalletSeller = walletHelper.getUserAccount(exchange.getCreateUser(), CoinEnum.CWB);
-		userWalletSeller
-				.setBalance(userWalletSeller.getBalance().add(exchange.getSellPrice()).subtract(exchange.getTax()));
 
 		// 设置交易记录
 		final CWVUserTransactionRecord recordBuy = new CWVUserTransactionRecord();
@@ -698,13 +686,9 @@ public class PropertyHelper implements ActorService {
 		recordBuy.setDetail("买入房产");
 		recordBuy.setGainCost(exchange.getSellPrice().negate());
 		recordBuy.setUserId(exchange.getUserId());
-
-		final CWVUserTransactionRecord recordSell = new CWVUserTransactionRecord();
-		recordSell.setCreateTime(new Date());
-		recordSell.setCreateUser(exchange.getUserId());
-		recordSell.setDetail("卖出房产");
-		recordSell.setGainCost(exchange.getSellPrice().subtract(exchange.getTax()));
-		recordSell.setUserId(exchange.getCreateUser());
+		recordBuy.setMarketId(exchange.getExchangeId());
+		recordBuy.setType(MarketTypeEnum.EXCHANGE.getValue());
+		
 		// 统一事务处理 暂时没有代码
 
 		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
@@ -713,25 +697,24 @@ public class PropertyHelper implements ActorService {
 			public Object doInTransaction() {
 
 				// 链上操作记录Log
-
+				
 				// 更新交易
 				dao.exchangeDao.updateByPrimaryKeySelective(exchange);
-				// 更新房产
-				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
-
 				// 用户交易
-
 				// 账户余额
 				userWalletBuyer.setUpdateTime(new Date());
-				userWalletSeller.setUpdateTime(new Date());
 				dao.walletDao.updateByPrimaryKeySelective(userWalletBuyer);
-				dao.walletDao.updateByPrimaryKeySelective(userWalletSeller);
-
 				// 账户交易记录
 				dao.userTransactionRecordDao.insert(recordBuy);
-				dao.userTransactionRecordDao.insert(recordSell);
 				
-				
+				//转到定时任务处理 start				
+				// 更新房产
+//				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
+//				userWalletSeller.setUpdateTime(new Date());
+//				dao.walletDao.updateByPrimaryKeySelective(userWalletSeller);
+//				dao.userTransactionRecordDao.insert(recordSell);
+
+				//转到定时任务处理 end	
 				
 				return null;
 			}
@@ -740,7 +723,9 @@ public class PropertyHelper implements ActorService {
 
 		// 设置 交易成功数据 end
 		Property.Builder propertyBuilder = Property.newBuilder();
-		CWVGameProperty propertyUpdated = dao.gamePropertyDao.selectByPrimaryKey(property);
+		CWVGameProperty propertyUpdated = new CWVGameProperty();
+		propertyUpdated.setPropertyId(exchange.getPropertyId());
+		propertyUpdated = dao.gamePropertyDao.selectByPrimaryKey(propertyUpdated);
 		propertyCopy(propertyBuilder, propertyUpdated);
 		ret.setProperty(propertyBuilder);
 		ExchangeInfo.Builder exchangeInfo = ExchangeInfo.newBuilder();
@@ -751,25 +736,6 @@ public class PropertyHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.BPS_SUCCESS.getRetCode());
 		ret.setRetMsg(ReturnCodeMsgEnum.BPS_SUCCESS.getRetMsg());
 		
-		//生成公告
-		String period =  commonHelper.getSysSettingValue(GameNoticeHelper.NOTICE_TRADE_PERIOD);
-		String count =  commonHelper.getSysSettingValue(GameNoticeHelper.NOTICE_TRADE_COUNT);
-		String noticeContent = null;
-		if(propertyUpdated.getPropertyType().equals(PropertyTypeEnum.TYPICAL.getValue())) {
-			noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.TYPICAL_GET.getValue(),authUser.getNickName(),propertyUpdated.getPropertyName(), "购买房产" );
-		}else if(propertyUpdated.getPropertyType().equals(PropertyTypeEnum.FUNCTIONAL.getValue())) {
-			noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.FUNCTIONAL_GET.getValue(),authUser.getNickName(),propertyUpdated.getPropertyName(), "购买房产" );
-		}
-		
-		if(noticeContent != null ) {
-			gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), null, null, period, count, noticeContent);
-		}
-		if(noticeContent != null ) {
-			Calendar c = Calendar.getInstance();
-			String startTime = DateUtil.getDayTime(c.getTime());
-			c.add(Calendar.MINUTE, 2);
-			gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
-		}
 	
 	}
 	
@@ -836,18 +802,23 @@ public class PropertyHelper implements ActorService {
 		// 生成交易
 		// 调取卖出房产合约
 		CWVUserWallet account = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
-		PRetCommon.Builder exchangeRet = exchangeInvoker.sellProperty(account.getAccount(), pb.getPropetyId(),
+		RespCreateTransaction.Builder exchangeRet = exchangeInvoker.sellProperty(account.getAccount(), pb.getPropetyId(),
 				pb.getPrice(), charge);
 
 		// 添加调取合约日志 TODO
 
-		if (!exchangeRet.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-			ret.setRetCode(exchangeRet.getRetCode());
+		if (exchangeRet.getRetCode() != 1) {
+			ret.setRetCode("99");
 			ret.setRetMsg(exchangeRet.getRetMsg());
 			return;
 		}
 
 		final CWVMarketExchange exchange = new CWVMarketExchange();
+		//设置合约交易信息
+		exchange.setChainContract("");
+		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
+		exchange.setChainTransHash(exchangeRet.getTxHash());
+		
 		exchange.setPropertyId(Integer.parseInt(pb.getPropetyId()));
 		exchange.setSellPrice(new BigDecimal(pb.getPrice()));
 		exchange.setTax(new BigDecimal(charge));
@@ -856,6 +827,7 @@ public class PropertyHelper implements ActorService {
 		exchange.setStatus((byte) 0);
 		exchange.setCreateTime(new Date());
 		exchange.setUpdateTime(new Date());
+		
 
 		// 房产
 		CWVGameMap map = new CWVGameMap();
@@ -877,18 +849,10 @@ public class PropertyHelper implements ActorService {
 		exchange.setIncomeRemark("收益说明123");
 		exchange.setLastPrice(property.getLastPrice());
 		// exchange.setImageUrl(property.getImageUrl());
-		property.setPropertyStatus(PropertyStatusEnum.ONSALE.getValue());// 出售中
-		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
-
-			@Override
-			public Object doInTransaction() {
-				// 更新交易
-				dao.exchangeDao.insert(exchange);
-				// 更新房产
-				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
-				return null;
-			}
-		});
+		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
+		exchange.setChainContract("");
+		exchange.setChainTransHash(exchangeRet.getTxHash());
+		dao.exchangeDao.insert(exchange);
 		
 		Property.Builder propertyBuilder = Property.newBuilder();
 		CWVGameProperty propertyUpdated = dao.gamePropertyDao.selectByPrimaryKey(property);
@@ -897,7 +861,7 @@ public class PropertyHelper implements ActorService {
 		ExchangeInfo.Builder exchangeInfo = ExchangeInfo.newBuilder();
 		CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
 		exchangeExample.createCriteria().andPropertyIdEqualTo(exchange.getPropertyId())
-		.andStatusEqualTo(Byte.parseByte(PropertyExchangeStatusEnum.ONSALE.getValue()))
+		.andStatusEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue())
 		.andUserIdEqualTo(exchange.getUserId());
 		CWVMarketExchange exchangeNew = (CWVMarketExchange) dao.exchangeDao.selectOneByExample(exchangeExample);
 		exchangeInfoSet(exchangeInfo, exchangeNew);
@@ -906,14 +870,6 @@ public class PropertyHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
 
 		
-		//创建公告
-		String noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.SELL.getValue(),user.getNickName(),propertyUpdated.getPropertyName(), null );
-	
-		Calendar c = Calendar.getInstance();
-		String startTime = DateUtil.getDayTime(c.getTime());
-		c.add(Calendar.MINUTE, 2);
-		gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
-	
 	}
 
 
@@ -1116,22 +1072,23 @@ public class PropertyHelper implements ActorService {
 		// 2扣除账户竞价资产
 
 		// 2.1调取竞拍合约
-		PRetCommon.Builder retContract = bidInvoker.auctionProperty(cwbAccount.getAccount(),
+		final RespCreateTransaction.Builder retContract = bidInvoker.auctionProperty(cwbAccount.getAccount(),
 				bid.getGamePropertyId() + "", pb.getPrice() + "");
 		// 2.2新增竞价记录，并更新竞价记录
 
 		// TODO 增加调取竞拍合约日志
 
 		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
-		example.createCriteria().andBidIdEqualTo(Integer.parseInt(pb.getBidId())).andStatusEqualTo((byte) 1)
-				.andUserIdEqualTo(user.getUserId());
-		final List<Object> list = dao.auctionDao.selectByExample(example);
-		// 发起竞拍账户
-		final CWVUserWallet bidAccount = walletHelper.getUserAccount(Integer.parseInt(bid.getCreateUser()), CoinEnum.CWB);
+		example.createCriteria().andBidIdEqualTo(Integer.parseInt(pb.getBidId()))
+		.andUserIdEqualTo(user.getUserId())//当前用户
+		.andStatusEqualTo((byte)1)//有效
+		.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());//合约交易已完成
+		example.setOrderByClause(" auction_id desc ");
+		final CWVMarketAuction old = (CWVMarketAuction) dao.auctionDao.selectOneByExample(example);
 		// 竞拍账户
 		final CWVUserWallet auctionAccount = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
 
-		if (retContract.getRetCode().equals(ReturnCodeMsgEnum.APS_SUCCESS.getRetCode())) {
+		if (retContract.getRetCode() == 1) {
 			dao.bidDao.doInTransaction(new TransactionExecutor() {
 
 				@Override
@@ -1144,66 +1101,59 @@ public class PropertyHelper implements ActorService {
 					recordAuction.setDetail("竞拍房产");
 					recordAuction.setUserId(user.getUserId());
 					
-					CWVUserTransactionRecord recordBid = new CWVUserTransactionRecord();
-					// 设置交易记录
-					recordBid.setCreateTime(new Date());
-					recordBid.setCreateUser(Integer.parseInt(bid.getCreateUser()));
-					recordBid.setDetail("收到竞价");
-					recordBid.setUserId(Integer.parseInt(bid.getCreateUser()));
-
+					CWVMarketAuction newAuction = new CWVMarketAuction();
+					newAuction.setBidId(bid.getBidId());
+					newAuction.setCreateTime(new Date());
+					newAuction.setStatus((byte) 1);
+					newAuction.setUserId(user.getUserId());
+					newAuction.setChainStatus(ChainTransStatusEnum.START.getKey());
+					newAuction.setChainContract("");
+					newAuction.setChainTransHash(retContract.getTxHash());
 					// 更新个人竞拍记录
-					if (list != null && !list.isEmpty()) {// 更新历史竞价
-
-						CWVMarketAuction old = (CWVMarketAuction) list.get(0);
+					if (old != null ) {// 存在历史竞价
 						// 账户金额
 						BigDecimal gainCost = new BigDecimal(pb.getPrice()).subtract(old.getBidPrice());
 						auctionAccount.setBalance(auctionAccount.getBalance().subtract(gainCost));
-						bidAccount.setBalance(bidAccount.getBalance().add(gainCost));
 						// 交易记录
 						recordAuction.setGainCost(gainCost.negate());
-						recordBid.setGainCost(gainCost);
-						old.setBidPrice(new BigDecimal(pb.getPrice()));
-						dao.auctionDao.updateByPrimaryKey(old);
-
-					} else {// 新增竞拍
-						CWVMarketAuction newAuction = new CWVMarketAuction();
-						newAuction.setBidId(bid.getBidId());
+						newAuction.setLastBidPrice(old.getBidPrice());
 						newAuction.setBidPrice(new BigDecimal(pb.getPrice()));
-						newAuction.setCreateTime(new Date());
-						newAuction.setStatus((byte) 1);
-						newAuction.setUserId(user.getUserId());
-						dao.auctionDao.insert(newAuction);
+						// 更新参与人数数
+					} else {
+						
+						newAuction.setBidPrice(new BigDecimal(pb.getPrice()));
+						newAuction.setLastBidPrice(new BigDecimal(0));
 						// 账户金额
 						BigDecimal gainCost = newAuction.getBidPrice();
 						auctionAccount.setBalance(auctionAccount.getBalance().subtract(gainCost));
-						bidAccount.setBalance(bidAccount.getBalance().add(gainCost));
 						// 交易记录
 						recordAuction.setGainCost(gainCost.negate());
-						recordBid.setGainCost(gainCost);
-						// 更新参与人数数
+						// 更新参与人数
 						bid.setBiddersCount(bid.getBiddersCount() + 1);
 					}
 
+					
+					dao.auctionDao.insertSelective(newAuction);
 					// 3更新竞拍信息 最高价 拥有者 更新时间
 
 					bid.setBidAmount(new BigDecimal(pb.getPrice()));
 					bid.setOwner(user.getUserId());
 					bid.setLastUpdateTime(new Date());
+					bid.setChainStatus(ChainTransStatusEnum.START.getKey());
 					dao.bidDao.updateByPrimaryKeySelective(bid);
 					// 更新账户金额
-					bidAccount.setUpdateTime(new Date());
 					auctionAccount.setUpdateTime(new Date());
-					dao.walletDao.updateByPrimaryKeySelective(bidAccount);
 					dao.walletDao.updateByPrimaryKeySelective(auctionAccount);
 					// 插入钱包操作记录
-					dao.userTransactionRecordDao.insert(recordBid);
+					recordAuction.setMarketId(bid.getBidId());
+					recordAuction.setType(MarketTypeEnum.BID.getValue());
 					dao.userTransactionRecordDao.insert(recordAuction);
 					return null;
 				}
 			});
 
 		} else {
-			ret.setRetCode(ReturnCodeMsgEnum.APS_FALURE.getRetCode())
+			ret.setRetCode("99")
 					.setRetMsg(ReturnCodeMsgEnum.APS_FALURE.getRetMsg());
 			return;
 		}
@@ -1267,33 +1217,18 @@ public class PropertyHelper implements ActorService {
 		// 抽奖
 		// 调取抽奖合约
 		final CWVUserWallet wallet = walletHelper.getUserAccount(authUser.getUserId(), CoinEnum.CWB);
-//		RetDraw retDraw = drawInvoker.drawProperty(wallet.getAccount());
-//		if (!retDraw.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-//			ret.setRetCode(retDraw.getRetCode());
-//			ret.setRetMsg(retDraw.getRetMsg());
-//			return;
-//		}
-
-		// 更新房产信息
 		final CWVGameProperty gameProperty = getDrawProperty();
-		
-//		wltHelper.excuteContract("", "", "");
-		//设置抽奖合约返回ID
-//		gameProperty.setPropertyId(1);
-		
-		//modified by murphy
-//		gameProperty.setUserId(authUser.getUserId());
-//		gameProperty.setPropertyStatus("0");
-//		gameProperty.setLastPrice(new BigDecimal("1000"));
-		
+		if(gameProperty == null ){
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+			.setRetMsg("暂无房产可抽奖");
+			return;
+		}
 		// 更新抽奖次数
 		wallet.setDrawCount(wallet.getDrawCount() - 1);
 		dao.drawDao.doInTransaction(new TransactionExecutor() {
 
 			@Override
 			public Object doInTransaction() {
-				// 更新房产信息
-//				dao.gamePropertyDao.updateByPrimaryKeySelective(gameProperty);
 				
 				//add by murphy
 				String sysPropertyAddress = wltHelper.getWltUrl("sys_property_addr");//sys_property_addr 获取系统参数
@@ -1344,7 +1279,7 @@ public class PropertyHelper implements ActorService {
 				CWVMarketDraw draw = new CWVMarketDraw();
 				draw.setPropertyId(gameProperty.getPropertyId());
 				draw.setUserId(authUser.getUserId());
-				draw.setChainStatus((byte)0);
+				draw.setChainStatus(ChainTransStatusEnum.START.getKey());
 				draw.setCreateTime(new Date());
 				draw.setChainTransHash(ret.getTxHash());
 				dao.getDrawDao().insert(draw);
@@ -1400,14 +1335,15 @@ public class PropertyHelper implements ActorService {
 	}
 
 	private CWVGameProperty getDrawProperty() {
+		String superUserId =  commonHelper.getSysSettingValue("super_user");
+		
 		CWVGamePropertyExample example = new CWVGamePropertyExample();
-		example.createCriteria().andUserIdIsNull()
-		.andPropertyTypeEqualTo("2");
+		example.createCriteria().andUserIdEqualTo(Integer.parseInt(superUserId))
+		.andPropertyTypeEqualTo("2").addCriterion("property_id not in ( select property_id from cwv_market_draw where chain_status='0' )");
 		
 		int count = dao.gamePropertyDao.countByExample(example);
 		int offset = (int) (Math.random() * count);
 		example.setOffset(offset);
-		example.setLimit(1);
 		Object o = dao.gamePropertyDao.selectOneByExample(example);
 		return (CWVGameProperty) o;
 	}
@@ -1648,6 +1584,62 @@ public class PropertyHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.PBD_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.PBD_SUCCESS.getRetMsg());
 
 	}
+	/**
+	 * 撤销发起的竞拍
+	 * @param pack
+	 * @param id
+	 * @param ret
+	 */
+	public void cancelPropertyBid(FramePacket pack, String id, PRetCommon.Builder ret) {
+		//
+		if(StringUtils.isEmpty(id)) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetMsg());
+			return;
+		}
+		
+		CWVMarketBid marketBid = new CWVMarketBid();
+		marketBid.setBidId(Integer.parseInt(id));
+		final CWVMarketBid bid = dao.getBidDao().selectByPrimaryKey(marketBid);
+		if(bid == null) {
+			ret.setRetCode(ReturnCodeMsgEnum.CPC_ERROR_ID.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.CPC_ERROR_ID.getRetMsg());
+			return ;
+		}
+		
+		if(!bid.getStatus().equals(PropertyBidStatusEnum.PREVIEW.getValue())) {
+			ret.setRetCode(ReturnCodeMsgEnum.CPC_ERROR_STATUS.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.CPC_ERROR_STATUS.getRetMsg());
+			return;
+		}
+		
+		String superUserId = commonHelper.getSysSettingValue("super_user");
+		
+		if (!bid.getCreateUser().equals(superUserId)) {
+			ret.setRetCode(ReturnCodeMsgEnum.CPC_ERROR_PROPERTY.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.CPC_ERROR_PROPERTY.getRetMsg());
+			return;
+		}
+		
+		CWVAuthUser user = userHelper.getCurrentUser(pack);
+		if (user.getUserId().intValue() != Integer.parseInt(superUserId)) {
+			ret.setRetCode(ReturnCodeMsgEnum.CPC_ERROR_USER.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.CPC_ERROR_USER.getRetMsg());
+			return;
+		}
+		
+		//调取撤销合约
+		RespCreateTransaction.Builder cancelBidRet = bidInvoker.cancelBid(bid);
+		
+		bid.setStatus(PropertyBidStatusEnum.CANCEL.getValue());
+		//设置合约交易信息
+		bid.setChainStatus(ChainTransStatusEnum.START.getKey());
+		bid.setChainContract("");
+		bid.setChainTransHash(cancelBidRet.getTxHash());
+		
+		dao.getBidDao().updateByPrimaryKeySelective(bid);
+		
+	}
 
 	public void createPropertyBid(FramePacket pack, PSCreatePropertyBid pb, PRetCommon.Builder ret)
 			throws ParseException {
@@ -1691,6 +1683,12 @@ public class PropertyHelper implements ActorService {
 					.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_ID.getRetMsg());
 			return;
 		}
+		if(!property.getPropertyStatus().equals(PropertyStatusEnum.NOSALE.getValue())) {
+			ret.setRetCode(ReturnCodeMsgEnum.CPB_ERROR_STATUS.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_STATUS.getRetMsg());
+			return;
+		}
+		
 		String superUserId = commonHelper.getSysSettingValue("super_user");
 		
 		if (property.getUserId() != Integer.parseInt(superUserId)) {
@@ -1704,6 +1702,23 @@ public class PropertyHelper implements ActorService {
 					.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_USER.getRetMsg());
 			return;
 		}
+		
+		// 交易密码
+		CWVUserTradePwd userTradePwd = userHelper.getTradePwd(user.getUserId());
+		if (userTradePwd == null) {
+			ret.setRetCode(ReturnCodeMsgEnum.CPB_VALIDATE_PWD_SET.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.CPB_VALIDATE_PWD_SET.getRetMsg());
+			return;
+		} else {
+			if (!userTradePwd.getTradePassword().equals(userHelper.getPwdMd5(pb.getTradePwd(), user.getSalt()))) {
+				ret.setRetCode(ReturnCodeMsgEnum.CPB_ERROR_TRADE_PWD.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_TRADE_PWD.getRetMsg());
+				return;
+			}
+		}
+		
+		
+		
 		final CWVMarketBid bid = new CWVMarketBid();
 
 		bid.setGamePropertyId(Integer.parseInt(pb.getPropertyId()));
@@ -1721,12 +1736,12 @@ public class PropertyHelper implements ActorService {
 		bid.setBiddersCount(0);
 		// 生成交易
 		// 调取卖出房产合约
-		PRetCommon.Builder exchangeRet = bidInvoker.createBid(bid);
+		RespCreateTransaction.Builder exchangeRet = bidInvoker.createBid(bid);
 
 		// 添加调取合约日志 TODO
 
-		if (!exchangeRet.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-			ret.setRetCode(exchangeRet.getRetCode());
+		if (exchangeRet.getRetCode() != 1) {
+			ret.setRetCode("99");
 			ret.setRetMsg(exchangeRet.getRetMsg());
 			return;
 		}
@@ -1737,7 +1752,11 @@ public class PropertyHelper implements ActorService {
 		
 		bid.setCreateTime(new Date());
 		bid.setCreateUser(user.getUserId() + "");
-
+		//设置合约交易信息
+		bid.setChainContract("");
+		bid.setChainStatus(ChainTransStatusEnum.START.getKey());
+		bid.setChainTransHash(exchangeRet.getTxHash());
+		
 		// 房产
 		CWVGameMap map = new CWVGameMap();
 		map.setMapId(property.getGameMapId());
@@ -1757,35 +1776,12 @@ public class PropertyHelper implements ActorService {
 		bid.setIncomeRemark("收益说明123");
 		bid.setLastPrice(property.getLastPrice());
 		bid.setImageUrl(property.getImageUrl());
-		property.setPropertyStatus(PropertyStatusEnum.BIDDING.getValue());// 竞拍中
-
-		dao.bidDao.doInTransaction(new TransactionExecutor() {
-
-			@Override
-			public Object doInTransaction() {
-				// 更新交易
-				dao.bidDao.insert(bid);
-				// 更新房产
-				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
-
-				return null;
-			}
-		});
+		
+		dao.bidDao.insert(bid);
 
 		// 设置返回
 		ret.setRetCode(ReturnCodeMsgEnum.CPB_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.CPB_SUCCESS.getRetMsg());
-		
-		
 
-		
-		//创建公告
-		String noticeContent = gameNoticeHelper.noticeTradeTpl(NoticeTradeTypeEnum.BID.getValue(),user.getNickName(),property.getPropertyName(), null );
-	
-		Calendar c = Calendar.getInstance();
-		String startTime = DateUtil.getDayTime(c.getTime());
-		c.add(Calendar.MINUTE, 2);
-		gameNoticeHelper.noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
-	
 	}
 
 	public void propertyIncome(FramePacket pack, PSPropertyIncome pb, PRetPropertyIncome.Builder ret) {
@@ -1898,9 +1894,6 @@ public class PropertyHelper implements ActorService {
 		CWVUserPropertyIncome propertyIncome = new CWVUserPropertyIncome();
 		propertyIncome.setIncomeId(Integer.parseInt(pb.getIncomeId()));
 
-//		CWVUserPropertyIncomeKey key = new CWVUserPropertyIncomeKey();
-//		key.setIncomeId(Integer.parseInt(pb.getIncomeId()));
-		
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
 		final CWVUserPropertyIncome propertyIncome2 = dao.incomeDao.selectByPrimaryKey(propertyIncome);
 		if(propertyIncome2 == null || propertyIncome2.getUserId() != user.getUserId() ) {
@@ -1978,7 +1971,7 @@ public class PropertyHelper implements ActorService {
 			return ;
 		}
 		
-		//查询该交易
+		// 查询该交易
 		// 查询交易状态
 		final CWVMarketExchange exchangeRecord = new CWVMarketExchange();
 		exchangeRecord.setExchangeId(Integer.parseInt(pb.getExchangeId()));
@@ -1998,33 +1991,19 @@ public class PropertyHelper implements ActorService {
 		}
 		
 		//调取合约撤销
-		PRetCommon.Builder retCommon = exchangeInvoker.cancelExchange("","");
-		if(!retCommon.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
-			ret.setRetCode(retCommon.getRetCode())
+		RespCreateTransaction.Builder retCommon = exchangeInvoker.cancelExchange("","");
+		if(retCommon.getRetCode() != 1) {
+			ret.setRetCode("99")
 			.setRetMsg(retCommon.getRetMsg());
 			return ;
 		}
 		//设置交易状态： 撤销		
 		exchange.setStatus((byte) 2);
-		
-		//房产信息
-		CWVGameProperty gameProperty = new CWVGameProperty();
-		gameProperty.setPropertyId(exchange.getPropertyId());
-		final CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
-		property.setPropertyStatus("0");
-		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
-			
-			@Override
-			public Object doInTransaction() {
-				//更新交易
-				dao.exchangeDao.updateByPrimaryKeySelective(exchange);
-				
-				//更新房产
-				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
-				
-				return null;
-			}
-		});
+		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
+		exchange.setChainContract("");
+		exchange.setChainTransHash(retCommon.getTxHash());
+		//更新交易
+		dao.exchangeDao.updateByPrimaryKeySelective(exchange);
 		
 		ret.setRetCode(ReturnCodeMsgEnum.CPE_SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.CPE_SUCCESS.getRetMsg());
@@ -2113,6 +2092,7 @@ public class PropertyHelper implements ActorService {
 		ret.setData(data);
 		
 	}
+	
 	
 	
 

@@ -1030,6 +1030,7 @@ auction_start|string|竞拍开始时间|
 auction_end|string|竞拍结束时间|
 increase_ladder|string|竞价阶梯|
 announce_time|string|公示持续时间 单位 分钟|[60]
+trade_pwd|string|竞价阶梯|
 
 	{
 		"property_id":"45",
@@ -1044,7 +1045,7 @@ announce_time|string|公示持续时间 单位 分钟|[60]
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.创建成功<br/>02.房产ID错误<br/>03.房产暂不支持竞拍<br/>04.用户暂无权限<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.创建成功<br/>02.房产ID错误<br/>03.房产暂不支持竞拍<br/>04.用户暂无权限<br/>05.房产状态错误<br/>06.未设置交易密码<br/>07.交易密码错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 	
 	{

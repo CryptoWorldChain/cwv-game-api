@@ -1,13 +1,18 @@
 package org.brewchain.cwv.game.chain;
 
+import java.math.BigDecimal;
+
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
-import org.brewchain.cwv.game.chain.ret.RetDraw;
+import org.brewchain.cwv.auth.impl.WltHelper;
+import org.brewchain.cwv.game.helper.CommonHelper;
+import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
+import onight.tfw.ntrans.api.annotation.ActorRequire;
 
 
 /**
@@ -21,8 +26,19 @@ import onight.tfw.ntrans.api.ActorService;
 @Data
 @Instantiate(name="Property_Draw_Invoker")
 public class PropertyDrawInvoker implements ActorService {
+
+	private static String CONTRACT_DRAW ;
 	
-	private static String CONTRACT_DRAW = "contract_draw";
+	@ActorRequire(name="Common_Helper")
+	CommonHelper commonHelper;
+	
+	@ActorRequire(name="Wlt_Helper")
+	WltHelper wltHelper;
+
+	public PropertyDrawInvoker() {
+		super();
+		CONTRACT_DRAW = commonHelper.getSysSettingValue("contract_draw");
+	}
 	
 	/**
 	 * 抽奖房产
@@ -30,13 +46,9 @@ public class PropertyDrawInvoker implements ActorService {
 	 * @return
 	 */
 	
-	public static RetDraw drawProperty(String drawAddress){
+	public RespCreateTransaction.Builder drawProperty(String drawAddress){
 		
-		RetDraw ret = new RetDraw();
-		ret.setRetCode("01");
-		ret.setRetMsg("成功");
-		ret.setPropertyId("70");
-		return ret;
+		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_DRAW);
 	}
 	
 	

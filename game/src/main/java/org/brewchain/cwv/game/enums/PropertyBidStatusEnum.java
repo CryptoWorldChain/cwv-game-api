@@ -1,15 +1,17 @@
 package org.brewchain.cwv.game.enums;
 
 public enum PropertyBidStatusEnum {
-	PREVIEW("0"),// 预竞拍
-	BIDDING("1"), //竞拍中
-	NOTICE("2"), //公示中
-	NOBID("3"); //流拍
-	private String value;
-	PropertyBidStatusEnum(String value){
+	
+	PREVIEW((byte) 0),// 预竞拍
+	BIDDING((byte) 1), //竞拍中
+	NOTICE((byte) 2), //公示中
+	NOBID((byte) 3), //流拍
+	CANCEL((byte) 4); //取消竞拍
+	private byte value;
+	PropertyBidStatusEnum(byte value){
 		this.value = value;
 	}
-	public String getValue() {
+	public byte getValue() {
 		return value;
 	}
 }

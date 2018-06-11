@@ -53,7 +53,7 @@ public class PropertyBidTask implements Runnable {
 		int count = dao.bidDao.countByExample(bidExample);
 		if(count>0) {
 			CWVMarketBid record = new CWVMarketBid();
-			record.setStatus(Byte.parseByte(PropertyBidStatusEnum.BIDDING.getValue()));
+			record.setStatus(PropertyBidStatusEnum.BIDDING.getValue());
 			dao.bidDao.updateByExampleSelective(record, bidExample);
 		}
 		
@@ -70,7 +70,7 @@ public class PropertyBidTask implements Runnable {
 		
 		if(list != null && list.size()>0) {
 			CWVMarketBid record = new CWVMarketBid();
-			record.setStatus(Byte.parseByte(PropertyBidStatusEnum.NOTICE.getValue()));
+			record.setStatus(PropertyBidStatusEnum.NOTICE.getValue());
 			for(Object o : list) {
 				final CWVMarketBid bid = (CWVMarketBid) o;
 				CWVGameProperty gameProperty = new CWVGameProperty();
@@ -88,7 +88,7 @@ public class PropertyBidTask implements Runnable {
 					CWVAuthUser userMax = propertyHelper.getUserHelper().getUserById(auctionMax.getUserId());
 					bid.setOwner(userMax.getUserId());
 					bid.setLastPrice(auctionMax.getBidPrice());
-					bid.setStatus(Byte.parseByte(PropertyBidStatusEnum.NOTICE.getValue()));
+					bid.setStatus(PropertyBidStatusEnum.NOTICE.getValue());
 					//更新房产信息
 					property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
 					property.setUserId(userMax.getUserId());
@@ -109,7 +109,6 @@ public class PropertyBidTask implements Runnable {
 						public Object doInTransaction() {
 							
 							//调取钱包查询竞拍数据
-							
 							
 							//更新竞拍信息
 							propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
@@ -133,7 +132,7 @@ public class PropertyBidTask implements Runnable {
 					});
 					
 				}else{//流拍
-					bid.setStatus(Byte.parseByte(PropertyBidStatusEnum.NOBID.getValue()));
+					bid.setStatus(PropertyBidStatusEnum.NOBID.getValue());
 					bid.setLastUpdateTime(new Date());
 					property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
 					propertyHelper.getDao().gamePropertyDao.doInTransaction(new TransactionExecutor() {

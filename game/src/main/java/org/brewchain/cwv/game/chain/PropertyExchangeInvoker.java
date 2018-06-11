@@ -1,17 +1,19 @@
 package org.brewchain.cwv.game.chain;
 
+import java.math.BigDecimal;
+
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
-import org.brewchain.cwv.auth.impl.UserHelper;
-import org.brewchain.cwv.game.dao.Daos;
-import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.game.helper.WalletHelper;
-import org.brewchain.cwv.service.game.Game.PRetCommon;
+import org.brewchain.cwv.auth.impl.WltHelper;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
+import org.brewchain.cwv.game.helper.CommonHelper;
+import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
+import onight.tfw.ntrans.api.annotation.ActorRequire;
 /**
  * 房产交易
  * @author Moon
@@ -23,7 +25,19 @@ import onight.tfw.ntrans.api.ActorService;
 @Data
 @Instantiate(name="Property_Exchange_Invoker")
 public class PropertyExchangeInvoker implements ActorService {
-	private static String CONTRACT_DRAW = "contract_draw";
+	private static String CONTRACT_EXCHANGE;
+	
+	@ActorRequire(name="Wlt_Helper")
+	WltHelper wltHelper;
+	
+	@ActorRequire(name="Common_Helper")
+	CommonHelper commonHelper;
+	
+	public PropertyExchangeInvoker() {
+		super();
+		CONTRACT_EXCHANGE = commonHelper.getSysSettingValue("contract_exchange");
+	}
+	
 	
 	/**
 	 * 购买房产
@@ -31,11 +45,9 @@ public class PropertyExchangeInvoker implements ActorService {
 	 * @param pwd
 	 * @return
 	 */
-	
-	public PRetCommon.Builder buyProperty(String buyAddress, String propertyId){
+	public RespCreateTransaction.Builder buyProperty(CWVMarketExchange exchange){
 		
-		PRetCommon.Builder ret = PRetCommon.newBuilder();
-		return ret.setRetCode("01").setRetMsg("成功");
+		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_EXCHANGE);
 	}
 	
 	
@@ -48,16 +60,15 @@ public class PropertyExchangeInvoker implements ActorService {
 	 * @return
 	 */
 	
-	public PRetCommon.Builder sellProperty(String sellAddress, String propertyId, double price, double charge  ){
+	public RespCreateTransaction.Builder sellProperty(String sellAddress, String propertyId, double price, double charge  ){
 		
-		PRetCommon.Builder ret = PRetCommon.newBuilder();
-		return ret.setRetCode("01").setRetMsg("成功");
+		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_EXCHANGE);
 	}
 
 
-	public PRetCommon.Builder cancelExchange(String address, String exchangeId) {
-		PRetCommon.Builder ret = PRetCommon.newBuilder();
-		return ret.setRetCode("01").setRetMsg("成功");
+	public RespCreateTransaction.Builder cancelExchange(String address, String exchangeId) {
+		
+		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_EXCHANGE);
 	}
 	
 	

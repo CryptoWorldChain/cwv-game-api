@@ -208,7 +208,7 @@ public class UserHelper implements ActorService {
 
 			@Override
 			public Object doInTransaction() {
-				RetNewAddress.Builder address=  wltHelper.createAccount(null);
+				RetNewAddress.Builder address=  wltHelper.createAccount("");
 				if(address.getRetCode()!=1){
 					throw new IllegalArgumentException("获取钱包账户失败");
 				}

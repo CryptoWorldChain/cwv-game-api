@@ -126,6 +126,7 @@ message PSCreatePropertyBid //CPB
 	string auction_end  = 5; //竞拍开始时间
 	string increase_ladder  = 6; //价格
 	string announce_time = 7; //公示时间
+	string trade_pwd = 8; //交易密码
 }
 
 
