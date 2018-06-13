@@ -382,7 +382,7 @@ ret_msg|string|返回消息|
 参数|类型|说明|示例
 :----|:----|:----|:----
 password|string|新登录密码|
-password_old|string|新登录密码|
+password_old|string|旧登录密码|
 phone_verify_code|string|短信验证码|
 
 	{
@@ -529,7 +529,6 @@ access_token|string|用户标识|
 :----|:----|:----|:----
 ret_code|string|返回状态码<br/>01.校验通过<br/>02.access_token无效<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
-image_url|string|用户头像地址|
 
 
 	{

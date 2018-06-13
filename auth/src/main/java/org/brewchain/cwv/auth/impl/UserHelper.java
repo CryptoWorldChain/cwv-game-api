@@ -180,6 +180,15 @@ public class UserHelper implements ActorService {
 			return;
 		}
 
+		if(StringUtils.isNotBlank(pb.getNickName())){
+			byte[] str=pb.getNickName().getBytes();
+			if(str.length>18){
+				ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_NICKNAME.getRetCode())
+				.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_NICKNAME.getRetMsg());
+				return;
+			}
+		}
+		
 		// 2 初始化用户数据（包含默认值）
 		final CWVAuthUser authUser = new CWVAuthUser();
 		authUser.setNickName(StringUtils.isEmpty(pb.getNickName()) ? pb.getUserName() : pb.getNickName());

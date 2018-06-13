@@ -124,6 +124,7 @@ message PRetWalletAccountBalance{ //WAB
 	string ret_code = 1;
 	string ret_msg = 2;
 	double balance = 3;//账户余额
+	string address = 4;//地址
 }
 
 message PSAccountTopup{ //ATU

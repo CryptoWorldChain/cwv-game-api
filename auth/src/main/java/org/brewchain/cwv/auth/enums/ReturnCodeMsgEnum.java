@@ -24,6 +24,8 @@ public enum ReturnCodeMsgEnum {
 	REG_ERROR_CODE("03","验证码错误"),
 	REG_ERROR_PHONE_CODE("04","短信验证码错误"),
 	REG_ERROR_PHONE_CODE_EXPIRED("05","验证码已过期，请重新发起短信验证！"),
+	REG_ERROR_NICKNAME("06","昵称长度超长"),
+	REG_ERROR_NICKNAME_ILLEGAL("07","昵称存在非法字符"),
 	REG_FREQUENTLY_CALLED("90","注册调⽤过于频繁"),
 	REG_EXCEPTION("99","未知异常"),
 	
