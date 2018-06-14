@@ -454,14 +454,14 @@ ret_msg|string|返回消息|
 nick_name|string|昵称|
 
 	{
-		"password":"123456"
+		"nick_name":"123456"
 	}
 
 ### 输出参数
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.设置昵称成功<br/>80.校验类错误信息<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.设置昵称成功<br/>06.昵称长度超长<br/>80.校验类错误信息<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 
 

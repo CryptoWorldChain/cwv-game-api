@@ -52,6 +52,8 @@ message AccountValueImpl {//地址详细信息
     repeated string address = 7;//地址
     repeated AccountTokenValueImpl tokens = 8;//ERC20 token
     repeated AccountCryptoValueImpl cryptos = 9;//ERC721 token
+    string code = 10;
+    string storage = 11;
 };
 
 message AccountTokenValueImpl {//ERC20 token详情

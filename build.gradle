@@ -54,7 +54,7 @@ subprojects {
 	buildscript {
 	
 		dependencies { 
-			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.19" 
+			classpath "org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.20" 
 		 }
 	}
 	
@@ -62,7 +62,7 @@ subprojects {
 	dependencies {
 		compile ("org.fc.zippo:org.fc.zippo.oapi:3.3.0")
 
-		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.19")
+		compile ("org.brewchain.cwv:org.brewchain.cwv.cwv-game-orm:1.0.20")
 		// compile group: 'commons-net', name: 'commons-net', version: '3.5'
 		
 	}

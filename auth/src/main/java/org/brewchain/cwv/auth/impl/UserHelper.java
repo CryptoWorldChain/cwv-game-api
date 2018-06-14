@@ -367,6 +367,13 @@ public class UserHelper implements ActorService {
 			return;
 		}
 
+		byte[] str=pb.getNickName().getBytes();
+		if(str.length>18){
+			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_NICKNAME.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_NICKNAME.getRetMsg());
+			return;
+		}
+
 		// 更新昵称
 		SubjectModel model = tokenHelper.getUserSub(pack.getExtHead().getSMID());
 		CWVAuthUser authUserUpdate = new CWVAuthUser();
