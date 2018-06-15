@@ -14,6 +14,7 @@ enum PExchangeCommand {
 	PED = 6; //交易详情
 	CTS = 7;//创建交易CreateTxService 
 	GTR = 8;//查询转账交易GetTxRecordService
+	QTS = 9;//查询链上交易状态
 };
 
 
@@ -83,6 +84,7 @@ message ReqCreateTx{
 message ResCreateTx{
 	string ret_code = 1; //错误代码
 	string ret_msg = 2; //提示信息
+	string txHash = 3;
 }
 
 message ReqGetTxRecord{

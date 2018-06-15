@@ -524,7 +524,7 @@ public class WltHelper implements ActorService {
 	 * @return 
 	 * @throws Exception 
 	 */
-	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress){
+	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress,String type){
 		//返回参数
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		//执行合约请求

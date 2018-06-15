@@ -225,6 +225,7 @@ public class WalletHelper implements ActorService {
 			}
 			
 		}
+		ret.setAddress(account.getAccount());
 		ret.setBalance(account.getBalance().doubleValue());
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
@@ -519,6 +520,7 @@ public class WalletHelper implements ActorService {
 			sendRecord.setOutAddress(pb.getAddress());
 			dao.sendRecordDao.insert(sendRecord);
 			ret.setRetCode("01").setRetMsg(res.getRetMsg());
+			ret.setTxHash(res.getTxHash());
 			
 		}else{
 			ret.setRetCode("02").setRetMsg(res.getRetMsg());
