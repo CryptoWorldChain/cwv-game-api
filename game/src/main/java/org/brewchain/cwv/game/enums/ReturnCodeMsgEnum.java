@@ -93,7 +93,6 @@ public enum ReturnCodeMsgEnum {
 	APS_ERROR_ACCOUNT("06","账户余额不足"),
 	APS_ERROR_STATUS_0("07","竞拍未开始"),
 	APS_ERROR_STATUS_2("08","竞拍已结束"),
-	APS_FALURE("09","竞价失败"),
 	APS_ERROR_TIME("10","竞拍已结束"),
 	
 

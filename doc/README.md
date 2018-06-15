@@ -309,6 +309,9 @@ ret_msg|string|状态说明|
 |uid|string|用户标识||
 |nick_name|string|昵称||
 |phone|string|手机号||
+|trade_pwd_set|string|交易密码设置 0 未设置 1已设置||
+|account_balance|string|账户余额||
+|phone_code|string|手机代码||
 |is_supper|string|是否超级玩家  0不是，1是||
 |country_id|string|头像国家ID||
 |country_name|string|头像国家名称||
@@ -360,7 +363,7 @@ phone_verify_code|String|手机验证码|1234
 
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.重置密码成功<br/>02.验证码无效<br/>03 手机号无效<br/>04.次数超限<br/>05.短信验证码错误<br/>80.校验类错误<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.重置密码成功<br/>02.短信验证码错误<br/>03 手机号无效<br/>04.次数超限<br/>80.校验类错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 
 

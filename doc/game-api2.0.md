@@ -352,24 +352,28 @@ total_count|string|总量|
 	    "ret_msg": "查询成功",
 	    "propertyBid": [
 	        {
-	            "property": {
-	                "country_id": "1",
-	                "map_id": "1",
-	                "property_template_id": "11000",
-	                "property_template": "11",
-	                "owner": "simon",
-	                "property_name": "NYK 1 house",
-	                "property_id": "2",
-	                "property_type": 2,
-	                "property_status": 2,
-	                "income_remark": "收益说明",
-	                "income": 1000000,
-	                "image_url": "house/small-house/11005.png",
-	                "map_template": "2101",
-	                "price": "20000.0000"
+	           "property": {
+				"country_id": "1",
+				"map_id": "1",
+				"property_template_id": "22005",
+				"property_template": "22",
+				"owner": "simon",
+				"property_name": "NYK 86 building",
+				"property_id": "87",
+				"property_type": 2,
+				"property_status": 2,
+				"income_remark": "收益说明",
+				"income": 1003448,
+				"image_url": "building/commercial-building/22018.png",
+				"map_template": "2101",
+				"price": "1000.0000"
 	            },
 	            "bid": {
-	                "user_price": "4000.0000"
+	                "bid_id": "96",
+				"auction_start": "2018-05-16 18:00:00",
+				"auction_end": "2018-06-16 19:00:00",
+				"price": "0",
+				"status": "1" 
 	            }
 	        }
 	    ],
@@ -396,13 +400,13 @@ price|string|价格|
 
 	{
 		"bid_id":"2",
-		"price":"14000.0",	
+		"price":"14000.0"
 	}
 	
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.竞价成功<br/>02.竞拍房产ID错误<br/>03.价格错误<br/>04.竞拍价格必须是单位增加量的倍数<br/>05.竞价必须高于当前竞拍价<br/>06.账户余额不足<br/>07.竞拍未开始<br/>08.竞拍已结束<br/>10.竞拍已结束<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 exchange|object|竞拍信息|
 price|string|竞拍最高价|
@@ -441,7 +445,7 @@ bid_id|string|竞拍ID|
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.查询成功<br/>02.查询竞拍ID错误<br/>03.房产竞拍状态错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 property|object|竞拍对象中的房产对象|
 country_id|string|所属国家|
@@ -1063,7 +1067,19 @@ ret_msg|string|返回消息|
 ### HTTP请求方式
 	POST
 ### 输入参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+name|string|游戏名称|
+game_status|string|游戏状态 new hot|
+income_order|string|收益排序 1 从高到低 |
+hot_order|string|热度排序 1 从高到低 |
+game_type|string|游戏运行类型 h5, apk, ipa |
 	{
+		"name": "ou",
+		"game_status": "new",
+		"income_order": "1",
+		"hot_order": "1",
+		"game_type": "h5",
 		"page_index":"1",
 		"page_size":"10"
 	}
@@ -1094,7 +1110,10 @@ gameInfo|object|数组中的游戏信息对象|
 game_id|string|交易ID|
 name|string|游戏名称|
 type|string|游戏类型  0 sports|
-status|string|交易状态  0发起，1进行中，2结束|
+status|string|状态，0发起，1进行，2结束|
+game_type|string|游戏运行类型  h5, apk, ipa|
+game_status|string|游戏状态 new hot|
+game_url|string|游戏地址|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -1113,6 +1132,7 @@ total_count|string|总量|
 	                    "map_id": "1",
 	                    "property_template_id": "51000",
 	                    "property_template": "51",
+	                    "owner": "1237",
 	                    "property_name": "Crypto Statue of Liberty ",
 	                    "property_id": "1",
 	                    "property_type": 1,
@@ -1121,13 +1141,18 @@ total_count|string|总量|
 	                    "income": 1000000,
 	                    "image_url": "unique/1.png",
 	                    "map_template": "2101",
-	                    "price": "0.0000"
+	                    "price": "0.0000",
+	                    "longitude": "-74.0445",
+	                    "latitude": "40.691983"
 	                },
 	                "gameInfo": {
 	                    "game_id": "1",
-	                    "name": "game1",
+	                    "name": "Youwin",
 	                    "type": "1",
-	                    "status": "0"
+	                    "status": "0",
+	                    "game_type": "h5",
+	                    "game_url": "url",
+	                    "game_status": "new"
 	                }
 	            }
 	        ],
@@ -1185,6 +1210,9 @@ developers|string||
 players|string|玩家数量|
 developers|string|游戏类型  0 sports|
 images|string|图片信息|
+game_type|string|游戏运行类型  h5, apk, ipa|
+game_status|string|游戏状态 new hot|
+game_url|string|游戏地址|
 
 	{
 	    "codeMsg": {
@@ -1197,6 +1225,7 @@ images|string|图片信息|
 	            "map_id": "1",
 	            "property_template_id": "51000",
 	            "property_template": "51",
+	            "owner": "1237",
 	            "property_name": "Crypto Statue of Liberty ",
 	            "property_id": "1",
 	            "property_type": 1,
@@ -1211,13 +1240,16 @@ images|string|图片信息|
 	        },
 	        "gameDetail": {
 	            "game_id": "1",
-	            "name": "game1",
+	            "name": "Youwin",
 	            "type": "1",
 	            "status": "0",
 	            "developers": "1",
 	            "players": "1",
-	            "instructions": "1111",
-	            "images": "image"
+	            "instructions": "The Youwin.io is a traceable guessing platform using blockchain technology. It is a reliable and transparent decentralized guessing platform for competitions and games, on which not only the awards and rules are transparent and standardized, but also the results and the reward distribution are fair and untampered.\r\nAs a decentralized guessing platform, Youwin.io will provide global users with a variety of guessing game experiences. It allowis anyone to be and taste the fun of a dealer. It will make the game rules through smart contracts, so the deposit will lock into the contract to guarantee the repayment of the dealer.\r\n",
+	            "images": "image",
+	            "game_type": "h5",
+	            "game_url": "url",
+	            "game_status": "new"
 	        }
 	    }
 	}

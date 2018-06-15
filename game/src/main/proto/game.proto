@@ -135,9 +135,14 @@ message Property
 message ExchangeInfo
 {
 	string exchange_id = 3; //交易ID
-	double price = 8; // 价格
-	int32 status = 10; // 交易状态 0发起，1成功，2撤销
+	//double price = 8; // 价格
+	//int32 status = 10; // 交易状态 0发起，1成功，2撤销
+	string status = 10; // 交易状态 0发起，1成功，2撤销 //竞拍状态  0发起，1竞拍中 ，2完成
 	string bidding_time = 11;//结束时间
+	string bid_id = 12; //交易ID
+	string auction_start = 13;//开始时间
+	string auction_end = 14;//结束时间
+	string price = 15; //最终价格
 	string user_price = 18;//用户出价
 	string max_price_user = 19;//最高出价者
 }
@@ -211,21 +216,27 @@ message PRetGameIntroduction //GIS
 }
 message PSPropertyGame
 {
-
-	string name = 1;//游戏类型
-	string type = 2;//游戏类型
-	string status = 3; // 状态 0发起 1进行 2结束
-	string page_index = 7;//页索引
-	string page_size = 8;//页大小
+	
+	string name = 1;//游戏名称
+	string game_type = 2;//游戏类型
+	string hot_order = 4;//最热排序 0 不排序 1排序
+	string income_order = 5;//游戏类型  0 不排序 1排序
+	string status = 6; // 状态 0发起 1进行 2结束
+	string game_status = 7;//游戏状态 new hot
+	string page_index = 17;//页索引
+	string page_size = 18;//页大小
 }
 
 message PropertyGameInfo {
 	Property property = 3; //房产信息
 	message GameInfo{
 		string game_id = 1;//游戏Id
-		string name = 2;//游戏类型
+		string name = 2;//游戏名称
 		string type = 3;//游戏类型
 		string status = 4; // 状态 0发起 1进行 2结束
+		string game_type = 5; // 游戏类型  h5, apk, ipa
+		string game_url = 6; // 调取游戏地址
+		string game_status = 7; // 游戏状态 new hot
 	}
 	GameInfo gameInfo = 4; //游戏信息
 	
@@ -238,13 +249,17 @@ message PSPropertyGameDetail
 
 message GameDetail{
 		string game_id = 1;//游戏Id
-		string name = 2;//游戏类型
+		string name = 2;//游戏名称
 		string type = 3;//游戏类型
 		string status = 4; // 状态 0发起 1进行 2结束
 		string developers = 5; // 
 		string players = 6; // 玩家数
 		string instructions = 7; // 游戏介绍
 		string images = 8; // 图片多个以英文,分隔
+		
+		string game_type = 15; // 游戏类型  h5, apk, ipa
+		string game_url = 16; // 调取游戏地址
+		string game_status = 17; // 游戏状态 new hot
 }
 
 message RetCodeMsg
