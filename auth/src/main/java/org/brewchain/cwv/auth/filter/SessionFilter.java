@@ -41,42 +41,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 	public final static String STR_REQUEST_METHOD = PackHeader.EXT_IGNORE_RESPONSE + "_method";
 	public final static String STR_IS_SESSION = PackHeader.EXT_IGNORE_RESPONSE + "_issession";
 	public final static int SES_TIMTOUT = 60 * 20;// session超时时间
-	public final static HashSet<String> noLoginUrlList = new HashSet<String>() {
-		{
-			add("/usr/pbreg.do");//注册
-			add("/usr/pblin.do");//登陆
-			add("/usr/pblou.do");//注销
-			add("/usr/pbrsp.do");//重置密码
-			add("/tkn/pbrts.do");//刷新token
-			add("/tkn/pbats.do");//校验token
-			add("/usr/pbsmc.do");//发送短信
-			add("/usr/pbdis.do");//校验重复
-			
-			//murphy
-			add("/gga/pbgcs.do");
-			add("/gga/pbgcc.do");
-			add("/gga/pbgcm.do");
-			
-			//leo
-			add("/sms/pbmsg.do");
-			add("/sms/pbver.do");
-			add("/sms/pbmsv.do");
-			add("/sms/pbaut.do");
-			add("/nsd/pbcol.do");
-			
-			//test
-			add("/tts/pbnad.do");
-			add("/tts/pbqad.do");
-			add("/tts/pbnts.do");
-			add("/tts/pbqts.do");
-			add("/tts/pbncr.do");
-			add("/tts/pbdcr.do");
-			
-			add("/gea/pbqts.do");
-			
-			
-		}
-	}; // 可配置
+	public static HashSet<String> noLoginUrlList ; // 可配置
 	public static HashMap<String,String> userMap = new HashMap<String,String>();
 	public final static boolean ischeckrole = false; // 测试使用，是否走url验证,可配置，临时添加到代码内
 
@@ -100,6 +65,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 	@Override
 	public void init(FilterConfig filterConfig) throws FilterException {
 		super.init(filterConfig);
+		noLoginUrlList = dao.
 	}
 
 	@Override

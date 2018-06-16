@@ -42,7 +42,7 @@ public enum ReturnCodeMsgEnum {
 	 * 查询钱包账户列表
 	 */
 	PDS_SUCCESS("01","抽奖成功"),
-	PDS_ERROR_DRAW_COUNT("02","暂无抽奖次数"),
+	PDS_ERROR_DRAW_COUNT("02","抽奖次数不足"),
 	
 	/**
 	 * 抽奖房产

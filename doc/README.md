@@ -356,7 +356,7 @@ phone_verify_code|String|手机验证码|1234
 	{
 		"phone":"13161531208",
 		"password":"123456",
-		"phone_verify_code":"123456"
+		"phone_verify_code":"1234"
 	}
 
 ### 输出参数
@@ -891,7 +891,7 @@ cycle_period|string|轮播周期|
 count|string|轮播次数|
 
 	{	
-		"notice_type":"0",
+		"notice_type":"1",
 		"notice_content":"notice_content",
 		"start_time":"2018-05-17 23:00:00",
 		"end_time":"2018-05-18 10:00:00",
@@ -934,7 +934,7 @@ page_num|string|页数|
 
 	{
 		"notice_topic":"notice",
-		"notice_type":"0",
+		"notice_type":"1",
 		"page_index":"1",
 		"page_size":"10",
 		"page_num":"1"
@@ -983,9 +983,14 @@ count|number|循环次数||
 :----|:----|:----|:----
 phone|string|手机号|
 user_name|string|用户名|
-
+	
+	
 	{	
 		"user_name":"梁123"
+	}
+	
+	{
+		"phone":"13261200857"
 	}
 
 

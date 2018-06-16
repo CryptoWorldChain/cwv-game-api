@@ -43,7 +43,7 @@ price_type|string|价格排序 0降序 1升序|[0]
 income_type|string|收益排序 0降序 1升序|
 country_id|string|国家|
 city_id|string|城市|
-property_type|string|房产类型 <br/>1：价值房产<br/>2：功能型房产<br/>3：标志性房产|
+property_type|string|房产类型 <br/>1：普通房产<br/>2：功能型房产<br/>3：标志性房产|
 property_name|string|房产名称|
 user_only|string|状态 0所有房产  1个人房产|
 exchange_status|string| 交易状态0 售出中 1已售出 2撤销  不传时，只查普通房产|
@@ -83,10 +83,11 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+price|string|价格|
 exchange|object|数组中的交易对象|
 exchange_id|string|交易ID|
 price|string|卖出价格|
-status|string|交易状态  0发起，1成功，2撤销|
+status|string|交易状态  0 售出中 1已售出 2撤销|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -329,7 +330,7 @@ auction_start|string|开始时间|
 auction_end|string|结束时间|
 price|string|竞拍最终价格|
 status|string|竞拍状态  0发起，1竞拍中 ，2完成|
-property|object|竞拍对象中的房产对象|
+property|object|数组中的房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
 map_template|string|所属地图模板|
@@ -341,7 +342,9 @@ property_id|string|房产ID|
 property_type|string|房产类型|
 property_status|string|房产状态|
 income_remark|string|收益说明|
+income|string|收益|
 image_url|string|房产图片地址|
+price|string|价格|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -511,7 +514,7 @@ bid_id|string|竞拍ID|
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
+ret_code|string|返回状态码<br/>01.查询成功<br/>02.查询竞拍ID错误<br/>03.房产竞拍状态错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 property|object|竞拍对象中的房产对象|
 country_id|string|所属国家|
@@ -524,6 +527,7 @@ property_name|string|房产名称|
 property_id|string|房产ID|
 property_status|string|房产状态|
 income_remark|string|收益说明|
+income|string|收益|
 image_url|string|房产图片地址|
 bid_price|string|竞拍价格|
 auctionRank|object|竞拍人员对象数组|
@@ -536,24 +540,25 @@ bid_amount|string|竞拍额度|
 	    "property": {
 	        "country_id": "1",
 	        "map_id": "1",
-	        "property_template_id": "14007",
-	        "property_template": "14",
-	        "property_name": "NYK 50 apartment",
-	        "property_id": "51",
+	        "property_template_id": "13002",
+	        "property_template": "13",
+	        "owner": "梁123",
+	        "property_name": "NYK 31 apartment",
+	        "property_id": "32",
 	        "property_type": 0,
 	        "property_status": 0,
 	        "income_remark": "收益说明",
-	        "image_url": "asdasdad"
+	        "income": 0,
+	        "image_url": "house/apartment/13002.png",
+	        "map_template": "2101"
 	    },
-	    "bid_price": 14000,
+	    "bid_price": 1000,
+	    "user_price": "0",
+	    "max_price_user": "lj",
 	    "auctionRank": [
 	        {
-	            "nick_name": "18811879",
-	            "bid_amount": "14000.0000"
-	        },
-	        {
-	            "nick_name": "kael",
-	            "bid_amount": "13000.0000"
+	            "nick_name": "lj",
+	            "bid_amount": "1000.0000"
 	        }
 	    ]
 	}
