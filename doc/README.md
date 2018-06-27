@@ -585,7 +585,7 @@ refresh_token|string|用于刷新access_token|
 	注销成功后，access_token和refresh_token立即失效。
 
 ### URL
-	/cwv/usr/pblout.do
+	/cwv/usr/pblou.do
 ### HTTP请求方式
 	POST
 ### 输入参数
