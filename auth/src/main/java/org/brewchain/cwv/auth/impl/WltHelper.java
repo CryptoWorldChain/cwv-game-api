@@ -236,7 +236,7 @@ public class WltHelper implements ActorService {
 			return ret;
 		}
 		String data = JsonSerializer.getInstance().formatToString(codeBuild);
-		return createContract(address, amount, data,type);
+		return createContract(address, amount, codeBuild.data,type);
 	}
 
 	
