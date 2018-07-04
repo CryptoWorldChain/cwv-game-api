@@ -27,19 +27,14 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Instantiate(name="Property_Draw_Invoker")
 public class PropertyDrawInvoker implements ActorService {
 
-	private static String CONTRACT_DRAW ;
+	private String CONTRACT_DRAW = this.commonHelper.getSysSettingValue("contract_draw");
 	
 	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
 	
-	@ActorRequire(name="Wlt_Helper")
+	@ActorRequire(name="Wlt_Helper", scope = "global")
 	WltHelper wltHelper;
 
-	public PropertyDrawInvoker() {
-		super();
-		CONTRACT_DRAW = commonHelper.getSysSettingValue("contract_draw");
-	}
-	
 	/**
 	 * 抽奖房产
 	 * @param buyAddress

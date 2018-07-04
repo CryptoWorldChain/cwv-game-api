@@ -209,14 +209,14 @@ public class TokenHelper implements ActorService {
 		// 校验是否有效
 		CheckResult resultAccess = TokenMgr.validateJWT(pb.getAccessToken());
 		if (!resultAccess.isSuccess()) {
-			ret.setRetCode(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetMsg());
+			ret.setRetCode(resultAccess.getErrCode())
+					.setRetMsg(resultAccess.getMsg());
+			return ;
 		}
 
 		// 查询redis是否存在
 		SubjectModel model = this.getUserSubByCheck(resultAccess);
-		String redisToken = redisAccessToken(model.getUid());
-		if (!pb.getAccessToken().equals(redisToken)) {
+		if (!redisAccessToken(model.getUid(),pb.getAccessToken())) {
 			ret.setRetCode(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetMsg());
 			return;
@@ -233,9 +233,11 @@ public class TokenHelper implements ActorService {
 	 *            用户ID
 	 * @return
 	 */
-	private String redisAccessToken(int uid) {
-		// TODO Auto-generated method stub
-		return null;
+	private boolean redisAccessToken(int uid, String accessToken) {
+		if(SessionFilter.userMap.containsKey(uid+"") && SessionFilter.userMap.get(uid+"").equals(accessToken)){
+			return true;
+		}
+		return false;
 	}
 
 }

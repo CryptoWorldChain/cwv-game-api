@@ -49,7 +49,7 @@ public class UserPropertyExchangeService extends SessionModules<PSPropertyExchan
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetPropertyExchange.Builder ret = PRetPropertyExchange.newBuilder();
 		try{
-			propertyHelper.getUserPropertyExchange(pb, ret, pack);
+//			propertyHelper.getUserPropertyExchange(pb, ret, pack);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());

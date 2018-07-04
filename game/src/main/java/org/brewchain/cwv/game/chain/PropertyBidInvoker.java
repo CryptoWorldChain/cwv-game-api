@@ -28,12 +28,12 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Instantiate(name="Property_Bid_Invoker")
 public class PropertyBidInvoker implements ActorService {
 	
-	private static String CONTRACT_BID;
+	private String CONTRACT_BID = this.commonHelper.getSysSettingValue("contract_bid");
 	
 	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
 	
-	@ActorRequire(name="Wlt_Helper")
+	@ActorRequire(name="Wlt_Helper", scope = "global")
 	WltHelper wltHelper;
 	
 	public PropertyBidInvoker() {

@@ -226,34 +226,19 @@ public class WltHelper implements ActorService {
 	 */
 	public RespCreateContractTransaction.Builder createContract(String address,BigDecimal amount,String type) {
 		RespCreateContractTransaction.Builder ret = RespCreateContractTransaction.newBuilder();
+		ReqCreateContractTransaction.Builder reqCreateContractTransaction = ReqCreateContractTransaction.newBuilder();
+		MultiTransactionInputImpl.Builder multiTransactionInputImpl = MultiTransactionInputImpl.newBuilder();
 		//TODO 拼装合约内容待确认，根据合约类型，拼装合约模板，创建合约 ReqCreateContractTransaction.data
-		excuteContract();
+//		excuteContract();
 		CodeBuild.Result codeBuild = buildContract(type);
+		
 		if(codeBuild==null||StringUtils.isNotBlank(codeBuild.error)){
 			ret.setRetMsg("创建合约失败，请重新操作");
 			ret.setRetCode(-1);
 			log.debug("合约编译失败");
 			return ret;
 		}
-		String data = JsonSerializer.getInstance().formatToString(codeBuild);
-		return createContract(address, amount, data,type);
-	}
-
-	
-	/**
-	 * 创建合约
-	 * @param address 合约发起发地址
-	 * @param amount 金额
-	 * @param type 合约类型
-	 * @return RespCreateContractTransaction.Builder 包含合约地址和交易hash
-	 * @throws Exception 
-	 */
-	public RespCreateContractTransaction.Builder createContract(String address,BigDecimal amount,String data,String type) {
-		RespCreateContractTransaction.Builder ret = RespCreateContractTransaction.newBuilder();
-		ReqCreateContractTransaction.Builder reqCreateContractTransaction = ReqCreateContractTransaction.newBuilder();
-		MultiTransactionInputImpl.Builder multiTransactionInputImpl = MultiTransactionInputImpl.newBuilder();
-		
-		reqCreateContractTransaction.setData(data);
+		reqCreateContractTransaction.setData(JsonSerializer.getInstance().formatToString(codeBuild));
 		
 		//获取账户nonce
 		RespGetAccount.Builder accountMap = getAccountInfo(address);
@@ -539,7 +524,7 @@ public class WltHelper implements ActorService {
 	 * @return 
 	 * @throws Exception 
 	 */
-	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress,String type){
+	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress){
 		//返回参数
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		//执行合约请求

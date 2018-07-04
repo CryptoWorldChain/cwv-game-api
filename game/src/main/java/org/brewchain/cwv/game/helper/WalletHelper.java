@@ -264,41 +264,14 @@ public class WalletHelper implements ActorService {
 	}
 
 
-
-
+	
+	/**
+	 * 充值接口
+	 * @param pack
+	 * @param pb
+	 * @param ret
+	 */
 	public void accountTopup(FramePacket pack, PSAccountTopup pb, PRetAccountTopup.Builder ret) {
-		//校验
-		if(StringUtils.isEmpty(pb.getAmount())) {
-			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
-			.setRetMsg("充值金额不能为空");
-			return ;
-		}
-		CWVUserWalletTopup topup = new CWVUserWalletTopup();
-		//充值操作
-		if(StringUtils.isEmpty(pb.getCoinType())) {
-			topup.setCoinType((byte) CoinEnum.CWB.getValue());
-		}else {
-			topup.setCoinType(Byte.parseByte(pb.getCoinType()));
-		}
-		
-		CWVAuthUser user = userHelper.getCurrentUser(pack);
-		CWVUserWallet wallet = getUserAccount(user.getUserId(), CoinEnum.CWB);
-		
-		topup.setAddress(wallet.getAccount());
-		topup.setAmount(new BigDecimal(pb.getAmount()));
-		topup.setUserId(user.getUserId());
-//		topup.setStatus((byte) 0);
-		topup.setStatus((byte) 1);
-		topup.setCreateTime(new Date());
-		dao.topupDao.insert(topup);
-		int countHistory = wallet.getBalance().intValue()/1000;
-		
-		wallet.setBalance(wallet.getBalance().add(new BigDecimal(pb.getAmount())));
-		int countNew = wallet.getBalance().intValue()/1000;
-		
-		wallet.setDrawCount(wallet.getDrawCount()+(countNew-countHistory));
-		wallet.setTopupBalance(wallet.getTopupBalance().add(new BigDecimal(pb.getAmount())));
-		dao.walletDao.updateByPrimaryKeySelective(wallet);
 		
 		CWVUserRechargeAddressExample example = new CWVUserRechargeAddressExample();
 		
@@ -310,11 +283,15 @@ public class WalletHelper implements ActorService {
 		ret.setAddress(address.getRechargeAddress());
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
-		ret.setAmount(topup.getAmount().doubleValue());
-		
 	}
 
-
+	/**
+	 * 钱包账户信息
+	 * @param pack
+	 * @param pb
+	 * @param ret
+	 * @param builder
+	 */
 	public void walletInfo(FramePacket pack, PSCommon pb,
 			PRetCommon.Builder ret, RetCodeMsg.Builder builder) {
 		// TODO Auto-generated method stub

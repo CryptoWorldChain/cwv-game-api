@@ -10,22 +10,29 @@ import lombok.Data;
 public enum ReturnCodeMsgEnum {
 	
 	/**
-	 * 登陆
+	 * filter返回错误信息 
+	 */
+	FILTER_NO_LOGIN("100","未登录"),
+	FILTER_CHECK_LOGIN_ERROR("101","登陆已过期"),
+	
+	/**
+	 * 手机用户名重复性校验
 	 */
 	DIS_SUCCESS("01","登录成功"),
-	DIS_DUPLICATE_PHONE("02","⼿机号重复"),
+	DIS_DUPLICATE_PHONE("02","手机号重复"),
 	DIS_DUPLICATE_NAME("03","用户名重复"),
 	
 	/**
 	 * 注册
 	 */
 	REG_SUCCESS("01","注册成功"),
-	REG_DUPLICATE_PHONE("02","⼿机号已注册"),
+	REG_DUPLICATE_PHONE("02","手机号已注册"),
 	REG_ERROR_CODE("03","验证码错误"),
 	REG_ERROR_PHONE_CODE("04","短信验证码错误"),
 	REG_ERROR_PHONE_CODE_EXPIRED("05","验证码已过期，请重新发起短信验证！"),
 	REG_ERROR_NICKNAME("06","昵称长度超长"),
 	REG_ERROR_NICKNAME_ILLEGAL("07","昵称存在非法字符"),
+	REG_DUPLICATE_NAME("08","用户名重复"),
 	REG_FREQUENTLY_CALLED("90","注册调⽤过于频繁"),
 	REG_EXCEPTION("99","未知异常"),
 	
@@ -41,9 +48,8 @@ public enum ReturnCodeMsgEnum {
 	 * 重置密码
 	 */
 	RSP_SUCCESS("01","重置密码成功"),
-	RSP_ERROR_CODE("02","验证码无效"),
+	RSP_ERROR_PHONE_CODE("02","短信验证码无效"),
 	RSP_ERROR_PHONE("03","手机号无效"),
-	RSP_ERROR_PHONE_CODE("04","短信验证码无效"),
 	RSP_ERROR_TIMES("05","次数超限"),
 	RSP_EXCEPTION("99","未知异常"),
 	
@@ -90,7 +96,9 @@ public enum ReturnCodeMsgEnum {
 	 * 校验token
 	 */
 	ATS_SUCCESS("01","校验通过"),
-	ATS_ERROR_TOKEN("02","access_token无效"),
+	ATS_ERROR_TOKEN("02","无效"),
+	ATS_ERROR_EXPIRE("03","已过期"),
+	
 	ATS_EXCEPTION("99","未知异常"),
 	
 	/**

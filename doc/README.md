@@ -166,10 +166,10 @@ ret_msg|string|状态说明|
 	     
 
 	{
-	"short_name":"123456"，
-	“page_index”：“1”，
-	“page_size”：“10”，
-	“is_page”：“1”
+		"short_name":"123456"，
+		“page_index”：“1”，
+		“page_size”：“10”，
+		“is_page”：“1”
 	}
 
 	short_name		简称的模糊搜索
@@ -287,12 +287,10 @@ ret_msg|string|状态说明|
 |:----|:----|:----|:----|
 |phone|string|手机号|18512345678|
 |password|string|登录密码||
-|phone_verify_code|string|登录验证码|1234|
 
 	{
 		"phone":"13161531208",
-		"password":"123456",
-		"phone_verify_code":"123456"
+		"password":"123456"
 	}
 
 ### 输出参数
@@ -420,12 +418,10 @@ ret_msg|string|返回消息|
 参数|类型|说明|示例
 :----|:----|:----|:----
 password|string|交易密码|
-password_old|string|旧交易密码|
 phone_verify_code|string|短信验证码|
 
 	{
 		"password":"123456",
-		"password_old":"133456",
 		"phone_verify_code":"3456"
 	}
 
@@ -456,9 +452,9 @@ ret_msg|string|返回消息|
 :----|:----|:----|:----
 nick_name|string|昵称|
 
-	{
-		"nick_name":"123456"
-	}
+		{
+			"nick_name":"123456"
+		}
 
 ### 输出参数
 

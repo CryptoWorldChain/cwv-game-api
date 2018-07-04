@@ -67,7 +67,7 @@ public class GameNoticeInService extends SessionModules<PBGameNoticeIn> {
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetGameNoticeIn.Builder ret = PRetGameNoticeIn.newBuilder();
 		try{
-			gameNoticeHelper.noticeIn(pb, ret);
+			gameNoticeHelper.noticeIn(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.dao.Dao;
+import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.util.jwt.CheckResult;
 import org.brewchain.cwv.auth.util.jwt.GsonUtil;
 import org.brewchain.cwv.auth.util.jwt.SubjectModel;
@@ -65,7 +66,45 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 	@Override
 	public void init(FilterConfig filterConfig) throws FilterException {
 		super.init(filterConfig);
-		noLoginUrlList = dao.
+		initLoginUrlList();
+	}
+	
+	private static void initLoginUrlList() {
+		if(noLoginUrlList == null) {
+			//TODO 改为查询库
+			noLoginUrlList = new HashSet<String>() {
+				{
+					add("/usr/pbreg.do");//注册
+					add("/usr/pblin.do");//登陆
+					add("/usr/pblou.do");//注销
+					add("/usr/pbrsp.do");//重置密码
+					add("/tkn/pbrts.do");//刷新token
+					add("/tkn/pbats.do");//校验token
+					add("/usr/pbsmc.do");//发送短信
+					add("/usr/pbdis.do");//校验重复
+					
+					//murphy
+					add("/gga/pbgcs.do");
+					add("/gga/pbgcc.do");
+					add("/gga/pbgcm.do");
+					
+					//leo
+					add("/sms/pbmsg.do");
+					add("/sms/pbver.do");
+					add("/sms/pbmsv.do");
+					add("/sms/pbaut.do");
+					add("/nsd/pbcol.do");
+					
+					//test
+					add("/tts/pbnad.do");
+					add("/tts/pbqad.do");
+					add("/tts/pbnts.do");
+					add("/tts/pbqts.do");
+					add("/tts/pbncr.do");
+					add("/tts/pbdcr.do");
+				}};
+		}
+		
 	}
 
 	@Override
@@ -176,9 +215,11 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			// 无smid 就是没有session，判断当前请求是否走session块验证，即是否走filter
 //			throw new FilterException("filter: [this request no session...]");
 			PRetCommon.Builder ret = PRetCommon.newBuilder();
-			ret.setRetCode("100").setRetMsg("未登录");
+			ret.setRetCode(ReturnCodeMsgEnum.FILTER_NO_LOGIN.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.FILTER_NO_LOGIN.getRetMsg());
 			// 返回给客户端
 			handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
+			return false ;
 		}
 
 		// 有session，获取当前session
@@ -186,13 +227,27 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 		CheckResult checkResult = TokenMgr.validateJWT(smid);
 
 		if (!checkResult.isSuccess()) {
-			throw new FilterException("filter: [" + checkResult.getMsg() + "]");
+//			throw new FilterException("filter: [" + checkResult.getMsg() + "]");
+			PRetCommon.Builder ret = PRetCommon.newBuilder();
+			ret.setRetCode(ReturnCodeMsgEnum.FILTER_CHECK_LOGIN_ERROR.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.FILTER_CHECK_LOGIN_ERROR.getRetMsg());
+			// 返回给客户端
+			handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
+		
+			return false ;
 		}
 
 		Claims claims = checkResult.getClaims();
 		SubjectModel usrInfo = GsonUtil.jsonStrToObject(claims.getSubject(), SubjectModel.class);
 		if(!userMap.containsKey(usrInfo.getUid()+"") || !userMap.get(usrInfo.getUid()+"").equals(smid)){
-			throw new FilterException("filter: [" + checkResult.getMsg() + "]");
+//			throw new FilterException("filter: [" + checkResult.getMsg() + "]");
+		
+			PRetCommon.Builder ret = PRetCommon.newBuilder();
+			ret.setRetCode(ReturnCodeMsgEnum.FILTER_CHECK_LOGIN_ERROR.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.FILTER_CHECK_LOGIN_ERROR.getRetMsg());
+			// 返回给客户端
+			handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
+			return false ;
 		}
 		pack.getExtHead().append(STR_IS_SESSION, "1");
 		pack.getExtHead().append(STR_SESSION_SMID, smid);

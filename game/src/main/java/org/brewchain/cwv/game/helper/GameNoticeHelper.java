@@ -7,6 +7,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.cwv.auth.impl.UserHelper;
+import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.PageUtil;
@@ -49,6 +51,9 @@ public class GameNoticeHelper implements ActorService {
 
 	@ActorRequire(name = "http", scope = "global")
 	IPacketSender sender;
+	
+	@ActorRequire(name = "User_Helper", scope = "global")
+	UserHelper userHelper;
 	
 	public enum NoticeTopicEnum{
 		NOTICE("notice"),
@@ -100,9 +105,19 @@ public class GameNoticeHelper implements ActorService {
 	/**
 	 * 新增官方公告
 	 */
-	public void noticeIn(PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
+	public void noticeIn(FramePacket pack, PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
 		
-		Map<String,String> jsonRet = noticeCreate(pb.getNoticeType(), pb.getStartTime(), pb.getEndTime(), pb.getCyclePeriod()+"", pb.getCount()+"", pb.getNoticeContent());
+		if(StringUtils.isNotBlank(pb.getUserId())) {
+			CWVAuthUser authUser = userHelper.getCurrentUser(pack);
+			
+			if(!authUser.getUserId().toString().equals(pb.getUserId())) {
+				ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+				ret.setRetMsg("FAILD");
+				return ;
+			}
+		}
+		
+		Map<String,String> jsonRet = noticeCreate(pb.getNoticeType(),pb.getUserId(), pb.getStartTime(), pb.getEndTime(), pb.getCyclePeriod()+"", pb.getCount()+"", pb.getNoticeContent());
 		if(jsonRet.get("errcode").equals("000")){
 			ret.setRetCode("01");
 			ret.setRetMsg("SUCCESS");
@@ -113,11 +128,12 @@ public class GameNoticeHelper implements ActorService {
 		
 	}
 	
-	public Map<String,String> noticeCreate(String noticeType,String startTime,String endTime,String cyclePeriod,String count,String noticeContent) {
+	public Map<String,String> noticeCreate(String noticeType, String userId, String startTime,String endTime,String cyclePeriod,String count,String noticeContent) {
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode jsonMap = mapper.createObjectNode();
 		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
 		jsonMap.put("type", noticeType);
+		jsonMap.put("userid", userId);
 		
 		
 		ObjectNode timeMap = mapper.createObjectNode();
@@ -165,6 +181,8 @@ public class GameNoticeHelper implements ActorService {
 		url.append(noticeOutUrl);
 		url.append("?");
 		url.append("type="+pb.getNoticeType());
+		url.append("&");
+		url.append("userId="+pb.getUserId());
 		url.append("&");
 //		url.append("topic="+pb.getNoticeTopic());
 		url.append("topic="+NoticeTopicEnum.NOTICE.getValue());
