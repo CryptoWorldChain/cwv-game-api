@@ -226,9 +226,12 @@ public class WltHelper implements ActorService {
 	 */
 	public RespCreateContractTransaction.Builder createContract(String address,BigDecimal amount,String type) {
 		RespCreateContractTransaction.Builder ret = RespCreateContractTransaction.newBuilder();
+		ReqCreateContractTransaction.Builder reqCreateContractTransaction = ReqCreateContractTransaction.newBuilder();
+		MultiTransactionInputImpl.Builder multiTransactionInputImpl = MultiTransactionInputImpl.newBuilder();
 		//TODO 拼装合约内容待确认，根据合约类型，拼装合约模板，创建合约 ReqCreateContractTransaction.data
-		excuteContract();
+//		excuteContract();
 		CodeBuild.Result codeBuild = buildContract(type);
+		
 		if(codeBuild==null||StringUtils.isNotBlank(codeBuild.error)){
 			ret.setRetMsg("创建合约失败，请重新操作");
 			ret.setRetCode(-1);
@@ -539,7 +542,7 @@ public class WltHelper implements ActorService {
 	 * @return 
 	 * @throws Exception 
 	 */
-	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress,String type){
+	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress){
 		//返回参数
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		//执行合约请求

@@ -1,11 +1,16 @@
 package org.brewchain.cwv.game.service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMapExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
+import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Game.PBGameMap;
@@ -75,14 +80,14 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			criteria.andMapNameLikeInsensitive("%"+pb.getShotName()+"%");
 		}
 
-		if(StringUtils.isNotBlank(pb.getIsPage())&&"1".equals(pb.getIsPage())){
-			PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
-			mapExample.setLimit(page.getLimit());
-			mapExample.setOffset(page.getOffset());
-			
-			ret.setTotalCount(dao.gameMapDao.countByExample(mapExample)+"");
-		}
+		PageUtil page = new PageUtil(null, pb.getPageSize());
+		mapExample.setLimit(page.getLimit());
+		mapExample.setOffset(page.getOffset());
+		
+		ret.setTotalCount(dao.gameMapDao.countByExample(mapExample)+"");
+		
 		List<Object> maps = dao.gameMapDao.selectByExample(mapExample);
+		
 		for(Object mapObj : maps){
 			CWVGameMap map = (CWVGameMap) mapObj;
 			PRetMap.Builder pMap = PRetMap.newBuilder();
@@ -90,9 +95,32 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			pMap.setMapName(map.getMapName());
 			pMap.setCityId(map.getGameCityId()+"");
 			pMap.setTamplate(map.getTemplate()+"");
-			pMap.setPropertyCount("100");//假数据
-			pMap.setPropertySellCount("80");
-			pMap.setAveragePrice("50000000");
+			//TODO 查询字段
+			CWVGamePropertyExample example = new CWVGamePropertyExample();
+			
+			CWVGamePropertyExample.Criteria criteria2 = example.createCriteria();
+					criteria2.andGameMapIdEqualTo(map.getMapId());
+			
+			
+			int propertyCount = dao.gamePropertyDao.countByExample(example);
+			pMap.setPropertyCount(propertyCount+"");//假数据
+			criteria2.andPropertyStatusIn(
+					new ArrayList<String>(){{
+						add(PropertyStatusEnum.NOSALE.getValue());
+						add(PropertyStatusEnum.ONSALE.getValue());
+						}}
+					);
+			
+			int sellCount = dao.gamePropertyDao.getDaosupport().countByExample(example);
+			pMap.setPropertySellCount(sellCount+"");
+			
+			List<Object> list = dao.gamePropertyDao.selectByExample(example);
+			BigDecimal sum = new BigDecimal(0);
+			for(Object o : list){
+				CWVGameProperty gameProperty = (CWVGameProperty) o;
+				sum = sum.add(gameProperty.getLastPrice());
+			}
+			pMap.setAveragePrice(sum.divide(new BigDecimal(sellCount)).intValue()+"");
 			ret.addMaps(pMap);
 		}
 	}

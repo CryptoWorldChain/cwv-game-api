@@ -20,6 +20,7 @@ enum PExchangeCommand {
 
 message PSPropertyExchange	 //PES UPE
 {
+	string exchange_id = 11; //交易ID
 	string price_type = 1; // 价格排序
 	string income_type = 2; // 收益排序
 	string country_id = 3; // 国家

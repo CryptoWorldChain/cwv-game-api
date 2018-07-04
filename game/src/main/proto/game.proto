@@ -16,6 +16,8 @@ enum PTPSCommand {
 	
 	PGS = 6; //房产游戏 -PropertyGameService
 	PGD = 7; //房产游戏详情 -PropertyGameDetailService
+	MPD = 8; //地图房产详情 -MapPropertyDetailService
+	PGT = 9; //房产游戏类型分组 -PropertyGameTypeListService
 	
 };
 
@@ -131,6 +133,7 @@ message Property
     string price = 16;//价格
     string longitude = 17;//经度
     string latitude = 18;//纬度
+    string price_line = 20; //最近十个价格线
 }
 message ExchangeInfo
 {
@@ -237,6 +240,7 @@ message PropertyGameInfo {
 		string game_type = 5; // 游戏类型  h5, apk, ipa
 		string game_url = 6; // 调取游戏地址
 		string game_status = 7; // 游戏状态 new hot
+		string players = 8; // 玩家数量
 	}
 	GameInfo gameInfo = 4; //游戏信息
 	
@@ -292,6 +296,11 @@ message RetData {
 	repeated WalletAccount account = 7;
 	//钱包信息 end
 	
+	//地图房产信息详情
+	MapPropertyDetail mapPropertyDetail = 8;
+	
+	repeated PropertyGameType propertyGameType = 9; //
+	
 	PageOut page = 24;//分页对象
 }
 
@@ -301,4 +310,43 @@ message WalletAccount{
 	double market_price = 8; // 价格CNY
 	double assert = 9;// 资产
 	string icon = 11;//缩略图
+}
+
+message PSMapPropertyDetail
+{
+	string map_id = 1;
+	string page_index = 17;//页索引
+	string page_size = 18;//页大小
+}
+
+
+message MapPropertyDetail
+{
+	string total_value = 1;//房产总价值
+	string average_price = 2; //房产平均价格
+	string remain_count = 3; //剩余房产数量
+	message PropertyState
+	{
+		string property_id = 1; //房产Id
+		string property_name = 2; //房产名称
+		string price = 3; //成交价格
+		string property_status = 4; //状态 
+		string up_down = 5; // 0 平 1涨 -1跌
+	}
+	
+	repeated PropertyState propertyState = 4;//房产状态列表
+	PageOut page = 5;//分页对象
+	
+}
+
+
+message PropertyGameType
+{
+	string type = 1; //房产类型
+	message GameType{
+		GameDetail gameDetail = 2;
+		string owner = 3; //拥有者
+		string income = 4; //收益
+	}
+	repeated GameType gameType = 2;
 }

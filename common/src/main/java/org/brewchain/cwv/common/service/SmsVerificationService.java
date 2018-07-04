@@ -2,6 +2,7 @@ package org.brewchain.cwv.common.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -73,7 +74,20 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 				ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
 				return;
 			}
+			
+			if(StringUtils.isEmpty(pb.getCode())) {
+				
+				ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+				ret.setRetMsg("短信验证码不能为空");
+				return;
+			}
 		
+			if(!Pattern.matches("^\\d{4}$",pb.getCode())) {
+				ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+				ret.setRetMsg("验证码格式错误");
+				return;
+			}
+			
 			CWVCommonSmsVerifyExample example = new CWVCommonSmsVerifyExample();
 			example.createCriteria().andPhoneEqualTo(pb.getPhone())
 			.andVerifyTypeEqualTo(pb.getType())

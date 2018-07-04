@@ -186,8 +186,8 @@ public class UserHelper implements ActorService {
 		Object o = dao.userDao.selectOneByExample(authUserExample);
 
 		if (o != null) {
-			ret.setRetCode(ReturnCodeMsgEnum.DIS_DUPLICATE_NAME.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.DIS_DUPLICATE_NAME.getRetMsg());
+			ret.setRetCode(ReturnCodeMsgEnum.REG_DUPLICATE_NAME.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.REG_DUPLICATE_NAME.getRetMsg());
 			return ;
 		}
 		
@@ -440,11 +440,11 @@ public class UserHelper implements ActorService {
 			userTrade.setCreatedTime(new Date());
 			dao.tradeDao.insert(userTrade);
 		} else {
-			if (!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
-				ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetCode())
-						.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetMsg());
-				return;
-			}
+//			if (!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
+//				ret.setRetCode(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetCode())
+//						.setRetMsg(ReturnCodeMsgEnum.STP_ERROR_PWD_OLD.getRetMsg());
+//				return;
+//			}
 			if (getPwdMd5(pb.getPassword(), authUser.getSalt()).equals(tradePwdOld.getTradePassword())) {
 				ret.setRetCode(ReturnCodeMsgEnum.STP_DUPLICATE_PWD.getRetCode())
 						.setRetMsg(ReturnCodeMsgEnum.STP_DUPLICATE_PWD.getRetMsg());

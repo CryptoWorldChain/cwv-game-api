@@ -25,18 +25,14 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Data
 @Instantiate(name="Property_Exchange_Invoker")
 public class PropertyExchangeInvoker implements ActorService {
-	private static String CONTRACT_EXCHANGE;
+	private String CONTRACT_EXCHANGE = this.commonHelper.getSysSettingValue("contract_exchange");
 	
-	@ActorRequire(name="Wlt_Helper")
+	
+	@ActorRequire(name="Wlt_Helper", scope = "global")
 	WltHelper wltHelper;
 	
 	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
-	
-	public PropertyExchangeInvoker() {
-		super();
-		CONTRACT_EXCHANGE = commonHelper.getSysSettingValue("contract_exchange");
-	}
 	
 	
 	/**

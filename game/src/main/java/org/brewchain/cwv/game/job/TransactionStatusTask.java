@@ -420,7 +420,7 @@ public class TransactionStatusTask implements Runnable {
 		Calendar c = Calendar.getInstance();
 		String startTime = DateUtil.getDayTime(c.getTime());
 		c.add(Calendar.MINUTE, 2);
-		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
+//		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
 	
 		
 	}
@@ -572,15 +572,15 @@ public class TransactionStatusTask implements Runnable {
 			noticeContent = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.FUNCTIONAL_GET.getValue(),authUser.getNickName(),property.getPropertyName(), "购买房产" );
 		}
 		
-		if(noticeContent != null ) {
-			propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), null, null, period, count, noticeContent);
-		}
-		if(noticeContent != null ) {
-			Calendar c = Calendar.getInstance();
-			String startTime = DateUtil.getDayTime(c.getTime());
-			c.add(Calendar.MINUTE, 2);
-			propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
-		}
+//		if(noticeContent != null ) {
+//			propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), null, null, period, count, noticeContent);
+//		}
+//		if(noticeContent != null ) {
+//			Calendar c = Calendar.getInstance();
+//			String startTime = DateUtil.getDayTime(c.getTime());
+//			c.add(Calendar.MINUTE, 2);
+//			propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
+//		}
 		
 		
 	}
@@ -659,7 +659,7 @@ public class TransactionStatusTask implements Runnable {
 		Calendar c = Calendar.getInstance();
 		String startTime = DateUtil.getDayTime(c.getTime());
 		c.add(Calendar.MINUTE, 2);
-		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
+//		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
 			
 		
 	}

@@ -9,7 +9,7 @@ import io.jsonwebtoken.Claims;
  */
 public class CheckResult {
 
-	private int errCode;
+	private String errCode;
 	
 	private String msg;
 	
@@ -17,11 +17,11 @@ public class CheckResult {
 	
 	private Claims claims;
 
-	public int getErrCode() {
+	public String getErrCode() {
 		return errCode;
 	}
 
-	public void setErrCode(int errCode) {
+	public void setErrCode(String errCode) {
 		this.errCode = errCode;
 	}
 

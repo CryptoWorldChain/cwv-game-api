@@ -7,6 +7,10 @@ package org.brewchain.cwv.game.enums;
  */
 public enum ReturnCodeMsgEnum {
 	
+	/**
+	 * 地图ID错误
+	 */
+	MPD_ERROR_ID("02","地图ID错误"),
 	
 	/**
 	 * 查询房产游戏详细

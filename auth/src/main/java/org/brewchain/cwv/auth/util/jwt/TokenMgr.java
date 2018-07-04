@@ -6,6 +6,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
@@ -65,16 +67,16 @@ public class TokenMgr {
 			checkResult.setSuccess(true);
 			checkResult.setClaims(claims);
 		} catch (ExpiredJwtException e) {
-			checkResult.setErrCode(Constant.JWT_ERRCODE_EXPIRE);
-			checkResult.setMsg("Token已过期");
+			checkResult.setErrCode(ReturnCodeMsgEnum.ATS_ERROR_EXPIRE.getRetCode());
+			checkResult.setMsg(ReturnCodeMsgEnum.ATS_ERROR_EXPIRE.getRetMsg());
 			checkResult.setSuccess(false);
 		} catch (SignatureException e) {
-			checkResult.setErrCode(Constant.JWT_ERRCODE_FAIL);
-			checkResult.setMsg("Token验证不通过");
+			checkResult.setErrCode(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetCode());
+			checkResult.setMsg(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetMsg());
 			checkResult.setSuccess(false);
 		} catch (Exception e) {
-			checkResult.setErrCode(Constant.JWT_ERRCODE_FAIL);
-			checkResult.setMsg("Token验证不通过");
+			checkResult.setErrCode(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetCode());
+			checkResult.setMsg(ReturnCodeMsgEnum.ATS_ERROR_TOKEN.getRetMsg());
 			checkResult.setSuccess(false);
 		}
 		return checkResult;
