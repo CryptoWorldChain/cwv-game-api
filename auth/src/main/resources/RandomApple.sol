@@ -39,16 +39,16 @@ constructor() public{
 
 
 function fingerprintInfo(string result) public {
-  require(!randomInfo[msg.sender].isExist,"");
-  require(!isExcuter,"");
+  require(!randomInfo[msg.sender].isExist,"1");
+  require(!isExcuter,"2");
   userAddrArray.push(msg.sender);
   randomInfo[msg.sender] = RandomUser(result,0,false,true);
 }
 
 function computerRandomNumber() public{
   isExcuter = true;
-  require(owner == msg.sender);
-  require(userAddrArray.length > useNum);
+  require(owner == msg.sender,"3");
+  require(userAddrArray.length > useNum,"4");
 
   for(uint i=0;i<useNum;i++){
     address tempUserAddr = userAddrArray[i];
@@ -66,7 +66,7 @@ function computerRandomNumber() public{
   for(uint m=0;m<useNum;m++){
       address delUserAddr = userAddrArray[m];
 
-      withdrawalfzunds(delUserAddr,withdrawalfPrice);
+      //withdrawalfzunds(delUserAddr,withdrawalfPrice);
       deleteUserAt(0);
       delete randomInfo[delUserAddr];
   }
@@ -75,7 +75,7 @@ function computerRandomNumber() public{
 
 }
 function getFixedRange(uint256 maxNum) public returns (uint256){
-    require(randomNum.length>0,"");
+    require(randomNum.length>0,"5");
     uint256 numRand = randomNum[0];
     rand_seed = numRand;
     uint256 tempFix = nextInt(maxNum);
@@ -85,7 +85,7 @@ function getFixedRange(uint256 maxNum) public returns (uint256){
 
 function nextInt(uint256 n) public returns(uint256){
 
-    require(n>0,"1");
+    require(n>0,"6");
 
     if ((n & -n) == n)  // i.e., n is a power of 2
         return uint256(((n * next(31)) >> 31));
@@ -146,7 +146,7 @@ function autoRandomSeed() public returns(uint256){
     return randomNumber;
 }
 
-function withdrawalfzunds(address _addr,uint _price) public {
+function withdrawalfzunds(address _addr,uint _price) public payable{
     _addr.transfer(_price);
 }
 }
