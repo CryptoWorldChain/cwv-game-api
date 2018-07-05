@@ -257,7 +257,6 @@ public class WltHelper implements ActorService {
 		MultiTransactionInputImpl.Builder multiTransactionInputImpl = MultiTransactionInputImpl.newBuilder();
 		
 		reqCreateContractTransaction.setData(data);
-		
 		//获取账户nonce
 		RespGetAccount.Builder accountMap = getAccountInfo(address);
 		if(accountMap==null||accountMap.getRetCode()==-1){
@@ -542,7 +541,7 @@ public class WltHelper implements ActorService {
 	 * @return 
 	 * @throws Exception 
 	 */
-	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress){
+	public RespCreateTransaction.Builder excuteContract(BigDecimal amount,String outputAddress,String contractAddress,String data){
 		//返回参数
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		//执行合约请求
@@ -564,14 +563,6 @@ public class WltHelper implements ActorService {
 			ret.setRetMsg("账户余额不足");
 			return ret;
 		}
-		CWVGameContractAddressExample caExample = new CWVGameContractAddressExample();
-		caExample.createCriteria().andContractTypeEqualTo(contractAddress).andContractStateEqualTo("0");
-		List<Object> listContract = daos.contractAddressDao.selectByExample(caExample);
-//		if(listContract.isEmpty()){
-//			
-//		}
-		
-//		excuteContract();
 		
 		//发起方详情
 		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
@@ -585,6 +576,7 @@ public class WltHelper implements ActorService {
 		
 		txBody.addInputs(input);//发起方 *
 		txBody.addOutputs(output);//接收方 *
+		txBody.setData(data);
 		
 		transaction.setTxBody(txBody);//交易内容体 *
 		
@@ -870,22 +862,12 @@ public class WltHelper implements ActorService {
 		return null;
 	}
 	
-	public void excuteContract(){
-		log.info("Calling the contract function 'inc'");
-//		RespGetAccount.Builder  acc = getAccountInfo(contractAddress);
-//		acc.get
-		
-		CodeBuild.Result res = buildContract("2");
+	public String excuteContract(String busi,String methonName,Object...objs){
+		CodeBuild.Result res = buildContract(busi);
         CallTransaction.Contract contract = new CallTransaction.Contract(res.data);
-        CallTransaction.Function inc = contract.getByName("getCurrentTimes");
-//        CallTransaction.Function inc2 = contract.getByName("get");
-        byte[] functionCallBytes = inc.encode();
-//        byte[] functionCallBytes2 = inc2.encode();
+        CallTransaction.Function inc = contract.getByName(methonName);
+        byte[] functionCallBytes = inc.encode(objs);
         
-        String str = encAPI.hexEnc(functionCallBytes);
-//        String str2 = encAPI.hexEnc(functionCallBytes2);
-        System.out.println(str);
-//        System.out.println(str2);
-        
+        return encAPI.hexEnc(functionCallBytes);
 	}
 }
