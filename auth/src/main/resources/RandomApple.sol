@@ -45,6 +45,11 @@ function fingerprintInfo(string result) public {
   randomInfo[msg.sender] = RandomUser(result,0,false,true);
 }
 
+function getInfo() public view returns(string){
+  RandomUser memory temp = randomInfo[msg.sender];
+  return temp.fingerprint;
+}
+
 function computerRandomNumber() public{
   isExcuter = true;
   require(owner == msg.sender,"3");
