@@ -572,8 +572,7 @@ public class WltHelper implements ActorService {
 		//接收方详情
 		MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
 		output.setAmount(amount.longValue());//交易金额 *
-		output.setAddress("");//接收方地址 *
-		
+		output.setAddress(contractAddress);//接收方地址 *
 		txBody.addInputs(input);//发起方 *
 		txBody.addOutputs(output);//接收方 *
 		txBody.setData(data);
@@ -864,7 +863,7 @@ public class WltHelper implements ActorService {
 	
 	public String excuteContract(String busi,String methonName,Object...objs){
 		CodeBuild.Result res = buildContract(busi);
-        CallTransaction.Contract contract = new CallTransaction.Contract(res.data);
+        CallTransaction.Contract contract = new CallTransaction.Contract(res.abi);
         CallTransaction.Function inc = contract.getByName(methonName);
         byte[] functionCallBytes = inc.encode(objs);
         
