@@ -43,7 +43,9 @@ public class PropertyExchangeInvoker implements ActorService {
 	 */
 	public RespCreateTransaction.Builder buyProperty(CWVMarketExchange exchange){
 		
-		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_EXCHANGE);
+		
+		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
+		return ret.setRetCode(1);
 	}
 	
 	
@@ -58,14 +60,16 @@ public class PropertyExchangeInvoker implements ActorService {
 	
 	public RespCreateTransaction.Builder sellProperty(String sellAddress, String propertyId, double price, double charge  ){
 		
-		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_EXCHANGE);
-	}
+		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
+		return ret.setRetCode(1);
+		}
 
 
 	public RespCreateTransaction.Builder cancelExchange(String address, String exchangeId) {
 		
-		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_EXCHANGE);
-	}
+		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
+		return ret.setRetCode(1);
+		}
 	
 	
 }

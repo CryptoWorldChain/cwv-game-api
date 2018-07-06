@@ -43,8 +43,9 @@ public class PropertyDrawInvoker implements ActorService {
 	
 	public RespCreateTransaction.Builder drawProperty(String drawAddress){
 		
-		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_DRAW);
-	}
+		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
+		return ret.setRetCode(1);
+		}
 	
 	
 }

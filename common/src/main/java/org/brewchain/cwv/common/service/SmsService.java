@@ -56,10 +56,11 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 	private String url = "http://intapi.253.com/send/json";
 
 	// API账号，50位以内。必填
-	private String account = "I6313616";
+	private String account = "I4116510";
 
 	// API账号对应密钥，联系客服获取。必填
-	String password = "f3arA7QX5o567f";
+	String password = "ANxBRwec7Fb0dd";
+
 
 	// 短信内容。长度不能超过536个字符。必填
 	String msg = "【%s】,您的验证码是：%s,请在5分钟内输入，请勿透露给他人";

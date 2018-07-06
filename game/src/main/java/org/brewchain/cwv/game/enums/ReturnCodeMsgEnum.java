@@ -149,6 +149,7 @@ public enum ReturnCodeMsgEnum {
 	SUCCESS("01","成功"),
 	SUCCESS_OPERATE("01","设置成功"),
 	ERROR_TIMES_LIMIT("10","次数超限"),
+	ERROR_CHAIN_STATUS("70","链上状态未确认，暂不支持操作"),
 	ERROR_VALIDATION("80","格式错误"),
 	EXCEPTION("99","未知异常")
 	;

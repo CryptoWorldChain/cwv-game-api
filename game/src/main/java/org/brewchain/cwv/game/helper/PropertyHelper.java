@@ -745,9 +745,16 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
-		if (exchange.getStatus().intValue() != 0) {
+		if (exchange.getStatus().byteValue() != PropertyExchangeStatusEnum.ONSALE.getValue() 
+				) {
 			ret.setRetCode(ReturnCodeMsgEnum.BPS_ERROR_STATUS.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.BPS_ERROR_STATUS.getRetMsg());
+			return;
+		}
+		
+		if (!exchange.getChainStatus().equals(ChainTransStatusEnum.DONE.getKey())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_CHAIN_STATUS.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.ERROR_CHAIN_STATUS.getRetMsg());
 			return;
 		}
 
@@ -1184,13 +1191,18 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
-		if (bid.getStatus().intValue() == 0) {// 未开始
+		if (bid.getStatus().intValue() == 0 ) {// 未开始
 			ret.setRetCode(ReturnCodeMsgEnum.APS_ERROR_STATUS_0.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.APS_ERROR_STATUS_0.getRetMsg());
 			return;
 		} else if (bid.getStatus().intValue() == 2) { // 已结束
 			ret.setRetCode(ReturnCodeMsgEnum.APS_ERROR_STATUS_2.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.APS_ERROR_STATUS_2.getRetMsg());
+			return;
+		} else if (bid.getStatus().intValue() == 1 
+				&& !bid.getChainStatus().equals(ChainTransStatusEnum.DONE.getKey())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_CHAIN_STATUS.getRetCode())
+			.setRetMsg(ReturnCodeMsgEnum.ERROR_CHAIN_STATUS.getRetMsg());
 			return;
 		} else if (bid.getAuctionEnd().compareTo(new Date()) < 0) {
 			ret.setRetCode(ReturnCodeMsgEnum.APS_ERROR_TIME.getRetCode())

@@ -1,6 +1,7 @@
 package org.brewchain.cwv.game.chain;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -66,8 +67,7 @@ public class PropertyBidInvoker implements ActorService {
 		}
 		
 		
-		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_BID);
-		
+		return ret.setRetCode(1);
 	}
 	
 	/**
@@ -77,8 +77,8 @@ public class PropertyBidInvoker implements ActorService {
 	 * @return
 	 */
 	public RespCreateTransaction.Builder auctionProperty(String auctionAddress, String propertyId, String bidAmount ){
-		
-		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_BID);
+		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
+		return ret.setRetCode(1);
 		
 	}
 	
@@ -91,8 +91,8 @@ public class PropertyBidInvoker implements ActorService {
 	 */
 	public RespCreateTransaction.Builder cancelBid(CWVMarketBid bid){
 		
-		return wltHelper.excuteContract(new BigDecimal(0), wltHelper.getWLT_DCR(), CONTRACT_BID);
-		
+		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
+		return ret.setRetCode(1);
 	}
 	
 }
