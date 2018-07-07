@@ -84,6 +84,9 @@ income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
 price|string|价格|
+longitude|string|经度|
+latitude|string|纬度|
+price_line|string|最近 10历史价格曲线 英文逗号分隔|
 exchange|object|数组中的交易对象|
 exchange_id|string|交易ID|
 price|string|卖出价格|
@@ -101,31 +104,29 @@ total_count|string|总量|
 	            "property": {
 	                "country_id": "1",
 	                "map_id": "1",
-	                "property_template_id": "11000",
-	                "property_template": "11",
+	                "property_template_id": "13010",
+	                "property_template": "13",
 	                "owner": "simon",
-	                "property_name": "NYK 1 house",
-	                "property_id": "2",
+	                "property_name": "NYK 39 apartment",
+	                "property_id": "40",
 	                "property_type": 2,
-	                "property_status": 1,
+	                "property_status": 0,
 	                "income_remark": "收益说明",
-	                "income": 1000000,
-	                "image_url": "house/small-house/11005.png",
+	                "income": 1034721,
+	                "image_url": "house/apartment/13011.png",
 	                "map_template": "2101",
-	                "price": "20000.0000"
+	                "price": "2000.0000",
+	                "longitude": "null",
+	                "latitude": "null",
+	                "price_line": "1000.0000,2000.0000"
 	            },
 	            "exchange": {
-	                "exchange_id": "37",
-	                "price": 10000,
-	                "status": 0
+	                "exchange_id": "67",
+	                "status": "1",
+	                "price": "2000.0000"
 	            }
 	        }
-	    ],
-	    "page": {
-	        "page_index": "1",
-	        "page_size": "10",
-	        "total_count": "1"
-	    }
+	    ]
 	}
 
 -----------
@@ -299,7 +300,7 @@ price_type|string|价格排序 0降序 1升序|[0]
 income_type|string|收益排序 0降序 1升序|
 country_id|string|国家|
 city_id|string|城市|
-property_type|string|房产类型 <br/>1：价值房产<br/>2：功能型房产<br/>3：标志性房产|
+property_type|string|房产类型 <br/>1：普通房产<br/>2：功能型房产<br/>3：标志性房产|
 property_name|string|房产名称|
 user_only|string|用户标识 0 所有竞拍 1个人竞拍中|
 status|string|竞拍状态 0发起竞拍 1竞拍中 2竞拍完成|[0]
@@ -1118,6 +1119,7 @@ type|string|游戏类型  0 sports|
 status|string|状态，0发起，1进行，2结束|
 game_type|string|游戏运行类型  h5, apk, ipa|
 game_status|string|游戏状态 new hot|
+players|string|玩家数量|
 game_url|string|游戏地址|
 page|object|分页对象|
 page_index|string|页码|
@@ -1137,7 +1139,7 @@ total_count|string|总量|
 	                    "map_id": "1",
 	                    "property_template_id": "51000",
 	                    "property_template": "51",
-	                    "owner": "1237",
+	                    "owner": "lj",
 	                    "property_name": "Crypto Statue of Liberty ",
 	                    "property_id": "1",
 	                    "property_type": 1,
@@ -1153,18 +1155,19 @@ total_count|string|总量|
 	                "gameInfo": {
 	                    "game_id": "1",
 	                    "name": "Youwin",
-	                    "type": "1",
+	                    "type": "11",
 	                    "status": "0",
 	                    "game_type": "h5",
-	                    "game_url": "url",
-	                    "game_status": "new"
+	                    "game_url": "you.youwin.io",
+	                    "game_status": "new",
+	                    "players": "1005"
 	                }
 	            }
 	        ],
 	        "page": {
 	            "page_index": "1",
-	            "page_size": "10",
-	            "total_count": "1"
+	            "page_size": "1",
+	            "total_count": "20"
 	        }
 	    }
 	}
@@ -1188,7 +1191,7 @@ game_id|string|游戏ID|
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret|object|返回状态对象|
+codeMsg|object|返回状态对象|
 ret_code|string|返回状态码<br/>01.查询成功<br/>02.游戏Id错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 data|object|返回数据|
@@ -1256,5 +1259,132 @@ game_url|string|游戏地址|
 	            "game_url": "url",
 	            "game_status": "new"
 	        }
+	    }
+	}
+	
+	
+## 地图房产详情
+### 接口说明
+	
+### URL
+	/cwv/gga/pbmpd.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+map_id|string|地图ID|
+page_index|string|页码|
+page_size|string|数量|
+
+	{
+		"map_id":"1",
+		"page_index":"1",
+		"page_size":"1"
+	}
+	
+### 输出参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+codeMsg|object|返回状态对象|
+ret_code|string|返回状态码<br/>01.成功<br/>02.地图Id错误<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+data|object|返回数据|
+property|object|数组中的房产对象|
+country_id|string|所属国家|
+	
+	{
+	    "codeMsg": {
+	        "ret_code": "01",
+	        "ret_msg": "成功"
+	    },
+	    "data": {
+	        "mapPropertyDetail": {
+	            "propertyState": [
+	                {
+	                    "property_id": "1",
+	                    "property_name": "Crypto Statue of Liberty ",
+	                    "price": "0.0000",
+	                    "property_status": "0",
+	                    "up_down": "0"
+	                }
+	            ],
+	            "page": {
+	                "page_index": "1",
+	                "page_size": "1",
+	                "total_count": "100"
+	            }
+	        }
+	    }
+	}	
+
+	
+	
+## 房产游戏类型分组列表
+### 接口说明
+	
+### URL
+	/cwv/gga/pbpgd.do
+### HTTP请求方式
+	POST
+### 输入参数
+	无
+### 输出参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+codeMsg|object|返回状态对象|
+ret_code|string|返回状态码<br/>01.查询成功<br/>02.游戏Id错误<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
+data|object|返回数据|
+propertyGameType|object[]|游戏类型信息对象数组|
+type|string|类型|
+gameType|object|数组中的游戏类型对象|
+owner|string|拥有者|
+income|string|收益|
+gameDetail|object[]|游戏类型对象中的游戏 详情|
+game_id|string|游戏ID|
+name|string|游戏名称|
+type|string|游戏类型  0 sports|
+status|string|交易状态  0发起，1进行中，2结束|
+developers|string||
+players|string|玩家数量|
+developers|string|游戏类型  0 sports|
+images|string|图片信息|
+game_type|string|游戏运行类型  h5, apk, ipa|
+game_status|string|游戏状态 new hot incomeRank hotRank|
+game_url|string|游戏地址|	
+	
+	
+	{
+	    "codeMsg": {
+	        "ret_code": "01",
+	        "ret_msg": "成功"
+	    },
+	    "data": {
+	        "propertyGameType": [
+	            {
+	                "type": "hot",
+	                "gameType": [
+	                    {
+	                        "gameDetail": {
+	                            "game_id": "14",
+	                            "name": "FIFA足球世界",
+	                            "type": "13",
+	                            "status": "0",
+	                            "developers": "0",
+	                            "players": "14005",
+	                            "instructions": "神话级梦幻妖魔MMO手游《太古封魔录》正式登陆，万妖集结，战斗不息！四大职业，相互抗衡，相互之约，多样跨服竞技,瑰丽3D视觉特效，段式轻功，360度浮空，让你真正地自由畅游六界；仙盟大战，给你震撼人心的团体PK体验；披风、背饰、灵宠等，花样外观给你足够的炫耀资本；开放世界boss，珍稀装备掉落，进入刺激的大逃杀之地........",
+	                            "images": "image",
+	                            "game_type": "apk",
+	                            "game_url": "http://www.22game.cn/menghuanxiyou/",
+	                            "game_status": "hot"
+	                        },
+	                        "owner": "simon",
+	                        "income": "1006944.0000"
+	                    }
+	                ]
+	            }
+	        ]
 	    }
 	}

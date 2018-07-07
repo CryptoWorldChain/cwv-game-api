@@ -123,8 +123,9 @@ public enum ReturnCodeMsgEnum {
 	BPS_ERROR_BALANCE("03","CWB不足"),
 	BPS_ERROR_TRADE_PWD("04","交易密码错误"),
 	BPS_VALIDATE_PWD_SET("05","未设置交易密码"),
-	BPS_ERROR_STATUS("06","该交易被成交或撤销"),
+	BPS_ERROR_STATUS("06","该交易状态不支持购买"),
 	BPS_ERROR_USER("07","不支持购买本人出售房产"),
+	BPS_ERROR_EXCHANGE_EXISTS("08","该房产已存在其他购买申请"),
 	
 	
 	/**

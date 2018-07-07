@@ -34,9 +34,25 @@ public class PropertyExchangeInvoker implements ActorService {
 	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
 	
+	/**
+	 *申请记录是否存在
+	 * 	存在：返回操作失败
+	 * 	不存在 ：
+	 * 		生成申请记录（交易ID（主键），买入地址，卖出地址，金额）
+	 * 		发起转账交易
+	 * 			交易成功：返回买入申请成功扣除买入账户余额
+	 * 			交易失败：回滚账户扣除金额 
+	 */
 	
 	/**
 	 * 购买房产
+	 * 申请记录是否存在
+	 * 	存在：返回操作失败
+	 * 	不存在 ：
+	 * 		生成申请记录（交易ID（主键），买入地址，卖出地址，金额）
+	 * 		发起转账交易
+	 * 			交易成功：返回买入申请成功扣除买入账户余额
+	 * 			交易失败：回滚账户扣除金额
 	 * @param buyAddress
 	 * @param pwd
 	 * @return

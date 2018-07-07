@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
@@ -27,7 +28,7 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Instantiate(name="Property_Draw_Invoker")
 public class PropertyDrawInvoker implements ActorService {
 
-	private String CONTRACT_DRAW = this.commonHelper.getSysSettingValue("contract_draw");
+	private static String CONTRACT_DRAW = "contract_draw";
 	
 	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
@@ -41,11 +42,20 @@ public class PropertyDrawInvoker implements ActorService {
 	 * @return
 	 */
 	
-	public RespCreateTransaction.Builder drawProperty(String drawAddress){
+	public RespCreateTransaction.Builder drawProperty(String address, int num){
 		
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
-		return ret.setRetCode(1);
+		try {
+			String data = wltHelper.excuteContract("1", "fingerprintInfo");
+			String contractAddress = this.commonHelper.getSysSettingValue(CONTRACT_DRAW);
+			ret = wltHelper.excuteContract(new BigDecimal(0), address, contractAddress,data);
+			return ret;
+		} catch (Exception e) {
+			ret.setRetCode(-1);
+			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
+			return ret;
 		}
+	}
 	
 	
 }

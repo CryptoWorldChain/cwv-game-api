@@ -805,7 +805,7 @@ is_page|string|是否分页，0：不分页，1分页|
 map_id|string|所属地图|
 property_name|string|房产名称的模糊搜索|
 property_type|string|房产类型，1：价值房产，2：功能型房产，3：标志性房产|
-property_status|string|房产状态，0：未出售，1：竞拍中，2：出售中，3：已出售|
+property_status|string|房产状态，0：未出售，1：出售中，2：竞拍中，9：未开放|
 
 
 	{

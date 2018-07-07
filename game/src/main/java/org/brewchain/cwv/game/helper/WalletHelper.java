@@ -104,7 +104,9 @@ public class WalletHelper implements ActorService {
 		example.createCriteria().andUserIdEqualTo(userId)
 		.andCoinTypeEqualTo((byte) coin.getValue());
 		List<Object> list = this.dao.getWalletDao().selectByExample(example);
-		return list == null || list.isEmpty()? null : (CWVUserWallet)list.get(0);
+		CWVUserWallet account = list == null || list.isEmpty()? null : (CWVUserWallet)list.get(0);
+		synAccountBalance(account);
+		return account;
 	}
 	/**
 	 * CWB账户交易
@@ -217,6 +219,15 @@ public class WalletHelper implements ActorService {
 			.setRetMsg(ReturnCodeMsgEnum.WAB_ERROR_TYPE.getRetMsg());
 			return ;
 		}
+		synAccountBalance(account);
+		ret.setAddress(account.getAccount());
+		ret.setBalance(account.getBalance().doubleValue());
+		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
+		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+		
+	}
+	
+	public void synAccountBalance(CWVUserWallet account) {
 		RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(account.getAccount());
 		if(accInfo.getRetCode()==1){
 			if(account.getBalance().longValue() != accInfo.getAccount().getBalance()) {
@@ -225,11 +236,6 @@ public class WalletHelper implements ActorService {
 			}
 			
 		}
-		ret.setAddress(account.getAccount());
-		ret.setBalance(account.getBalance().doubleValue());
-		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
-		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
-		
 	}
 	
 	/**
@@ -256,9 +262,8 @@ public class WalletHelper implements ActorService {
 			return null;
 		}
 		CWVUserWallet wallet = (CWVUserWallet) list.get(0);
-		RespGetAccount.Builder accountInfo = wltHelper.getAccountInfo(wallet.getAccount());
-		if(accountInfo.getRetCode()==1){
-			wallet.setBalance(new BigDecimal(accountInfo.getAccount().getBalance()));
+		if(StringUtils.isEmpty(coinType) || coinType.equals(CoinEnum.CWB.getValue())) {
+			synAccountBalance(wallet);
 		}
 		return wallet;
 	}
