@@ -2,21 +2,6 @@ syntax = "proto3";
 
 package org.brewchain.wallet.service;
 
-//enum PWLTModule {
-//	WLT = 0;//钱包模块
-//};
-//enum PWLTCommand {
-//	NAD = 0;//创建地址；请求：ReqNewAddress；返回：RetNewAddress
-//	QAD = 1;//查询地址；请求：ReqGetAccount；返回：RespGetAccount
-//	NTS = 2;//创建交易；请求：ReqCreateMultiTransaction；返回：RespCreateTransaction
-//	QTS = 3;//查询交易；请求：ReqGetTxByHash；返回：RespGetTxByHash
-//	NCR = 4;//创建合约；请求：ReqCreateContractTransaction；返回：RespCreateContractTransaction
-//	DCR = 5;//执行合约；请求：ReqDoContractTransaction；返回：RespCreateTransaction
-//};
-
-//game需要提供的参数 均标注 * 强调
-//地址相关
-
 message ReqNewAddress{//创建地址请求
 	string type = 1;//地址类型 *
 	string seed = 2;//地址助记词
@@ -44,7 +29,7 @@ message RespGetAccount {//查询地址返回
 
 message AccountValueImpl {//地址详细信息
     int32 nonce = 1;//交易次数
-    int64 balance = 2;//账户余额
+    string balance = 2;//账户余额
     string pubKey = 3;//账户公钥
     int64 max = 4;//
     int64 acceptMax = 5;//
@@ -58,7 +43,7 @@ message AccountValueImpl {//地址详细信息
 
 message AccountTokenValueImpl {//ERC20 token详情
     string token = 1;//token
-    int64 balance = 2;//账户余额
+    string balance = 2;//账户余额
 };
 
 message AccountCryptoValueImpl {//ERC721 token详情
@@ -125,6 +110,7 @@ message MultiTransactionImpl {//交易详情
 	MultiTransactionBodyImpl txBody = 2;//交易内容体 *
 	MultiTransactionNodeImpl node = 3;//交易节点
 	string status = 4;//交易状态
+	string result = 5;//合约返回结果
 };
 
 message MultiTransactionBodyImpl {//交易内容体详情
@@ -142,7 +128,7 @@ message MultiTransactionInputImpl {//发起方详情
 	int32 fee = 2;//手续费
 	int32 feeLimit = 3;//。。。。
 	string address = 4;//发起方地址 *
-	int64 amount= 5;//交易金额 *
+	string amount= 5;//交易金额 *
 	string pubKey = 6;//发起方公钥 *
 	string token = 7;//ERC20 token名字 *
 	string symbol = 8;//ERC721 token标记 *
@@ -151,7 +137,7 @@ message MultiTransactionInputImpl {//发起方详情
 
 message MultiTransactionOutputImpl {//接收方详情
 	string address= 1;//接收方地址 *
-	int64 amount= 2;//交易金额 *
+	string amount= 2;//交易金额 *
 	string symbol = 3;//ERC721 token 标记 *
 	string cryptoToken = 4;//ERC721 token名字 *
 };

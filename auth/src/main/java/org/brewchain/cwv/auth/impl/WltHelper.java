@@ -270,7 +270,6 @@ public class WltHelper implements ActorService {
 		AccountValueImpl account = accountMap.getAccount();
 		multiTransactionInputImpl.setNonce(account.getNonce());//交易次数 *
 		multiTransactionInputImpl.setAddress(address);//发起方地址 *
-		multiTransactionInputImpl.setAmount(amount.longValue());//交易金额 *
 		
 		reqCreateContractTransaction.setInput(multiTransactionInputImpl);//合约发起方 *
 		reqCreateContractTransaction.setTimestamp(new Date().getTime());
@@ -349,23 +348,73 @@ public class WltHelper implements ActorService {
 			return respCreateTransaction;
 		}
 		AccountValueImpl account = accountMap.getAccount();
-		if(account.getBalance()<amount.longValue()){
+		if(new BigDecimal(account.getBalance()).compareTo(amount)<0){
 			respCreateTransaction.setRetCode(-1);
 			respCreateTransaction.setRetMsg("账户余额不足");
 			return respCreateTransaction;
 		}
 		//发起方详情
 		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
-		input.setAmount(amount.longValue());//交易金额 *
+		input.setAmount(amount.toString());//交易金额 *
 		input.setAddress(inputAddress);//发起方地址 *
 		input.setNonce(account.getNonce());//交易次数 *
 		//接收方详情
 		MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
-		output.setAmount(amount.longValue());//交易金额 *
+		output.setAmount(amount.toString());//交易金额 *
 		output.setAddress(outputAddress);//接收方地址 *
 		
 		txBody.addInputs(input);//发起方 *
 		txBody.addOutputs(output);//接收方 *
+		
+		transaction.setTxBody(txBody);//交易内容体 *
+		
+		reqCreateMultiTransaction.setTransaction(transaction);//交易内容 *
+		reqCreateMultiTransaction.setTimestamp(new Date().getTime());
+		
+		FramePacket fposttx = send(reqCreateMultiTransaction.build(),WLT_NTS);
+//		FramePacket fposttx = PacketHelper.buildUrlFromJson(new JsonPBFormat().printToString(reqCreateMultiTransaction.build()),"POST", getWltUrl(WLT_NTS));
+		val retReg = sender.send(fposttx, 30000);
+		ret = JsonSerializer.getInstance().deserialize(new String(retReg.getBody()), Map.class);
+		if(ret.get("retCode")!=null&&ret.get("retCode").toString().equals("1")){
+			respCreateTransaction.setTxHash(ret.get("txHash").toString()).setRetCode(1);
+		}else{
+			if(ret.get("retMsg")!=null){
+				respCreateTransaction.setRetMsg(ret.get("retMsg").toString());
+			}else{
+				respCreateTransaction.setRetMsg("创建交易失败");
+			}
+			respCreateTransaction.setRetCode(-1);
+		}
+		
+		return respCreateTransaction;
+	}
+	
+	/**
+	 * 创建交易
+	 * @param amount 交易金额
+	 * @param outputAddress 接收方账户地址
+	 * @param inputAddress 发送方账户地址
+	 * @return RespCreateTransaction.Builder 包含交易hash
+	 * @throws Exception 
+	 */
+	public RespCreateTransaction.Builder createTx(List<MultiTransactionInputImpl.Builder> inputs,List<MultiTransactionOutputImpl.Builder> outputs) {
+		//返回参数
+		RespCreateTransaction.Builder respCreateTransaction = RespCreateTransaction.newBuilder();
+		Map<String,Object> ret = new HashMap<>();
+		//创建交易请求
+		ReqCreateMultiTransaction.Builder reqCreateMultiTransaction = ReqCreateMultiTransaction.newBuilder();
+		MultiTransactionImpl.Builder transaction = MultiTransactionImpl.newBuilder();
+		//交易内容体详情
+		MultiTransactionBodyImpl.Builder txBody = MultiTransactionBodyImpl.newBuilder();
+		//获取发起发账户nonce
+		
+		for(MultiTransactionInputImpl.Builder input:inputs){
+			txBody.addInputs(input);//发起方 *
+		}
+		
+		for(MultiTransactionOutputImpl.Builder output:outputs){
+			txBody.addOutputs(output);//接收方 *
+		}
 		
 		transaction.setTxBody(txBody);//交易内容体 *
 		
@@ -416,19 +465,19 @@ public class WltHelper implements ActorService {
 			return respCreateTransaction;
 		}
 		AccountValueImpl account = accountMap.getAccount();
-		if(account.getBalance()<amount.longValue()){
+		if(new BigDecimal(account.getBalance()).compareTo(amount)<0){
 			respCreateTransaction.setRetCode(-1);
 			respCreateTransaction.setRetMsg("账户余额不足");
 			return respCreateTransaction;
 		}
 		//发起方详情
 		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
-		input.setAmount(amount.longValue());//交易金额 *
+		input.setAmount(amount.toString());//交易金额 *
 		input.setAddress(accountMap.getAddress());//发起方地址 *
 		input.setNonce(account.getNonce());//交易次数 *
 		//接收方详情
 		MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
-		output.setAmount(amount.longValue());//交易金额 *
+		output.setAmount(amount.toString());//交易金额 *
 		output.setAddress(outputAddress);//接收方地址 *
 		
 		txBody.addInputs(input);//发起方 *
@@ -487,21 +536,21 @@ public class WltHelper implements ActorService {
 			return respCreateTransaction;
 		}
 		AccountValueImpl account = accountMap.getAccount();
-		if(account.getBalance()<amount.longValue()){
+		if(new BigDecimal(account.getBalance()).compareTo(amount)<0){
 			respCreateTransaction.setRetCode(-1);
 			respCreateTransaction.setRetMsg("账户余额不足");
 			return respCreateTransaction;
 		}
 		//发起方详情
 		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
-		input.setAmount(amount.longValue());//交易金额 *
+		input.setAmount(amount.toString());//交易金额 *
 		input.setAddress(inputAddress);//发起方地址 *
 		input.setNonce(account.getNonce());//交易次数 *
 		input.setCryptoToken(cryptoToken);
 		input.setSymbol(symbol);
 		//接收方详情
 		MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
-		output.setAmount(amount.longValue());//交易金额 *
+		output.setAmount(amount.toString());//交易金额 *
 		output.setAddress(outputAddress);//接收方地址 *
 		output.setCryptoToken(cryptoToken);
 		output.setSymbol(symbol);
@@ -558,7 +607,7 @@ public class WltHelper implements ActorService {
 			return ret;
 		}
 		AccountValueImpl account = accountMap.getAccount();
-		if(account.getBalance()<amount.longValue()){
+		if(new BigDecimal(account.getBalance()).compareTo(amount)<0){
 			ret.setRetCode(-1);
 			ret.setRetMsg("账户余额不足");
 			return ret;
@@ -566,12 +615,12 @@ public class WltHelper implements ActorService {
 		
 		//发起方详情
 		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
-		input.setAmount(amount.longValue());//交易金额 *
+		input.setAmount(amount.toString());//交易金额 *
 		input.setAddress(outputAddress);//发起方地址 *
 		input.setNonce(account.getNonce());//交易次数 *
 		//接收方详情
 		MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
-		output.setAmount(amount.longValue());//交易金额 *
+		output.setAmount(amount.toString());//交易金额 *
 		output.setAddress(contractAddress);//接收方地址 *
 		txBody.addInputs(input);//发起方 *
 		txBody.addOutputs(output);//接收方 *
@@ -634,7 +683,7 @@ public class WltHelper implements ActorService {
 			JsonNode accountNode = retNode.get("account");
 			AccountValueImpl.Builder account = AccountValueImpl.newBuilder();
 			account.setNonce(accountNode.has("nonce") ? accountNode.get("nonce").asInt() : 0);
-			account.setBalance(accountNode.has("balance") ? accountNode.get("balance").asLong() : 0L);
+			account.setBalance(accountNode.has("balance") ? accountNode.get("balance").asText() : "0");
 			account.setPubKey(accountNode.has("pubKey") ? accountNode.get("pubKey").asText() : "");
 			account.setMax(accountNode.has("max") ? accountNode.get("max").asLong() : 0L);
 			account.setAcceptMax(accountNode.has("acceptMax") ? accountNode.get("acceptMax").asLong() : 0L);
@@ -654,7 +703,7 @@ public class WltHelper implements ActorService {
 				if(tokens != null && tokens.size() > 0){
 					for(JsonNode token : tokens){
 						AccountTokenValueImpl.Builder tokenValue = AccountTokenValueImpl.newBuilder();
-						tokenValue.setBalance(token.has("balance") ? token.get("balance").asLong() : 0L);
+						tokenValue.setBalance(token.has("balance") ? token.get("balance").asText() : "0");
 						tokenValue.setToken(token.has("token") ? token.get("token").asText() : "");
 					}
 				}
@@ -773,7 +822,7 @@ public class WltHelper implements ActorService {
 	private MultiTransactionInputImpl.Builder getInput(JsonNode input){
 		MultiTransactionInputImpl.Builder inputB = MultiTransactionInputImpl.newBuilder();
 		inputB.setAddress(input.has("address") ? input.get("address").asText() : "");
-		inputB.setAmount(input.has("amount") ? input.get("amount").asLong() : 0l);
+		inputB.setAmount(input.has("amount") ? input.get("amount").asText() : "0");
 		inputB.setCryptoToken(input.has("cryptoToken") ? input.get("cryptoToken").asText() : "");
 		inputB.setFee(input.has("fee") ? input.get("fee").asInt() : 0);
 		inputB.setFeeLimit(input.has("feeLimit") ? input.get("feeLimit").asInt() : 0);
@@ -792,7 +841,7 @@ public class WltHelper implements ActorService {
 	private MultiTransactionOutputImpl.Builder getOutput(JsonNode output){
 		MultiTransactionOutputImpl.Builder outputB = MultiTransactionOutputImpl.newBuilder();
 		outputB.setAddress(output.has("address") ? output.get("address").asText() : "");
-		outputB.setAmount(output.has("amount") ? output.get("amount").asLong() : 0l);
+		outputB.setAmount(output.has("amount") ? output.get("amount").asText() : "0");
 		outputB.setCryptoToken(output.has("cryptoToken") ? output.get("cryptoToken").asText() : "");
 		outputB.setSymbol(output.has("symbol") ? output.get("symbol").asText() : "");
 		return outputB;
