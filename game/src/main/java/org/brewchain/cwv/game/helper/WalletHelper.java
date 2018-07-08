@@ -230,7 +230,7 @@ public class WalletHelper implements ActorService {
 	public void synAccountBalance(CWVUserWallet account) {
 		RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(account.getAccount());
 		if(accInfo.getRetCode()==1){
-			if(account.getBalance().longValue() != accInfo.getAccount().getBalance()) {
+			if(!account.getBalance().equals(accInfo.getAccount().getBalance())) {
 				account.setBalance(new BigDecimal(accInfo.getAccount().getBalance()));
 				dao.walletDao.updateByPrimaryKeySelective(account);
 			}
@@ -315,7 +315,7 @@ public class WalletHelper implements ActorService {
 					
 					RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(wallet.getAccount());
 					if(accInfo.getRetCode()==1){
-						if(wallet.getBalance().longValue() != accInfo.getAccount().getBalance()) {
+						if(!wallet.getBalance().equals(accInfo.getAccount().getBalance())) {
 							wallet.setBalance(new BigDecimal(accInfo.getAccount().getBalance()));
 							dao.walletDao.updateByPrimaryKeySelective(wallet);
 						}
