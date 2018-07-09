@@ -41,6 +41,17 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 	private final int numZero = 0;
 	private boolean bool = true;
 	
+	/**
+	 * 房产超级账户地址
+	 */
+	public static String SYS_PROPERTY_ADDR = null;
+	
+	/**
+	 * 手续费比例
+	 */
+	public static String EXCHANGE_RATE = null;
+	
+	
 	@ActorRequire(name="Daos", scope = "global")
 	Daos dao;
 	
@@ -62,6 +73,12 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 						e.printStackTrace();
 					}
 					if(propertyHelper != null ) {
+						if(SYS_PROPERTY_ADDR == null)
+							SYS_PROPERTY_ADDR = propertyHelper.getCommonHelper().getSysSettingValue("sys_property_addr");
+						if(EXCHANGE_RATE == null)
+							EXCHANGE_RATE = propertyHelper.getCommonHelper().getSysSettingValue("exchange_rate");
+						
+						
 						log.info("the dao beans loading success....");
 						service = getService();
 						if (service != null) {

@@ -3,8 +3,10 @@ package org.brewchain.cwv.game.job;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
@@ -704,6 +706,27 @@ public class TransactionStatusTask implements Runnable {
 		return propertyHelper.getDao().getDrawDao().selectByExample(example);
 	}
 	
+	
+	/**
+	 * 查询交易hash状态
+	 * @param hash
+	 * @param hashType 参照TransHashEnum
+	 * @param busiMap 业务日志记录MAP参数
+	 * @return
+	 */
+	public static String getTransStatus(PropertyHelper propertyHelper,String hash,String hashType, HashMap<String,String> busiMap){
+		String status = null;
+		RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(hash);
+		if(respGetTxByHash.getRetCode() == -1) {//失败
+			StringBuffer sb = new StringBuffer(hashType).append("==>transaction hash check error").append(":::");
+			for(Map.Entry<String,String>  key : busiMap.entrySet()){
+				sb.append(key).append(":").append(busiMap.get(key));
+			}
+			log.error(sb.toString());
+		}else
+			status = respGetTxByHash.getTransaction().getStatus();
+		return status;
+	}
 
 }
 
