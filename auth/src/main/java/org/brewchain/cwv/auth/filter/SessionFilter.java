@@ -51,8 +51,6 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 
 	@ActorRequire(name="Session_Manager")
 	SessionManager sm;
-	@ActorRequire(name="Dao")
-	Dao dao;
 	@ActorRequire(name="Filter_Helper")
 	FilterHelper filterHelper;
 
@@ -69,15 +67,15 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 	@Override
 	public void init(FilterConfig filterConfig) throws FilterException {
 		super.init(filterConfig);
-		initLoginUrlList();
 	}
 	
 	private void initLoginUrlList() {
 		if(noLoginUrlList == null) {
+			noLoginUrlList = new HashSet<>();
 			CWVSysUrlResourceExample example = new CWVSysUrlResourceExample();
 			example.createCriteria().andUrlResourceTypeEqualTo(2)
 			.andStatusEqualTo("1");
-			List<Object> list = dao.getUrlResouceDao().selectByExample(example);
+			List<Object> list = filterHelper.dao.getUrlResouceDao().selectByExample(example);
 			for(Object o : list){
 				CWVSysUrlResource url = (CWVSysUrlResource) o;
 				noLoginUrlList.add(url.getUrlResourcePath());
@@ -155,7 +153,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 
 	@Override
 	public boolean preRoute(ActWrapper actor, FramePacket pack, CompleteHandler handler) throws FilterException {
-
+		initLoginUrlList();
 		String method = pack.getHttpServerletRequest().getMethod();
 		String pathUrl = pack.getHttpServerletRequest().getRequestURI();
 //		pack.getHttpServerletResponse().setHeader("Access-Control-Allow-Origin", "*");

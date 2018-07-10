@@ -2299,6 +2299,10 @@ public class PropertyHelper implements ActorService {
 		propertyExample.createCriteria().andGameMapIdEqualTo(Integer.parseInt(pb.getMapId()));
 		pageUtil.setTotalCount(dao.gamePropertyDao.countByExample(propertyExample));
 		List<Object> list = dao.gamePropertyDao.selectByExample(propertyExample);
+		
+		// 统计价值
+		// 房产数量
+		// 剩余房产数量
 		propertyExample.setOrderByClause(" price_increase desc ");
 		RetData.Builder data = RetData.newBuilder();
 		MapPropertyDetail.Builder mapPropertyDetail = MapPropertyDetail.newBuilder();

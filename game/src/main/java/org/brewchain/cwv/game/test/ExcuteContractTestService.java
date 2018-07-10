@@ -43,7 +43,7 @@ public class ExcuteContractTestService extends SessionModules<ReqExcuteContract>
 	@Override
 	public void onPBPacket(final FramePacket pack, final ReqExcuteContract pb, final CompleteHandler handler) {
 		String contractContent = "asdfasdfasdfa";
-		String data = wltHelper.excuteContract("1", "fingerprintInfo", contractContent);
+		String data = wltHelper.excuteContract("1", "getFixedRange", 1);
 		RespCreateTransaction.Builder ret = wltHelper.excuteContract(new BigDecimal(pb.getAmount()), pb.getAddress(), pb.getContractAddress(),data);
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		// 返回给客户端

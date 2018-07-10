@@ -330,8 +330,8 @@ message MapPropertyDetail
 		string property_id = 1; //房产Id
 		string property_name = 2; //房产名称
 		string price = 3; //成交价格
-		string property_status = 4; //状态 
-		string up_down = 5; // 0 平 1涨 -1跌
+		int32 property_status = 4; //状态 
+		int32 up_down = 5; // 0 平 1涨 -1跌
 	}
 	
 	repeated PropertyState propertyState = 4;//房产状态列表
