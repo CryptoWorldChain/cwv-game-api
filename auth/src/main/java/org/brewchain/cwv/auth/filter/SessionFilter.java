@@ -3,6 +3,7 @@ package org.brewchain.cwv.auth.filter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -12,6 +13,8 @@ import org.brewchain.cwv.auth.util.jwt.CheckResult;
 import org.brewchain.cwv.auth.util.jwt.GsonUtil;
 import org.brewchain.cwv.auth.util.jwt.SubjectModel;
 import org.brewchain.cwv.auth.util.jwt.TokenMgr;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysUrlResource;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysUrlResourceExample;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.zippo.filter.FilterConfig;
 import org.fc.zippo.filter.exception.FilterException;
@@ -69,40 +72,16 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 		initLoginUrlList();
 	}
 	
-	private static void initLoginUrlList() {
+	private void initLoginUrlList() {
 		if(noLoginUrlList == null) {
-			//TODO 改为查询库
-			noLoginUrlList = new HashSet<String>() {
-				{
-					add("/usr/pbreg.do");//注册
-					add("/usr/pblin.do");//登陆
-					add("/usr/pblou.do");//注销
-					add("/usr/pbrsp.do");//重置密码
-					add("/tkn/pbrts.do");//刷新token
-					add("/tkn/pbats.do");//校验token
-					add("/usr/pbsmc.do");//发送短信
-					add("/usr/pbdis.do");//校验重复
-					
-					//murphy
-					add("/gga/pbgcs.do");
-					add("/gga/pbgcc.do");
-					add("/gga/pbgcm.do");
-					
-					//leo
-					add("/sms/pbmsg.do");
-					add("/sms/pbver.do");
-					add("/sms/pbmsv.do");
-					add("/sms/pbaut.do");
-					add("/nsd/pbcol.do");
-					
-					//test
-					add("/tts/pbnad.do");
-					add("/tts/pbqad.do");
-					add("/tts/pbnts.do");
-					add("/tts/pbqts.do");
-					add("/tts/pbncr.do");
-					add("/tts/pbdcr.do");
-				}};
+			CWVSysUrlResourceExample example = new CWVSysUrlResourceExample();
+			example.createCriteria().andUrlResourceTypeEqualTo(2)
+			.andStatusEqualTo("1");
+			List<Object> list = dao.getUrlResouceDao().selectByExample(example);
+			for(Object o : list){
+				CWVSysUrlResource url = (CWVSysUrlResource) o;
+				noLoginUrlList.add(url.getUrlResourcePath());
+			}
 		}
 		
 	}

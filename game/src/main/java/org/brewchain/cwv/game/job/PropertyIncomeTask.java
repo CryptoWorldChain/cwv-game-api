@@ -25,7 +25,9 @@ import org.brewchain.cwv.game.enums.PropertyIncomeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyIncomeTypeEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
+import org.brewchain.cwv.game.util.Arith;
 import org.brewchain.cwv.game.util.DateUtil;
+import org.brewchain.wallet.service.Wallet.RespGetAccount;
 
 import lombok.extern.slf4j.Slf4j;
 import onight.tfw.ojpa.api.TransactionExecutor;
@@ -60,10 +62,7 @@ public class PropertyIncomeTask implements Runnable {
 	public void run() {
 		log.info("PropertyIncomeTask start ....");
 		//判断执行时间
-		CWVSysSettingExample example = new CWVSysSettingExample();
-		example.createCriteria().andNameEqualTo(PropertyIncomeTask.INCOME_TIME);
-		Object o = propertyHelper.getDao().settingDao.selectOneByExample(example);
-	
+		Object o = propertyHelper.getCommonHelper().getSysSettingValue(PropertyIncomeTask.INCOME_TIME);
 		if(o == null) {
 			return;
 		}
@@ -78,8 +77,9 @@ public class PropertyIncomeTask implements Runnable {
 			return;
 		}
 		log.info("PropertyIncomeTask execute time : "+DateUtil.getDayTime(new Date()));
-		
+		//收益处理
 		incomeProcess();
+		
 		Calendar a = Calendar.getInstance();
 		a.setTime(incomeTime);
 		a.add(Calendar.MINUTE, 7);
@@ -93,41 +93,50 @@ public class PropertyIncomeTask implements Runnable {
 	
 	public void incomeProcess() {
 		//查询收益合约 返回总收益
-		double totalIncome = 1000000;
+		RespGetAccount.Builder account = propertyHelper.getWltHelper().getAccountInfo(PropertyJobHandle.INCOME_ADDRESS);
+		
+		if(account.getRetCode() == -1) {
+			return ;
+		}
+		
+		double totalIncome = Double.parseDouble(account.getAccount().getBalance());
 		
 		//查询登陆有效用户ID
-		Set<String> userIdSet = SessionFilter.userMap.keySet();
-		if(userIdSet.isEmpty())
-			return ;
-		List<Integer> listUser = new ArrayList<>();
-		for(String userId : userIdSet) {
-			CheckResult checkResult = TokenMgr.validateJWT(SessionFilter.userMap.get(userId));
-			if(checkResult.isSuccess()) {
-				listUser.add(Integer.parseInt(userId));
-			}
-			
-		}
+//		Set<String> userIdSet = SessionFilter.userMap.keySet();
+//		if(userIdSet.isEmpty())
+//			return ;
+//		List<Integer> listUser = new ArrayList<>();
+//		for(String userId : userIdSet) {
+//			CheckResult checkResult = TokenMgr.validateJWT(SessionFilter.userMap.get(userId));
+//			if(checkResult.isSuccess()) {
+//				listUser.add(Integer.parseInt(userId));
+//			}
+//			
+//		}
 		//
 		//计算 普通房产+标志性房产的分工收益
 		CWVGamePropertyExample ordinaryExample = new CWVGamePropertyExample();
 		CWVGamePropertyExample.Criteria criteria1 =  ordinaryExample.createCriteria();
 		criteria1.andPropertyTypeEqualTo(PropertyTypeEnum.ORDINARY.getValue());
-		criteria1.andUserIdIn(listUser);
+//		criteria1.andUserIdIn(listUser);
 		List<Object> listOrdinary = propertyHelper.getDao().gamePropertyDao.selectByExample(ordinaryExample);
 	
 		CWVGamePropertyExample typicalExample = new CWVGamePropertyExample();
 		CWVGamePropertyExample.Criteria criteria2 =  typicalExample.createCriteria();
 		criteria2.andPropertyTypeEqualTo(PropertyTypeEnum.TYPICAL.getValue());
-		criteria2.andUserIdIn(listUser);
+//		criteria2.andUserIdIn(listUser);
 		List<Object> listTypical = propertyHelper.getDao().gamePropertyDao.selectByExample(typicalExample);
 		
 		//分红收益
-		double incomeDivided = totalIncome * RATE;
+		double incomeDivided = Arith.mul(totalIncome, RATE) ;
 		//单个普通房产收益
-		double singleOrdinary = incomeDivided/((listTypical.size() * TYPICAL_TO_DIVIDED/ORDINARY_TO_DIVIDED) + listOrdinary.size());
+//		double singleOrdinary = incomeDivided/((listTypical.size() * TYPICAL_TO_DIVIDED/ORDINARY_TO_DIVIDED) + listOrdinary.size());
+		
+		double singleOrdinary = Arith.div(incomeDivided, Arith.add(Arith.div(Arith.mul(listTypical.size(), TYPICAL_TO_DIVIDED), ORDINARY_TO_DIVIDED), listOrdinary.size()) );
+		
 		BigDecimal singleOrdinaryAmount = new BigDecimal(singleOrdinary).setScale(0, RoundingMode.FLOOR);
 		//单个功能房产收益
-		double singleTypical = singleOrdinary * TYPICAL_TO_DIVIDED / ORDINARY_TO_DIVIDED;
+		double singleTypical = Arith.div(Arith.mul(singleOrdinary, TYPICAL_TO_DIVIDED), ORDINARY_TO_DIVIDED) ;
 		BigDecimal singleTypicalAmount = new BigDecimal(singleTypical).setScale(0, RoundingMode.FLOOR);
 		
 		//计算实际总收益

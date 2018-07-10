@@ -46,7 +46,7 @@ public class PropertyDrawInvoker implements ActorService {
 		
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		try {
-			String data = wltHelper.excuteContract("1", "fingerprintInfo");
+			String data = wltHelper.excuteContract("1", "getFixedRange",num);
 			String contractAddress = this.commonHelper.getSysSettingValue(CONTRACT_DRAW);
 			ret = wltHelper.excuteContract(new BigDecimal(0), address, contractAddress,data);
 			return ret;

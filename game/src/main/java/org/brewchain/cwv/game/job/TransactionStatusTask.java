@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
@@ -27,6 +28,7 @@ import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
+import org.brewchain.cwv.game.enums.TransHashTypeEnum;
 import org.brewchain.cwv.game.helper.GameNoticeHelper;
 import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTradeTypeEnum;
 import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTypeEnum;
@@ -67,18 +69,15 @@ public class TransactionStatusTask implements Runnable {
 	public void run() {
 		log.info("TransactionStatusTask start ....");
 		//1 执行交易 卖出，买入，撤销卖出
-		List<Object> listExchange = getUndoneExchange();
+		List<Object> listExchange = getExchangeSell();
 		for(Object o : listExchange) {
 			CWVMarketExchange exchange = (CWVMarketExchange) o;
-			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(exchange.getChainTransHash());
-			if(respGetTxByHash.getRetCode() == -1) {//失败
-				log.error("exchangeId:"+exchange.getExchangeId()+",chainTransHash:"+exchange.getChainTransHash()+"==>查询异常");
-				continue;
-			}
+			HashMap busiMap = new HashMap<String,String>();
+			busiMap.put("exchangeId", exchange.getExchangeId());
+			busiMap.put("txHash", exchange.getChainTransHash());
+			String status = getTransStatus(propertyHelper, exchange.getChainTransHash(), TransHashTypeEnum.EXCHANGE_SELL.getValue(), busiMap);
 			
-			String status = respGetTxByHash.getTransaction().getStatus();
-			
-			if( status == null || status.equals("") ) {
+			if(StringUtils.isEmpty(status)) {
 				continue;
 			}
 			
@@ -438,15 +437,15 @@ public class TransactionStatusTask implements Runnable {
 			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
 				exchangeOnsaleError(exchange);
 		}
-		//买入
-		if(exchange.getStatus().equals(PropertyExchangeStatusEnum.SOLD.getValue())) {
-			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-				exchangeSoldDone(exchange);
-			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-				exchangeSoldError(exchange);
-			
-			
-		}
+		//买入逻辑单独处理 PropertyExchangeTask
+//		if(exchange.getStatus().equals(PropertyExchangeStatusEnum.SOLD.getValue())) {
+//			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
+//				exchangeSoldDone(exchange);
+//			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
+//				exchangeSoldError(exchange);
+//			
+//			
+//		}
 		//撤销
 		if(exchange.getStatus().equals(PropertyExchangeStatusEnum.CANCEL.getValue())) {
 			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
@@ -454,9 +453,7 @@ public class TransactionStatusTask implements Runnable {
 			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
 				exchangeCancelError(exchange);
 			
-			
 		}
-		
 		
 	}
 
@@ -675,10 +672,11 @@ public class TransactionStatusTask implements Runnable {
 	}
 	
 	
-	private List<Object>  getUndoneExchange() {
+	private List<Object>  getExchangeSell() {
 		//
 		CWVMarketExchangeExample example = new CWVMarketExchangeExample();
-		example.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey());
+		example.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey())
+		.andStatusEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue());
 		
 		List<Object> list = propertyHelper.getDao().getBidDao().selectByExample(example);
 		return list;

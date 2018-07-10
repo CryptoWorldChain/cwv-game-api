@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketChainRecord;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuy;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuyExample;
 import org.brewchain.cwv.game.dao.Daos;
@@ -159,6 +160,8 @@ public class PropertyExchangeBuyTask implements Runnable {
 			propertyHelper.getDao().exchangeBuyDao.updateByPrimaryKeySelective(buy);
 		}else{
 			//数据库插入日志
+//			CWVMarketChainRecord chainRecord
+			
 			log.error(String.format(" buy error :: rollback error:: [inputaddress: %s ,inputaddress: %s , amount: %s ]",PropertyJobHandle.SYS_PROPERTY_ADDR,buy.getBuyerAddress(),buy.getAmount()));
 		}
 			
