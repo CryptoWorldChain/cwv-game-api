@@ -3,6 +3,7 @@ package org.brewchain.cwv.game.dao;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCity;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddress;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDic;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
@@ -91,6 +92,9 @@ public class Daos implements ActorService, IJPAClient{
 	
 	@StoreDAO
 	public OJpaDAO<CWVMarketExchangeBuy> exchangeBuyDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVGameContractAddress> contractDao;
 	
 	@ActorRequire(name="DB_Provider")
 	public DBProvider provider;

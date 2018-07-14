@@ -639,7 +639,7 @@ public class TransactionStatusTask implements Runnable {
 		final CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyId(exchange.getPropertyId());
 		property.setPropertyStatus(PropertyStatusEnum.ONSALE.getValue());// 出售中
-		
+		//TODO setChainStatus
 		propertyHelper.getDao().exchangeDao.doInTransaction(new TransactionExecutor() {
 			@Override
 			public Object doInTransaction() {
@@ -678,7 +678,7 @@ public class TransactionStatusTask implements Runnable {
 		example.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey())
 		.andStatusEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue());
 		
-		List<Object> list = propertyHelper.getDao().getBidDao().selectByExample(example);
+		List<Object> list = propertyHelper.getDao().getExchangeDao().selectByExample(example);
 		return list;
 	}
 	

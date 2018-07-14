@@ -53,6 +53,7 @@ import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.enums.UpAndDownEnum;
+import org.brewchain.cwv.game.job.PropertyJobHandle;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyDetail;
@@ -107,6 +108,7 @@ import org.brewchain.cwv.service.game.User.PSPropertyIncome;
 import org.brewchain.cwv.service.game.User.PSPropertyIncomeClaim;
 import org.brewchain.wallet.service.Wallet.AccountCryptoTokenImpl;
 import org.brewchain.wallet.service.Wallet.AccountCryptoValueImpl;
+import org.brewchain.wallet.service.Wallet.RespCreateContractTransaction;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetAccount;
 
@@ -170,7 +172,6 @@ public class PropertyHelper implements ActorService {
 		}
 	};
 
-	private static final String MARKET_EXCHANGE_AGENT = "market_exchange_agent";
 
 	// 防止相互引用死循环
 	@Override
@@ -190,7 +191,13 @@ public class PropertyHelper implements ActorService {
 		ret.setRetMsg(ReturnCodeMsgEnum.PES_SUCCESS.getRetMsg());
 
 	}
-
+	/**
+	 * 查询房产交易列表
+	 * @param pb
+	 * @param ret
+	 * @param page
+	 * @param pack
+	 */
 	private void setExchangeRet(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, PageUtil page,
 			FramePacket pack) {
 		// 设置查询条件
@@ -198,7 +205,7 @@ public class PropertyHelper implements ActorService {
 		CWVGamePropertyExample.Criteria criteria = cwvPropertyExample.createCriteria();
 		cwvPropertyExample.setLimit(page.getLimit());
 		cwvPropertyExample.setOffset(page.getOffset());
-
+		criteria.andPropertyStatusNotEqualTo(PropertyStatusEnum.NOOWNER.getValue());
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
 		if (pb.getUserOnly() == 1) {
 			CWVUserWalletExample wltExample = new CWVUserWalletExample();
@@ -254,6 +261,8 @@ public class PropertyHelper implements ActorService {
 			criteria.andUserIdNotEqualTo(user.getUserId());
 
 			criteria.andPropertyStatusEqualTo(PropertyStatusEnum.NOSALE.getValue());
+			
+			criteria.addCriterion(" chain_status ='1'  ");
 		}
 
 		// 房产类型
@@ -816,17 +825,17 @@ public class PropertyHelper implements ActorService {
 		buy.setPropertyToken(property.getCryptoToken());
 		CWVUserWallet seller = walletHelper.getUserAccount(exchange.getCreateUser(), CoinEnum.CWB);
 		buy.setSellerAddress(seller.getAccount());
+		
 		dao.exchangeBuyDao.insert(buy);
 
-		String outputAddress = commonHelper.getSysSettingValue(MARKET_EXCHANGE_AGENT);
-
-		RespCreateTransaction.Builder exchangeRet = wltHelper.createTx(buy.getAmount(), outputAddress,
+		RespCreateTransaction.Builder exchangeRet = wltHelper.createTx(buy.getAmount(), PropertyJobHandle.INCOME_ADDRESS,
 				buy.getBuyerAddress());
 		// 添加调取合约日志 TODO
 
 		if (exchangeRet.getRetCode() != 1) {
 			ret.setRetCode("99");
 			ret.setRetMsg(exchangeRet.getRetMsg());
+			dao.exchangeBuyDao.deleteByPrimaryKey(buy);
 			return;
 		}
 
@@ -954,8 +963,8 @@ public class PropertyHelper implements ActorService {
 			ret.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_ID.getRetMsg());
 			return;
 		}
-
-		if (!this.statusForSale.contains(property.getPropertyStatus())) {// 必须是未出售状态
+		//TODO 加入 chainStatus
+		if (!this.statusForSale.contains(property.getPropertyStatus()) ) {// 必须是未出售状态
 			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_STATUS.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_STATUS.getRetMsg());
 			return;
@@ -968,7 +977,7 @@ public class PropertyHelper implements ActorService {
 		// 调取卖出房产合约
 		CWVUserWallet account = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
 		RespCreateTransaction.Builder exchangeRet = exchangeInvoker.sellProperty(account.getAccount(),
-				pb.getPropetyId(), pb.getPrice(), charge);
+				property.getCryptoToken(), 0);
 
 		// 添加调取合约日志 TODO
 
@@ -1915,7 +1924,9 @@ public class PropertyHelper implements ActorService {
 		bid.setBiddersCount(0);
 		// 生成交易
 		// 调取卖出房产合约
-		RespCreateTransaction.Builder exchangeRet = bidInvoker.createBid(bid);
+		CWVUserWallet wallet = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
+		
+		RespCreateContractTransaction.Builder exchangeRet = bidInvoker.createBid(wallet.getAccount(), property.getCryptoToken());
 
 		// 添加调取合约日志 TODO
 
@@ -2311,7 +2322,7 @@ public class PropertyHelper implements ActorService {
 
 			PropertyState.Builder propertyState = PropertyState.newBuilder();
 			propertyState.setPropertyId(gameProperty.getPropertyId() + "")
-					.setPropertyName(gameProperty.getPropertyName()).setPropertyStatus(gameProperty.getPropertyStatus())
+					.setPropertyName(gameProperty.getPropertyName()).setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()))
 					.setPrice(gameProperty.getLastPrice() + "");
 
 			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
@@ -2323,9 +2334,9 @@ public class PropertyHelper implements ActorService {
 
 			if (ob != null) {
 				CWVMarketExchange exchange = (CWVMarketExchange) ob;
-				propertyState.setUpDown(gameProperty.getLastPrice().compareTo(exchange.getSellPrice()) + "");
+				propertyState.setUpDown(gameProperty.getLastPrice().compareTo(exchange.getSellPrice()));
 			} else {
-				propertyState.setUpDown(UpAndDownEnum.NOCHANGE.getValue() + "");
+				propertyState.setUpDown(UpAndDownEnum.NOCHANGE.getValue());
 			}
 
 			mapPropertyDetail.addPropertyState(propertyState);

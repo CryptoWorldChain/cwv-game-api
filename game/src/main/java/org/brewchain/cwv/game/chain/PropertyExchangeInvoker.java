@@ -2,6 +2,7 @@ package org.brewchain.cwv.game.chain;
 
 import java.math.BigDecimal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.WltHelper;
@@ -25,7 +26,7 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Data
 @Instantiate(name="Property_Exchange_Invoker")
 public class PropertyExchangeInvoker implements ActorService {
-	private String CONTRACT_EXCHANGE = this.commonHelper.getSysSettingValue("contract_exchange");
+	private String INCOME_ADDRESS ;
 	
 	
 	@ActorRequire(name="Wlt_Helper", scope = "global")
@@ -74,18 +75,20 @@ public class PropertyExchangeInvoker implements ActorService {
 	 * @return
 	 */
 	
-	public RespCreateTransaction.Builder sellProperty(String sellAddress, String propertyId, double price, double charge  ){
+	public RespCreateTransaction.Builder sellProperty(String sellAddress, String cryptoToken, double price){
 		
-		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
-		return ret.setRetCode(1);
-		}
+		if(StringUtils.isEmpty(INCOME_ADDRESS))
+			INCOME_ADDRESS = this.commonHelper.getSysSettingValue("sys_income_address");
+		
+		return wltHelper.createTx(new BigDecimal(price), INCOME_ADDRESS, sellAddress, "house", cryptoToken);
+	}
 
 
 	public RespCreateTransaction.Builder cancelExchange(String address, String exchangeId) {
 		
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		return ret.setRetCode(1);
-		}
+	}
 	
 	
 }

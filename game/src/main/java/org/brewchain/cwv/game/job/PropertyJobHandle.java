@@ -51,7 +51,7 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 	 */
 	public static String EXCHANGE_RATE = null;
 	
-	public static String INCOME_ADDRESS = "sys_income_address" ; //房產收益地址
+	public static String INCOME_ADDRESS = null ; //房產收益地址
 	
 	
 	@ActorRequire(name="Daos", scope = "global")
@@ -109,9 +109,9 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 //							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 							
 							//任务开启时间 设置
-//							service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+							service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 //							service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 60, TimeUnit.SECONDS);
-							service.scheduleAtFixedRate(new PropertyDrawTask(propertyHelper), numZero, 60, TimeUnit.SECONDS);
+							service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							
 						}
 					}

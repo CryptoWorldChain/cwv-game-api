@@ -4,9 +4,13 @@ import java.math.BigDecimal;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.cwv.auth.enums.ContractTypeEnum;
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.impl.WltHelper;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddress;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddressExample;
 import org.brewchain.cwv.game.helper.CommonHelper;
+import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
 import lombok.Data;
@@ -26,15 +30,10 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Slf4j
 @Data
 @Instantiate(name="Property_Draw_Invoker")
-public class PropertyDrawInvoker implements ActorService {
+public class PropertyDrawInvoker extends Invoker implements ActorService  {
 
 	private static String CONTRACT_DRAW = "contract_draw";
 	
-	@ActorRequire(name="Common_Helper")
-	CommonHelper commonHelper;
-	
-	@ActorRequire(name="Wlt_Helper", scope = "global")
-	WltHelper wltHelper;
 
 	/**
 	 * 抽奖房产
@@ -47,7 +46,15 @@ public class PropertyDrawInvoker implements ActorService {
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		try {
 			String data = wltHelper.excuteContract("1", "getFixedRange",num);
-			String contractAddress = this.commonHelper.getSysSettingValue(CONTRACT_DRAW);
+
+			String contractAddress = this.getContractAddress(ContractTypeEnum.RANDOM_CONTRACT.getName());
+			
+			if(contractAddress == null) {
+				ret.setRetCode(-1);
+				ret.setRetMsg("随机合约地址为空，暂不支持抽奖");
+				return ret;
+			}
+			
 			ret = wltHelper.excuteContract(new BigDecimal(0), address, contractAddress,data);
 			return ret;
 		} catch (Exception e) {
