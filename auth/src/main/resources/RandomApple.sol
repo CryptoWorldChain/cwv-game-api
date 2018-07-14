@@ -44,7 +44,9 @@ function fingerprintInfo(string result) public {
   userAddrArray.push(msg.sender);
   randomInfo[msg.sender] = RandomUser(result,0,false,true);
 }
-
+function getSize() public view returns(uint256){
+  return userAddrArray.length;
+}
 function getInfo() public view returns(string){
   RandomUser memory temp = randomInfo[msg.sender];
   return temp.fingerprint;

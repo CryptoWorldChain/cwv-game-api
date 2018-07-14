@@ -2,11 +2,13 @@ package org.brewchain.cwv.auth.dao;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.cwv.dbgens.auth.dao.CWVAuthUserDao;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthRefreshToken;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddress;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
+import org.brewchain.cwv.dbgens.sys.dao.CWVSysUrlResourceDao;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysUrlResource;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
@@ -64,5 +66,16 @@ public class Dao implements ActorService, IJPAClient {
 	@Override
 	public void onDaoServiceReady(DomainDaoSupport arg0) {
 
+	}
+	
+	public boolean isReady() {
+		if (userDao != null 
+				&& CWVAuthUserDao.class.isInstance(userDao)
+				&& urlResouceDao != null 
+				&& CWVSysUrlResourceDao.class.isInstance(urlResouceDao)
+				) {
+			return true;
+		}
+		return false;
 	}
 }

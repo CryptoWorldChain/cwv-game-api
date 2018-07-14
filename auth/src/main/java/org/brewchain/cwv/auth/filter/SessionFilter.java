@@ -70,7 +70,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 	}
 	
 	private void initLoginUrlList() {
-		if(noLoginUrlList == null) {
+		if(noLoginUrlList == null || noLoginUrlList.isEmpty()) {
 			noLoginUrlList = new HashSet<>();
 			CWVSysUrlResourceExample example = new CWVSysUrlResourceExample();
 			example.createCriteria().andUrlResourceTypeEqualTo(2)

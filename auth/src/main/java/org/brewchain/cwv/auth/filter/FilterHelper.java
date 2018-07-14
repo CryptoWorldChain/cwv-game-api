@@ -1,10 +1,14 @@
 package org.brewchain.cwv.auth.filter;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.dao.Dao;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysUrlResource;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysUrlResourceExample;
 import org.fc.zippo.filter.exception.FilterException;
 
 import lombok.Data;

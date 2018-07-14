@@ -3,7 +3,7 @@ package org.brewchain.cwv.auth.enums;
 public enum ContractTypeEnum {
 	RANDOM_CONTRACT("1","RandomApple.sol"),
 	EXCHANGE_CONTRACT("2","test.sol"),
-	AUCTION_CONTRACT("3","RandomApple.sol");
+	AUCTION_CONTRACT("3","Auction.sol");
 	private String name;
 	private String value;
 	
