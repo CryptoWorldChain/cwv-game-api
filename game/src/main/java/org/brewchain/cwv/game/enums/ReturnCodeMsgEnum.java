@@ -8,6 +8,13 @@ package org.brewchain.cwv.game.enums;
 public enum ReturnCodeMsgEnum {
 	
 	/**
+	 * 交易
+	 */
+	DTI_DONE("01","交易成功"),
+	DTI_PROCESS("02","交易进行中"),
+	DTI_ERROR("03","交易失败"),
+	
+	/**
 	 * 地图ID错误
 	 */
 	MPD_ERROR_ID("02","地图ID错误"),

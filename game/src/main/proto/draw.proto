@@ -9,6 +9,7 @@ enum PDrawModule {
 enum PDrawCommand {
 	PDR = 0; //查询抽奖记录 - PropertyDrawRecord
 	PDS = 1; //抽奖房产 - DrawPropertyService
+	DTI = 2; //查询抽奖交易
 };
 
 
@@ -46,6 +47,8 @@ message PSCommonDraw{
 	string bid_id = 1; //竞拍ID
 }
 
-
+message PSDrawTxInfo{
+	string tx_hash = 1; //交易HASH
+}
 
 

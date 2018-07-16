@@ -72,6 +72,7 @@ import org.brewchain.cwv.service.game.Draw.PRetPropertyDraw;
 import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord;
 import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord.PropertyDraw;
 import org.brewchain.cwv.service.game.Draw.PSCommonDraw;
+import org.brewchain.cwv.service.game.Draw.PSDrawTxInfo;
 import org.brewchain.cwv.service.game.Draw.PSPropertyDrawRecord;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.PropertyExchange;
@@ -111,6 +112,7 @@ import org.brewchain.wallet.service.Wallet.AccountCryptoValueImpl;
 import org.brewchain.wallet.service.Wallet.RespCreateContractTransaction;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetAccount;
+import org.brewchain.wallet.service.Wallet.RespGetTxByHash;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -1425,7 +1427,7 @@ public class PropertyHelper implements ActorService {
 		CWVGamePropertyExample example = new CWVGamePropertyExample();
 		example.createCriteria().andUserIdEqualTo(Integer.parseInt(superUserId)).andGameMapIdIsNotNull()
 				.andPropertyTypeEqualTo("2").addCriterion(
-						"property_id not in ( select property_id from cwv_market_draw where chain_status != '-1' or chain_status is null )");
+						"property_id not in ( select property_id from cwv_market_draw where chain_status != '-1' or chain_status is null and property_id is not null)");
 
 		int count = dao.gamePropertyDao.countByExample(example);
 		if (count == 0) {
@@ -2375,6 +2377,65 @@ public class PropertyHelper implements ActorService {
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode());
 		builder.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
 		ret.setData(data);
+	}
+
+	
+	/**
+	 * 查询抽奖结果
+	 * @param pb
+	 * @param ret
+	 * @param builder
+	 */
+	public void getDrawTxInfo(PSDrawTxInfo pb, Builder ret,
+			org.brewchain.cwv.service.game.Game.RetCodeMsg.Builder builder) {
+		RetData.Builder data = RetData.newBuilder();
+		
+		if(StringUtils.isEmpty(pb.getTxHash())) {
+			builder.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+			builder.setRetMsg("交易hash不能为空");
+			ret.setData(data);
+			return;
+		}
+		
+		RespGetTxByHash.Builder respGetTxByHash = wltHelper.getTxInfo(pb.getTxHash());
+		if(respGetTxByHash.getRetCode() == -1) {//失败
+			builder.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+			builder.setRetMsg("交易hash不能为空");
+			ret.setData(data);
+			return;
+		}
+		String status = respGetTxByHash.getTransaction().getStatus();
+		
+		if( status == null || status.equals("") ) {
+			builder.setRetCode(ReturnCodeMsgEnum.DTI_PROCESS.getRetCode());
+			builder.setRetMsg(ReturnCodeMsgEnum.DTI_PROCESS.getRetMsg());
+			ret.setData(data);
+			return;
+		}else if(status.equals(ChainTransStatusEnum.DONE.getValue())){
+			
+			CWVMarketDrawExample example = new CWVMarketDrawExample();
+			example.createCriteria().andChainTransHashRandomEqualTo(pb.getTxHash());
+			Object o = dao.getDrawDao().selectOneByExample(example);
+			CWVMarketDraw draw = (CWVMarketDraw) o;
+			if(draw.getPropertyId()!=null){
+				CWVGameProperty gameProperty = new CWVGameProperty();
+				gameProperty.setPropertyId(draw.getPropertyId());
+				gameProperty = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
+				
+				Property.Builder property = Property.newBuilder();
+				propertyCopy(property, gameProperty);
+				data.setProperty(property);
+			}
+			
+			builder.setRetCode(ReturnCodeMsgEnum.DTI_DONE.getRetCode());
+			builder.setRetMsg(ReturnCodeMsgEnum.DTI_DONE.getRetMsg());
+			ret.setData(data);
+		}else if(status.equals(ChainTransStatusEnum.ERROR.getValue())){
+			builder.setRetCode(ReturnCodeMsgEnum.DTI_ERROR.getRetCode());
+			builder.setRetMsg(ReturnCodeMsgEnum.DTI_ERROR.getRetMsg());
+			ret.setData(data);
+		}
+		
 	}
 
 }
