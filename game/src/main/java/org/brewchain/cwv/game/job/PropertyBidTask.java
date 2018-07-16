@@ -39,6 +39,7 @@ public class PropertyBidTask implements Runnable {
 		log.info("PropertyBidTask start ....");
 		biddingSet(propertyHelper.getDao());
 		noticeSet(propertyHelper.getDao());
+		
 		log.info("PropertyBidTask ended ....");
 	}
 	

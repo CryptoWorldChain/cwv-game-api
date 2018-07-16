@@ -68,7 +68,8 @@ public class TransactionStatusTask implements Runnable {
 	@Override
 	public void run() {
 		log.info("TransactionStatusTask start ....");
-		//1 执行交易 卖出，买入，撤销卖出
+		//1 执行交易 卖出，撤销卖出 
+			//买入，放入单独任务
 		List<Object> listExchange = getExchangeSell();
 		for(Object o : listExchange) {
 			CWVMarketExchange exchange = (CWVMarketExchange) o;
@@ -127,24 +128,24 @@ public class TransactionStatusTask implements Runnable {
 			
 		}
 		//抽奖
-		List<Object> listDraw = getUndoneDraw();
-		for(Object o : listDraw) {
-			CWVMarketDraw draw = (CWVMarketDraw) o;
-			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHash());
-			if(respGetTxByHash.getRetCode() == -1) {//失败
-				log.error("drawId:"+draw.getDrawId()+",chainTransHash:"+draw.getChainTransHash()+"==>查询异常");
-				continue;
-			}
-			String status = respGetTxByHash.getTransaction().getStatus();
-			
-			if( status == null || status.equals("") ) {
-				continue;
-			}
-			
-			drawProcess(draw,status);
-			
-			
-		}
+//		List<Object> listDraw = getUndoneDraw();
+//		for(Object o : listDraw) {
+//			CWVMarketDraw draw = (CWVMarketDraw) o;
+//			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHash());
+//			if(respGetTxByHash.getRetCode() == -1) {//失败
+//				log.error("draw:chainTransHash:"+draw.getChainTransHash()+"==>查询异常");
+//				continue;
+//			}
+//			String status = respGetTxByHash.getTransaction().getStatus();
+//			
+//			if( status == null || status.equals("") ) {
+//				continue;
+//			}
+//			
+//			drawProcess(draw,status);
+//			
+//			
+//		}
 		
 		log.info("TransactionStatusTask ended ....");
 	}

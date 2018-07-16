@@ -38,6 +38,7 @@ message PRetPropertyDraw	 //DPS
 	string ret_code = 1; //错误编码
 	string ret_msg = 2; //提示信息
 	Property property = 3; //获得房产
+	string tx_hash = 4; //抽奖ID
 	PageOut page = 15; //分页对象
 }
 
