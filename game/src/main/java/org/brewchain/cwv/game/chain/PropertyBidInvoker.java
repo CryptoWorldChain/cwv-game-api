@@ -2,8 +2,10 @@ package org.brewchain.cwv.game.chain;
 
 import java.math.BigDecimal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.bcvm.CodeBuild;
 import org.brewchain.cwv.auth.enums.ContractTypeEnum;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.wallet.service.Wallet.RespCreateContractTransaction;
@@ -13,6 +15,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
+import onight.tfw.outils.serialize.JsonSerializer;
 
 
 /**
@@ -56,7 +59,19 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 			return ret.setRetCode(80).setRetMsg("竞拍止期不能为空");
 		}
 		
-		ret = wltHelper.createContract(address, new BigDecimal("0"), token , ContractTypeEnum.AUCTION_CONTRACT.getName());
+		CodeBuild.Result res = wltHelper.buildContract(ContractTypeEnum.AUCTION_CONTRACT.getName());
+		if(res==null||StringUtils.isNotBlank(res.error)){
+			ret.setRetMsg("创建合约失败，请重新操作");
+			ret.setRetCode(-1);
+			log.debug("合约编译失败");
+			return ret;
+		}
+		String consData = wltHelper.methodBuild(res, "constructor", token,bid.getAuctionStart().getTime(),
+				bid.getAuctionEnd().getTime(),bid.getAuctionEnd().getTime()-bid.getAuctionStart().getTime(),bid.getBidStart(),
+				bid.getIncreaseLadder());
+		
+		return createContract(address, amount, res.data+consData,type);		
+		ret = wltHelper.createContract(address, new BigDecimal("0"), consData , ContractTypeEnum.AUCTION_CONTRACT.getName());
 		
 		return ret.setRetCode(1);
 	}

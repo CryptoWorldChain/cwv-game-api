@@ -85,7 +85,7 @@ public class RandomInitTask implements Runnable {
 		while(go1) {
 			for(Object o : list) {
 				try {
-					Thread.currentThread().sleep(1000);
+					Thread.currentThread().sleep(3000);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -116,7 +116,7 @@ public class RandomInitTask implements Runnable {
 		while(go2) {
 			for(Object o : list) {
 				try {
-					Thread.currentThread().sleep(1000);
+					Thread.currentThread().sleep(3000);
 				} catch (InterruptedException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();

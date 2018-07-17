@@ -255,7 +255,7 @@ public class WltHelper implements ActorService {
 		RespCreateContractTransaction.Builder ret = RespCreateContractTransaction.newBuilder();
 		ReqCreateContractTransaction.Builder reqCreateContractTransaction = ReqCreateContractTransaction.newBuilder();
 		MultiTransactionInputImpl.Builder multiTransactionInputImpl = MultiTransactionInputImpl.newBuilder();
-		
+		System.out.println("datadata==\n"+data);
 		reqCreateContractTransaction.setData(data);
 		//获取账户nonce
 		RespGetAccount.Builder accountMap = getAccountInfo(address);
@@ -757,7 +757,7 @@ public class WltHelper implements ActorService {
 				transaction.setNode(getMultiTransactionNode(retNode.get("node")));
 			transaction.setStatus(tNode.has("status") ? tNode.get("status").asText() : "");
 			transaction.setTxHash(tNode.has("txHash") ? tNode.get("txHash").asText() : "");
-			
+			transaction.setResult(tNode.has("result") ? tNode.get("result").asText() : "");
 			ret.setTransaction(transaction);
 		}
 		ret.setRetCode(retNode.get("retCode").asInt());
@@ -912,6 +912,14 @@ public class WltHelper implements ActorService {
 	
 	public String excuteContract(String busi,String methonName,Object...objs){
 		CodeBuild.Result res = buildContract(busi);
+        CallTransaction.Contract contract = new CallTransaction.Contract(res.abi);
+        CallTransaction.Function inc = contract.getByName(methonName);
+        byte[] functionCallBytes = inc.encode(objs);
+        
+        return encAPI.hexEnc(functionCallBytes);
+	}
+	
+	public String methodBuild(CodeBuild.Result res,String methonName,Object...objs){
         CallTransaction.Contract contract = new CallTransaction.Contract(res.abi);
         CallTransaction.Function inc = contract.getByName(methonName);
         byte[] functionCallBytes = inc.encode(objs);

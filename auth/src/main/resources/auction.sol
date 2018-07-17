@@ -24,16 +24,18 @@ contract Auction{
 
 
     constructor(string _tokenID,uint256 _startTime,
-      uint256 _endTime,uint256 _bidStartingPrice,uint256 _increasePrice,
-      uint256 _blocklow,uint256 _blockMax) public {
+      uint256 _endTime,uint256 _blockTime,uint256 _bidStartingPrice,
+      uint256 _increasePrice) public {
       beneficiary = msg.sender;
       bidStartingPrice = _bidStartingPrice;
       increasePrice = _increasePrice;
       startTime = _startTime;
       endTime = _endTime;
       tokenID = _tokenID;
-      blocklow = _blocklow;
-      blockMax = _blockMax;
+      blocklow = block.number + 10;
+      blockMax = block.number + 100;
+      /* blocklow = _blocklow; */
+      /* blockMax = _blockMax; */
     }
     event testData(uint256 num,address tempaddrs);
     /* event test(uint256 num,address tempaddrs); */
