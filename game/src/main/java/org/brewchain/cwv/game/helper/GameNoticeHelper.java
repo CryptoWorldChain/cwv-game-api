@@ -182,7 +182,7 @@ public class GameNoticeHelper implements ActorService {
 		url.append("?");
 		url.append("type="+pb.getNoticeType());
 		url.append("&");
-		url.append("userId="+pb.getUserId());
+		url.append("user_id="+pb.getUserId());
 		url.append("&");
 //		url.append("topic="+pb.getNoticeTopic());
 		url.append("topic="+NoticeTopicEnum.NOTICE.getValue());

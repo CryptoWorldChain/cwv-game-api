@@ -33,7 +33,7 @@ public class Invoker {
 	@ActorRequire(name = "Daos", scope = "global")
 	Daos dao;
 	
-	String getContractAddress(String type){
+	public String getContractAddress(String type){
 		
 		CWVGameContractAddressExample example = new CWVGameContractAddressExample();
 		example.createCriteria().andContractTypeEqualTo(ContractTypeEnum.RANDOM_CONTRACT.getName());
