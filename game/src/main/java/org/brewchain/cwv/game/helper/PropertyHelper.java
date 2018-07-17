@@ -1454,7 +1454,8 @@ public class PropertyHelper implements ActorService {
 		draw.setUserId(authUser.getUserId());
 		draw.setUserAddress(wallet.getAccount());;
 		draw.setCreateTime(new Date());
-		draw.setChainTransHash(retStr.getTxHash());
+		draw.setChainTransHashRandom(retStr.getTxHash());
+		draw.setChainStatusRandom(ChainTransStatusEnum.START.getKey());
 		// 无token字段，临时使用
 		dao.getDrawDao().insert(draw);
 
