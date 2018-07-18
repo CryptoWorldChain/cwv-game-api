@@ -70,8 +70,7 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 				bid.getAuctionEnd().getTime(),bid.getAuctionEnd().getTime()-bid.getAuctionStart().getTime(),bid.getBidStart(),
 				bid.getIncreaseLadder());
 		
-		return createContract(address, amount, res.data+consData,type);		
-		ret = wltHelper.createContract(address, new BigDecimal("0"), consData , ContractTypeEnum.AUCTION_CONTRACT.getName());
+		ret = wltHelper.createContract(address, new BigDecimal("0"), res.data+consData , ContractTypeEnum.AUCTION_CONTRACT.getName());
 		
 		return ret.setRetCode(1);
 	}
