@@ -8,9 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.bcvm.utils.ByteUtil;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
@@ -113,6 +116,7 @@ import org.brewchain.wallet.service.Wallet.RespCreateContractTransaction;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetAccount;
 import org.brewchain.wallet.service.Wallet.RespGetTxByHash;
+import org.codehaus.classworlds.BytesURLConnection;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -181,7 +185,7 @@ public class PropertyHelper implements ActorService {
 		return "102service:";
 	}
 
-	public void getPropertyExchange(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, FramePacket pack) {
+	public void getPropertyExchange(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, FramePacket pack) throws DecoderException {
 
 		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 		if (StringUtils.isNoneBlank(pb.getExchangeId())) {
@@ -199,9 +203,10 @@ public class PropertyHelper implements ActorService {
 	 * @param ret
 	 * @param page
 	 * @param pack
+	 * @throws DecoderException 
 	 */
 	private void setExchangeRet(PSPropertyExchange pb, PRetPropertyExchange.Builder ret, PageUtil page,
-			FramePacket pack) {
+			FramePacket pack) throws DecoderException {
 		// 设置查询条件
 		CWVGamePropertyExample cwvPropertyExample = new CWVGamePropertyExample();
 		CWVGamePropertyExample.Criteria criteria = cwvPropertyExample.createCriteria();
@@ -243,7 +248,7 @@ public class PropertyHelper implements ActorService {
 					return;
 				}
 				for (int j = 0; j < tokens.size(); j++) {
-					ids.add(Integer.parseInt(tokens.get(j).getCode()));
+					ids.add(ByteUtil.byteArrayToInt(Hex.decodeHex(tokens.get(j).getCode().toCharArray())));
 					// sb.append(tokens.get(j).getCode());
 					// if(j<tokens.size()-1){
 					// sb.append(",");
@@ -262,7 +267,7 @@ public class PropertyHelper implements ActorService {
 		} else {
 			criteria.andUserIdNotEqualTo(user.getUserId());
 
-			criteria.andPropertyStatusEqualTo(PropertyStatusEnum.NOSALE.getValue());
+			criteria.andPropertyStatusEqualTo(PropertyStatusEnum.ONSALE.getValue());
 			
 			criteria.addCriterion(" chain_status ='1'  ");
 		}
@@ -320,7 +325,7 @@ public class PropertyHelper implements ActorService {
 			//普通房产抽奖
 			if(PropertyTypeEnum.ORDINARY.getValue().equals(""+property.getPropertyType())) {
 				
-				exchangePrice.append("1000,");
+				exchangePrice.append("1000");
 			}else{
 				CWVMarketBidExample bidExample = new CWVMarketBidExample();
 				bidExample.createCriteria().andGamePropertyIdEqualTo(gameProperty.getPropertyId());
@@ -340,7 +345,7 @@ public class PropertyHelper implements ActorService {
 				for (int i = 0; i < listExchange2.size(); i++) {
 					CWVMarketExchange echange2 = (CWVMarketExchange) listExchange2.get(i);
 					
-					exchangePrice.append(echange2.getSellPrice());
+					exchangePrice.append(",").append(echange2.getSellPrice());
 				}
 			}
 			property.setPriceLine(exchangePrice.toString());
@@ -409,9 +414,7 @@ public class PropertyHelper implements ActorService {
 		if (listExchange2 != null && !listExchange2.isEmpty()) {
 			for (int i = 0; i < listExchange2.size(); i++) {
 				CWVMarketExchange echange2 = (CWVMarketExchange) listExchange2.get(i);
-				if (i != 0)
-					exchangePrice.append(",");
-				exchangePrice.append(echange2.getSellPrice());
+				exchangePrice.append(",").append(echange2.getSellPrice());
 			}
 		}
 		property.setPriceLine(exchangePrice.toString());

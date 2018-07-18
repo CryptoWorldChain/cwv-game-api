@@ -62,7 +62,8 @@ public class RandomInitTask implements Runnable {
 	
 	private PropertyHelper propertyHelper;
 	
-	
+	public static boolean go1 = true;
+	public static boolean go2 = true;
 	public RandomInitTask(PropertyHelper propertyHelper) {
 		super();
 		this.propertyHelper = propertyHelper;
@@ -80,8 +81,7 @@ public class RandomInitTask implements Runnable {
 		
 		List<Object> list = propertyHelper.getDao().walletDao.selectByExample(example);
 		StringBuffer sb = new StringBuffer();
-		boolean go1 = true;
-		boolean go2 = true;
+	
 		while(go1) {
 			for(Object o : list) {
 				try {
