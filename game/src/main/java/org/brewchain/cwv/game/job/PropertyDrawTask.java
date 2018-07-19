@@ -47,14 +47,27 @@ public class PropertyDrawTask implements Runnable {
 	@Override
 	public void run() {
 		log.info("PropertyDrawTask start ....");
-		//随机数处理
-		drawRandom(propertyHelper.getDao());
-
-		//房产transfer
-		drawGroupProcess(propertyHelper.getDao());
+		try {
+			//随机数处理
+			drawRandom(propertyHelper.getDao());
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		
-		//房产transfer
-		drawTransStatusGroup();
+		try {
+			//房产transfer
+			drawGroupProcess(propertyHelper.getDao());
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		try {
+			//房产transfer
+			drawTransStatusGroup();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		
 		
 		log.info("PropertyDrawTask ended ....");
@@ -277,10 +290,79 @@ public class PropertyDrawTask implements Runnable {
 	 */
 	private void drawTransStatusGroup(){
 		CWVMarketDrawExample drawExample = new CWVMarketDrawExample();
+		drawExample.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey());
+		List<Object> list = propertyHelper.getDao().drawDao.selectByExample(drawExample);
+		
+		//存储交易HASH
+		HashSet transStatusSet = new HashSet<String>();
+		
+		for(Object o : list){
+			final CWVMarketDraw draw = (CWVMarketDraw) o;
+			
+			try {
+				if(transStatusSet.contains(draw.getChainTransHash())) {
+					continue ;
+				}else {
+					
+					HashMap busiMap = new HashMap<String,String>();
+					busiMap.put("drawId", draw.getDrawId());
+					busiMap.put("txHash", draw.getChainTransHash());
+					
+					String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHash(), TransHashTypeEnum.DRAW.getValue(), busiMap);
+					
+					if(StringUtils.isEmpty(status)) {
+						continue;
+					}
+					
+					if(status.equals(ChainTransStatusEnum.DONE.getValue())) {
+						draw.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+						final CWVGameProperty property =  new CWVGameProperty();
+						property.setPropertyId(draw.getPropertyId());
+						property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
+						property.setUserId(draw.getUserId());
+						property.setLastPrice(new BigDecimal("1000"));
+						property.setLastPriceTime(new Date());
+						
+						propertyHelper.getDao().drawDao.doInTransaction(new TransactionExecutor() {
+							
+							@Override
+							public Object doInTransaction() {
+		
+								propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
+								propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
+								
+								return null;
+							}
+						});
+					}
+					else if(status.equals(ChainTransStatusEnum.ERROR.getValue())) {
+						draw.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
+						propertyHelper.getDao().drawDao.doInTransaction(new TransactionExecutor() {
+							
+							@Override
+							public Object doInTransaction() {
+								propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
+								drawRollback(draw);
+								return null;
+							}
+						});
+						
+					}
+				}
+			
+			} catch (Exception e) {
+				log.error("draw:drawId="+draw.getDrawId()+"====drawTransStatusGroup done exception \n"+e.getStackTrace());
+			}
+		}
+	}
+	
+	
+	private void drawTransStatusGroupBack(){
+		CWVMarketDrawExample drawExample = new CWVMarketDrawExample();
 		drawExample.createCriteria().andChainStatusIsNull()
 		.andChainStatusRandomEqualTo(ChainTransStatusEnum.DONE.getKey())
 		.andChainRandomIsNotNull();
-		List<Object> list = propertyHelper.getDao().bidDao.selectByExample(drawExample);
+		List<Object> list = propertyHelper.getDao().drawDao.selectByExample(drawExample);
 		
 		//存储交易HASH
 		HashSet transStatusSet = new HashSet<String>();

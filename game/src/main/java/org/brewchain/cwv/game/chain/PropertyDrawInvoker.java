@@ -9,8 +9,13 @@ import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddress;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddressExample;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
+import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.game.helper.PropertyHelper;
+import org.brewchain.cwv.game.job.PropertyJobHandle;
+import org.brewchain.wallet.service.Wallet.MultiTransactionInputImpl;
+import org.brewchain.wallet.service.Wallet.MultiTransactionOutputImpl;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
 import lombok.Data;
@@ -62,6 +67,16 @@ public class PropertyDrawInvoker extends Invoker implements ActorService  {
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
 			return ret;
 		}
+	}
+
+	/**
+	 * 房产转移
+	 * @param draw
+	 * @return
+	 */
+	public RespCreateTransaction.Builder propertyTransfer(CWVMarketDraw draw) {
+		
+		return cryptoTransfer(PropertyJobHandle.SYS_PROPERTY_ADDR, draw.getUserAddress(), draw.getPropertyToken());
 	}
 	
 	

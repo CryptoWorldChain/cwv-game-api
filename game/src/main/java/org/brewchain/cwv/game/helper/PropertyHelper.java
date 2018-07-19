@@ -212,6 +212,7 @@ public class PropertyHelper implements ActorService {
 		CWVGamePropertyExample.Criteria criteria = cwvPropertyExample.createCriteria();
 		cwvPropertyExample.setLimit(page.getLimit());
 		cwvPropertyExample.setOffset(page.getOffset());
+		page.setTotalCount(0);
 		criteria.andPropertyStatusNotEqualTo(PropertyStatusEnum.NOOWNER.getValue());
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
 		if (pb.getUserOnly() == 1) {
@@ -228,12 +229,12 @@ public class PropertyHelper implements ActorService {
 			// 遍历判断账户是否有此房产，并获取cryptoToken
 			if (accInfo.getRetCode() != 1) {
 				log.error("未找到账户相关信息");
-				throw new IllegalArgumentException("未找到账户相关信息");
+				return;
 			}
 			List<AccountCryptoValueImpl> cryptosList = accInfo.getAccount().getCryptosList();
 			if (cryptosList.isEmpty()) {
 				log.error("未找到账户的erc721信息");
-				throw new IllegalArgumentException("未找到账户的erc721信息");
+				return;
 			}
 			List<AccountCryptoTokenImpl> tokens = new ArrayList<>();
 			// StringBuffer sb = new StringBuffer();
@@ -356,7 +357,7 @@ public class PropertyHelper implements ActorService {
 			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
 			CWVMarketExchangeExample.Criteria criteria2 = exchangeExample.createCriteria()
 					.andPropertyIdEqualTo(gameProperty.getPropertyId())
-					.andStatusNotEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue());
+					.andStatusEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue());
 
 			if (pb.getUserOnly() == 1) {
 				if (StringUtils.isEmpty(pb.getExchangeStatus())) {// 查询普通房产
@@ -1386,6 +1387,77 @@ public class PropertyHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.APS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.APS_SUCCESS.getRetMsg());
 
 	}
+	
+
+	/**
+	 * 抽奖房产
+	 * 
+	 * @param pb
+	 * @param ret
+	 */
+	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+		// 校验
+		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
+		// 查询抽奖机会
+		CWVUserWallet walletCWB = walletHelper.getUserAccount(authUser.getUserId(), CoinEnum.CWB);
+		if (walletCWB.getDrawCount() < 1) {
+			ret.setRetCode(ReturnCodeMsgEnum.PDS_ERROR_DRAW_COUNT.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.PDS_ERROR_DRAW_COUNT.getRetMsg());
+			return;
+		}
+		// 抽奖
+		// 调取抽奖合约
+		final CWVUserWallet wallet = walletHelper.getUserAccount(authUser.getUserId(), CoinEnum.CWB);
+//		RetDraw retDraw = drawInvoker.drawProperty(wallet.getAccount());
+//		if (!retDraw.getRetCode().equals(ReturnCodeMsgEnum.SUCCESS.getRetCode())) {
+//			ret.setRetCode(retDraw.getRetCode());
+//			ret.setRetMsg(retDraw.getRetMsg());
+//			return;
+//		}
+
+		// 更新房产信息
+		final CWVGameProperty gameProperty = getDrawProperty();
+		if(gameProperty == null ){
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+			.setRetMsg("暂无房产可抽奖");
+			return;
+		}
+		
+		final CWVMarketDraw draw = new CWVMarketDraw();
+		draw.setUserId(authUser.getUserId());
+		draw.setUserAddress(wallet.getAccount());;
+		draw.setCreateTime(new Date());
+		draw.setPropertyId(gameProperty.getPropertyId());
+		draw.setPropertyToken(gameProperty.getCryptoToken());
+		//transfer property 
+		RespCreateTransaction.Builder retTrans = drawInvoker.propertyTransfer(draw);
+		
+		if(retTrans.getRetCode() != 1) {
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			return ;
+		}
+		
+		draw.setChainTransHash(retTrans.getTxHash());
+		draw.setChainStatus(ChainTransStatusEnum.START.getKey());
+		
+		// 无token字段，临时使用
+		dao.getDrawDao().insert(draw);
+				
+//		wltHelper.excuteContract("", "", "");
+		//设置抽奖合约返回ID
+//		gameProperty.setPropertyId(1);
+//		gameProperty.setUserId(authUser.getUserId());
+//		gameProperty.setPropertyStatus("0");
+//		gameProperty.setLastPrice(new BigDecimal("1000"));
+		// 更新抽奖次数
+		wallet.setDrawCount(wallet.getDrawCount() - 1);
+		
+		dao.walletDao.updateByPrimaryKeySelective(wallet);
+
+		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg())
+				;
+
+	}
 
 	/**
 	 * 查询抽奖记录
@@ -1414,7 +1486,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawPropertyBack(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		final CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -1508,7 +1580,8 @@ public class PropertyHelper implements ActorService {
 
 		CWVGamePropertyExample example = new CWVGamePropertyExample();
 		example.createCriteria().andUserIdEqualTo(Integer.parseInt(superUserId)).andGameMapIdIsNotNull()
-				.andPropertyTypeEqualTo("2")
+				.andPropertyTypeEqualTo(PropertyTypeEnum.ORDINARY.getValue())
+				.andCryptoTokenIsNotNull()
 				.addCriterion("property_id not in ( select property_id from cwv_market_draw where chain_status='0' )");
 
 		int count = dao.gamePropertyDao.countByExample(example);
