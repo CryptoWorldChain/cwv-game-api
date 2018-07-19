@@ -2,6 +2,7 @@ package org.brewchain.cwv.game.chain;
 
 import java.math.BigDecimal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.enums.ContractTypeEnum;
@@ -58,5 +59,10 @@ public class Invoker {
 		ret = wltHelper.excuteContract(new BigDecimal(0), address, contractAddress,data);
 		
 		return ret.setRetCode(1);
+	}
+	
+	public RespCreateTransaction.Builder cryptoTransfer(String fromAddress, String toAddress, String cryptoToken ){
+		
+		return wltHelper.createTx(new BigDecimal("0"), toAddress, fromAddress, "house", cryptoToken);
 	}
 }
