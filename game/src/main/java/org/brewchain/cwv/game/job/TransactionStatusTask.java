@@ -21,6 +21,8 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopupExample;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.MarketTypeEnum;
@@ -147,10 +149,67 @@ public class TransactionStatusTask implements Runnable {
 //			
 //		}
 		
+		//充值 
+		List<Object> listTopup = getUndoneTopup();
+		
+		for(Object o : listTopup) {
+			CWVUserWalletTopup topup = (CWVUserWalletTopup) o;
+			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(topup.getTxHash());
+			if(respGetTxByHash.getRetCode() == -1) {//失败
+				log.error("topupId:"+topup.getTopupId()+",chainTransHash:"+topup.getTxHash()+"==>查询异常");
+				continue;
+			}
+			String status = respGetTxByHash.getTransaction().getStatus();
+			
+			if( status == null || status.equals("") ) {
+				continue;
+			}
+			
+			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
+				topupDone(topup);
+			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
+				topupError(topup);
+			
+			
+		}
+		
 		log.info("TransactionStatusTask ended ....");
 	}
 	
-	
+
+	private void topupError(CWVUserWalletTopup topup) {
+		//人工处理转账失败
+		topup.setStatus((byte)2);
+		
+	}
+
+
+	private void topupDone(CWVUserWalletTopup topup) {
+
+		CWVUserWallet wallet = propertyHelper.getWalletHelper().getUserAccount(topup.getUserId(), CoinEnum.CWB);
+		
+		int countHistory = wallet.getTopupBalance().intValue()/1000;
+		
+		wallet.setTopupBalance(wallet.getTopupBalance().add(topup.getAmount()));
+		int countNew = wallet.getTopupBalance().intValue()/1000;
+		
+		wallet.setDrawCount(wallet.getDrawCount()+(countNew-countHistory));
+		wallet.setBalance(wallet.getBalance().add(topup.getAmount()));
+		
+//		topup.setchainStatus
+		propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(wallet);
+		
+	}
+
+
+	private List<Object> getUndoneTopup() {
+		CWVUserWalletTopupExample example = new CWVUserWalletTopupExample();
+		example.createCriteria().andStatusEqualTo((byte)1)
+		.addCriterion("chain_status ='0'");
+		return propertyHelper.getDao().topupDao.selectByExample(example);
+	}
+
+
 	private void drawProcess(CWVMarketDraw draw, String status) {
 		if(status.equals(ChainTransStatusEnum.DONE.getValue()))
 			drawDone(draw);

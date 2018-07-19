@@ -78,7 +78,7 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 						if(SYS_PROPERTY_ADDR == null)
 							SYS_PROPERTY_ADDR = propertyHelper.getCommonHelper().getSysSettingValue("sys_property_addr");
 						if(EXCHANGE_RATE == null)
-							EXCHANGE_RATE = propertyHelper.getCommonHelper().getSysSettingValue("exchange_rate");
+							EXCHANGE_RATE = propertyHelper.getCommonHelper().getSysSettingValue("exchange_charge");
 						if(INCOME_ADDRESS == null)
 							INCOME_ADDRESS = propertyHelper.getCommonHelper().getSysSettingValue("sys_income_address");
 						
@@ -109,10 +109,10 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 //							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 							
 							//任务开启时间 设置
-							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-//							service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 60, TimeUnit.SECONDS);
 							service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+							service.scheduleAtFixedRate(new PropertyDrawTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							
 						}
 					}

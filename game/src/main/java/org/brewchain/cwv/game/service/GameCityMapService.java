@@ -120,7 +120,7 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 				CWVGameProperty gameProperty = (CWVGameProperty) o;
 				sum = sum.add(gameProperty.getLastPrice());
 			}
-			pMap.setAveragePrice(sum.divide(new BigDecimal(sellCount)).intValue()+"");
+			pMap.setAveragePrice(sellCount == 0 ? "0": sum.divide(new BigDecimal(sellCount)).intValue()+"");
 			ret.addMaps(pMap);
 		}
 	}

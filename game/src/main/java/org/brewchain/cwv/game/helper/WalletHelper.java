@@ -434,13 +434,6 @@ public class WalletHelper implements ActorService {
 		topup.setStatus((byte) 0);
 		topup.setCreateTime(new Date());
 		
-		int countHistory = wallet.getTopupBalance().intValue()/1000;
-		
-		wallet.setTopupBalance(wallet.getTopupBalance().add(new BigDecimal(pb.getAmount())));
-		int countNew = wallet.getTopupBalance().intValue()/1000;
-		
-		wallet.setDrawCount(wallet.getDrawCount()+(countNew-countHistory));
-		wallet.setBalance(wallet.getBalance().add(new BigDecimal(pb.getAmount())));
 		
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());

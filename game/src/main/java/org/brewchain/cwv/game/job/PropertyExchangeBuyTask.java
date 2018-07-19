@@ -69,7 +69,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 		CWVMarketExchangeBuyExample buyExample = new CWVMarketExchangeBuyExample();
 		buyExample.createCriteria()
 		.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey())
-		.andChainStatusGroupEqualTo(ChainTransStatusEnum.START.getKey());
+		.andChainStatusGroupIsNull();
 		List<Object> list = dao.exchangeBuyDao.selectByExample(buyExample);
 		String outputAddress = "";
 		//整合分组交易
