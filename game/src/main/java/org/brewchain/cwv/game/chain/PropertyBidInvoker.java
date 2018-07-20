@@ -66,7 +66,7 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 			log.debug("合约编译失败");
 			return ret;
 		}
-		String consData = wltHelper.methodBuild(res, "constructor", token,bid.getAuctionStart().getTime(),
+		String consData = wltHelper.methodBuild(res, null, token,bid.getAuctionStart().getTime(),
 				bid.getAuctionEnd().getTime(),bid.getAuctionEnd().getTime()-bid.getAuctionStart().getTime(),bid.getBidStart(),
 				bid.getIncreaseLadder());
 		

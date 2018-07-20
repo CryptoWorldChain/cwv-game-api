@@ -8,6 +8,7 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.game.helper.CommonHelper;
+import org.brewchain.cwv.game.job.PropertyJobHandle;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
 import lombok.Data;
@@ -26,8 +27,6 @@ import onight.tfw.ntrans.api.annotation.ActorRequire;
 @Data
 @Instantiate(name="Property_Exchange_Invoker")
 public class PropertyExchangeInvoker implements ActorService {
-	private String INCOME_ADDRESS ;
-	
 	
 	@ActorRequire(name="Wlt_Helper", scope = "global")
 	WltHelper wltHelper;
@@ -76,11 +75,7 @@ public class PropertyExchangeInvoker implements ActorService {
 	 */
 	
 	public RespCreateTransaction.Builder sellProperty(String sellAddress, String cryptoToken, double price){
-		
-		if(StringUtils.isEmpty(INCOME_ADDRESS))
-			INCOME_ADDRESS = this.commonHelper.getSysSettingValue("sys_income_address");
-		
-		return wltHelper.createTx(new BigDecimal(price), INCOME_ADDRESS, sellAddress, "house", cryptoToken);
+		return wltHelper.createTx(new BigDecimal(price), PropertyJobHandle.MARKET_EXCHANGE_AGENT, sellAddress, "house", cryptoToken);
 	}
 
 
