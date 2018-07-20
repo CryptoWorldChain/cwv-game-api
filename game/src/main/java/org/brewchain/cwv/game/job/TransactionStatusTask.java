@@ -8,9 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.plaf.basic.BasicColorChooserUI.PropertyHandler;
+
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuctionExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
@@ -184,9 +187,9 @@ public class TransactionStatusTask implements Runnable {
 	}
 
 
-	private void topupDone(CWVUserWalletTopup topup) {
+	private void topupDone(final CWVUserWalletTopup topup) {
 
-		CWVUserWallet wallet = propertyHelper.getWalletHelper().getUserAccount(topup.getUserId(), CoinEnum.CWB);
+		final CWVUserWallet wallet = propertyHelper.getWalletHelper().getUserAccount(topup.getUserId(), CoinEnum.CWB);
 		
 		int countHistory = wallet.getTopupBalance().intValue()/1000;
 		
@@ -196,16 +199,24 @@ public class TransactionStatusTask implements Runnable {
 		wallet.setDrawCount(wallet.getDrawCount()+(countNew-countHistory));
 		wallet.setBalance(wallet.getBalance().add(topup.getAmount()));
 		
-//		topup.setchainStatus
-		propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(wallet);
+		topup.setStatus((byte) 1);
+		propertyHelper.getDao().walletDao.doInTransaction(new TransactionExecutor() {
+			
+			@Override
+			public Object doInTransaction() {
+				propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(wallet);
+				propertyHelper.getDao().topupDao.updateByPrimaryKeySelective(topup);
+				return null;
+			}
+		});
 		
 	}
 
 
 	private List<Object> getUndoneTopup() {
 		CWVUserWalletTopupExample example = new CWVUserWalletTopupExample();
-		example.createCriteria().andStatusEqualTo((byte)1)
-		.addCriterion("chain_status ='0'");
+		example.createCriteria().andStatusEqualTo((byte)0);
+//		.addCriterion("chain_status ='0'");
 		return propertyHelper.getDao().topupDao.selectByExample(example);
 	}
 
@@ -776,6 +787,26 @@ public class TransactionStatusTask implements Runnable {
 		String status = null;
 		RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(hash);
 		if(respGetTxByHash.getRetCode() == -1) {//失败
+			Integer count = PropertyJobHandle.queryErrorTXMap.get(hash);
+			if(count!=null ) {
+				if(count>=4) {//超过五次加入人工处理表
+					//TODO: 加入人工处理表
+//					CWVGameTxManage txManage = new CWVGameTxManage();
+//					txManage.setChainStatus((int)ChainTransStatusEnum.EXCEPTION.getKey());;
+//					txManage.setStatus(1);
+//					txManage.set
+					PropertyJobHandle.queryErrorTXMap.remove(hash);
+					//返回查询失败终止查询
+					return ChainTransStatusEnum.EXCEPTION.getValue();
+				}else
+					PropertyJobHandle.queryErrorTXMap.put(hash, count+1);
+				
+			}else{
+				PropertyJobHandle.queryErrorTXMap.put(hash, 0);
+				
+			}
+			
+			
 			StringBuffer sb = new StringBuffer(hashType).append("==>transaction hash check error").append(":::");
 			for(Map.Entry<String,String>  key : busiMap.entrySet()){
 				sb.append(key).append(":").append(busiMap.get(key));
