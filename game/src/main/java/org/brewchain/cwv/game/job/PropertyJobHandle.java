@@ -1,17 +1,13 @@
 package org.brewchain.cwv.game.job;
 
-import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
-import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.helper.PropertyHelper;
-import org.brewchain.cwv.game.util.DateUtil;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +45,11 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 	/**
 	 * 手续费比例
 	 */
-	public static String EXCHANGE_RATE = null;
+	public static String EXCHANGE_CHARGE = null;
 	
-	public static String INCOME_ADDRESS = null ; //房產收益地址
+	public static String SYS_INCOME_ADDRESS = null ; //房產收益地址
+	
+	public static String MARKET_EXCHANGE_AGENT = null ; //房產收益地址
 	
 	
 	@ActorRequire(name="Daos", scope = "global")
@@ -60,6 +58,10 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 	@ActorRequire(name="Property_Helper")
 	PropertyHelper propertyHelper;
 	
+	/**
+	 * 查询失败处理，错误次数超过3次 加入交易人工处理表cwv_sys_tx_handle
+	 */
+	public static HashMap<String,Integer> queryErrorTXMap = new HashMap<>();
 	@Override
 	public void onDaoServiceAllReady() {
 		try {
@@ -77,10 +79,12 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 					if(propertyHelper != null ) {
 						if(SYS_PROPERTY_ADDR == null)
 							SYS_PROPERTY_ADDR = propertyHelper.getCommonHelper().getSysSettingValue("sys_property_addr");
-						if(EXCHANGE_RATE == null)
-							EXCHANGE_RATE = propertyHelper.getCommonHelper().getSysSettingValue("exchange_charge");
-						if(INCOME_ADDRESS == null)
-							INCOME_ADDRESS = propertyHelper.getCommonHelper().getSysSettingValue("sys_income_address");
+						if(EXCHANGE_CHARGE == null)
+							EXCHANGE_CHARGE = propertyHelper.getCommonHelper().getSysSettingValue("exchange_charge");
+						if(SYS_INCOME_ADDRESS == null)
+							SYS_INCOME_ADDRESS = propertyHelper.getCommonHelper().getSysSettingValue("sys_income_address");
+						if(MARKET_EXCHANGE_AGENT == null)
+							MARKET_EXCHANGE_AGENT = propertyHelper.getCommonHelper().getSysSettingValue("market_exchange_agent");
 						
 						
 						log.info("the dao beans loading success....");
@@ -106,12 +110,12 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 //							//任务开启时间 设置
 //							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 //							//任务开启时间 设置
-//							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
+							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 							
 							//任务开启时间 设置
 							service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+//							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							service.scheduleAtFixedRate(new PropertyDrawTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							
 						}
