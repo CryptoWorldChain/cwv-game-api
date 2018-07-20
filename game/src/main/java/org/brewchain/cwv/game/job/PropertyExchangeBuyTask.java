@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
+import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuy;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuyExample;
@@ -80,7 +82,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 		RespCreateTransaction.Builder respCreateTransaction = RespCreateTransaction.newBuilder();
 		//获取发起发账户nonce
 		
-		RespGetAccount.Builder accountMap = propertyHelper.getWltHelper().getAccountInfo(PropertyJobHandle.INCOME_ADDRESS);
+		RespGetAccount.Builder accountMap = propertyHelper.getWltHelper().getAccountInfo(PropertyJobHandle.MARKET_EXCHANGE_AGENT);
 		if(accountMap==null){
 			respCreateTransaction.setRetMsg("查询账户发生错误");
 			respCreateTransaction.setRetCode(-1);
@@ -100,7 +102,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
 			input.setAddress(accountMap.getAddress());//发起方地址 *
 			input.setNonce(account.getNonce());//交易次数 *
-			input.setAmount(buy.getAmount().multiply(new BigDecimal(1).subtract(new BigDecimal(PropertyJobHandle.EXCHANGE_RATE))).toString() );
+			input.setAmount(buy.getAmount().multiply(new BigDecimal(1).subtract(new BigDecimal(PropertyJobHandle.EXCHANGE_CHARGE))).toString() );
 			inputs.add(input);
 			
 
@@ -108,6 +110,21 @@ public class PropertyExchangeBuyTask implements Runnable {
 			MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
 			output.setAddress(buy.getSellerAddress());//接收方地址 *
 			output.setAmount(input.getAmount());
+			
+			outputs.add(output);
+			
+			//amount charge input
+			MultiTransactionInputImpl.Builder inputCharge = MultiTransactionInputImpl.newBuilder();
+			inputCharge.setAddress(accountMap.getAddress());//发起方地址 *
+			inputCharge.setNonce(account.getNonce());//交易次数 *
+			inputCharge.setAmount(buy.getAmount().subtract(new BigDecimal(input.getAmount())).toString() );
+			inputs.add(inputCharge);
+			
+
+			//amount charge output
+			MultiTransactionOutputImpl.Builder outputCharge = MultiTransactionOutputImpl.newBuilder();
+			outputCharge.setAddress(PropertyJobHandle.SYS_INCOME_ADDRESS);//接收方地址 *
+			outputCharge.setAmount(inputCharge.getAmount());
 			
 			outputs.add(output);
 			
@@ -236,6 +253,9 @@ public class PropertyExchangeBuyTask implements Runnable {
 					exchangeBuyDone(buy);
 				else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
 					exchangeBuyError(buy);
+				else if (status.equals(ChainTransStatusEnum.EXCEPTION.getValue())) {
+					exchangeBuyException(buy);
+				}
 				transStatusSet.add(buy.getChainTransHash());
 			}
 			
@@ -288,7 +308,16 @@ public class PropertyExchangeBuyTask implements Runnable {
 		
 		
 	}
-	
+	/**
+	 * 执行异常
+	 * @param buy
+	 */
+	private void exchangeBuyException(CWVMarketExchangeBuy buy) {
+		buy.setChainStatus(ChainTransStatusEnum.EXCEPTION.getKey());
+		propertyHelper.getDao().exchangeBuyDao.updateByPrimaryKeySelective(buy);
+		
+	}
+
 	private void exchangeBuyRollBackError(String chainTransHashRollBack) {
 
 		//更新交易状态
@@ -365,14 +394,18 @@ public class PropertyExchangeBuyTask implements Runnable {
 		
 	}
 	
+	/**
+	 * 更新房产
+	 * @param chainTransHashGroup
+	 */
 	private void updatePropertyGroupDone(String chainTransHashGroup) {
-//		CWVGamePropertyExample example = new CWVGamePropertyExample();
-//		example.createCriteria().andChainTransHashEqualTo(chainTransHashGroup);
-//		
-//		CWVGameProperty exchange = new CWVGameProperty();
-//		
-//		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
-//		propertyHelper.getDao().exchangeDao.updateByExampleSelective(exchange, exchangeExample);
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		example.createCriteria().andChainTransHashEqualTo(chainTransHashGroup);
+		
+		CWVGameProperty exchange = new CWVGameProperty();
+		
+		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		propertyHelper.getDao().exchangeDao.updateByExampleSelective(exchange, example);
 //		
 	}
 

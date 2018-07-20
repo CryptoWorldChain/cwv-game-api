@@ -1,13 +1,13 @@
 package org.brewchain.cwv.game.enums;
 
 public enum PropertyIncomeStatusEnum {
-	NEW("0"),// 未领取
-	CLAIMED("1"); //已领取
-	private String value;
-	PropertyIncomeStatusEnum(String value){
+	NEW((byte)0),// 未领取
+	CLAIMED((byte)1); //已领取
+	private byte value;
+	PropertyIncomeStatusEnum(byte value){
 		this.value = value;
 	}
-	public String getValue() {
+	public byte getValue() {
 		return value;
 	}
 }

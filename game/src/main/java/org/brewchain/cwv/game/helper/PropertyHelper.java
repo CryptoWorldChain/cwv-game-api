@@ -57,6 +57,7 @@ import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.enums.UpAndDownEnum;
 import org.brewchain.cwv.game.job.PropertyJobHandle;
+import org.brewchain.cwv.game.util.Arith;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Bid.PRetBidPropertyDetail;
@@ -265,14 +266,16 @@ public class PropertyHelper implements ActorService {
 			if (StringUtils.isNotBlank(pb.getExchangeStatus())) {
 				criteria.andPropertyStatusEqualTo(pb.getExchangeStatus());
 			}
+			
 		} else {
+			
 			criteria.andUserIdNotEqualTo(user.getUserId());
-
 			criteria.andPropertyStatusEqualTo(PropertyStatusEnum.ONSALE.getValue());
 			
-			criteria.addCriterion(" chain_status ='1'  ");
+			
 		}
-
+		criteria.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey())
+		.andCryptoTokenIsNotNull();
 		// 房产类型
 		if (StringUtils.isNotEmpty(pb.getPropertyType())) {
 			criteria.andPropertyTypeEqualTo(pb.getPropertyType());
@@ -432,6 +435,7 @@ public class PropertyHelper implements ActorService {
 	private void exchangeInfoSet(ExchangeInfo.Builder exchangeRet, CWVMarketExchange exchange) {
 		exchangeRet.setExchangeId(exchange.getExchangeId() + "");
 		exchangeRet.setPrice(exchange.getSellPrice() + "");
+		exchangeRet.setChainStatus(exchange.getChainStatus()+"");
 		exchangeRet.setStatus(exchange.getStatus() + "");
 	}
 
@@ -463,6 +467,7 @@ public class PropertyHelper implements ActorService {
 						+ pb.getStatus() + "' )");
 			}
 		}
+		
 		// 房产类型
 		if (StringUtils.isNotEmpty(pb.getPropertyType())) {
 			criteria.andPropertyTypeEqualTo(pb.getPropertyType());
@@ -847,7 +852,7 @@ public class PropertyHelper implements ActorService {
 		
 		dao.exchangeBuyDao.insert(buy);
 
-		RespCreateTransaction.Builder exchangeRet = wltHelper.createTx(buy.getAmount(), PropertyJobHandle.INCOME_ADDRESS,
+		RespCreateTransaction.Builder exchangeRet = wltHelper.createTx(buy.getAmount(), PropertyJobHandle.MARKET_EXCHANGE_AGENT,
 				buy.getBuyerAddress());
 		// 添加调取合约日志 TODO
 
@@ -977,20 +982,20 @@ public class PropertyHelper implements ActorService {
 		CWVGameProperty gameProperty = new CWVGameProperty();
 		gameProperty.setPropertyId(Integer.parseInt(pb.getPropetyId()));
 		final CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
-		if (property == null || !property.getUserId().equals(user.getUserId())) {// 当前用户
+		if (property == null || !property.getUserId().equals(user.getUserId()) || StringUtils.isEmpty(property.getCryptoToken())) {// 当前用户
 			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_ID.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_ID.getRetMsg());
 			return;
 		}
 		//TODO 加入 chainStatus
-		if (!this.statusForSale.contains(property.getPropertyStatus()) ) {// 必须是未出售状态
+		if (!this.statusForSale.contains(property.getPropertyStatus()) || property.getChainStatus()!=ChainTransStatusEnum.DONE.getKey()) {// 必须是未出售状态
 			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_STATUS.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_STATUS.getRetMsg());
 			return;
 		}
 		// 扣除手续费
-		double chargeRate = getChargeRate();
-		double charge = pb.getPrice() * chargeRate;
+		double chargeRate = Double.parseDouble(PropertyJobHandle.EXCHANGE_CHARGE);
+		double charge = Arith.mul(pb.getPrice(), chargeRate) ;
 
 		// 生成交易
 		// 调取卖出房产合约
@@ -1008,7 +1013,7 @@ public class PropertyHelper implements ActorService {
 
 		final CWVMarketExchange exchange = new CWVMarketExchange();
 		// 设置合约交易信息
-		exchange.setChainContract("");
+//		exchange.setChainContract("");
 		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
 		exchange.setChainTransHash(exchangeRet.getTxHash());
 
@@ -1563,6 +1568,7 @@ public class PropertyHelper implements ActorService {
 			property.setPropertyName(gameProperty.getPropertyName());
 			property.setPropertyType(Integer.parseInt(gameProperty.getPropertyType()));
 
+			property.setChainStatus(gameProperty.getChainStatus()+"");
 			property.setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()));
 			property.setIncomeRemark("收益说明");
 			property.setIncome(gameProperty.getIncome().doubleValue());
@@ -1707,14 +1713,9 @@ public class PropertyHelper implements ActorService {
 	public void getPropertyCharge(PSCommon pb, PRetGamePropertyCharge.Builder ret) {
 		// TODO 是否查询链以及配置化
 
-		ret.setChargeRate(getChargeRate());
+		ret.setChargeRate(Double.parseDouble(PropertyJobHandle.EXCHANGE_CHARGE));
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode());
 		ret.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
-	}
-
-	private double getChargeRate() {
-		// TODO Auto-generated method stub
-		return 0.1;
 	}
 
 	public void bidNotice(PSCommonBid pb, PRetBidPropertyNotice.Builder ret) {
