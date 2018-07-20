@@ -341,7 +341,9 @@ public class PropertyHelper implements ActorService {
 			}
 			CWVMarketExchangeExample exchangeExample2 = new CWVMarketExchangeExample();
 			exchangeExample2.createCriteria().andPropertyIdEqualTo(gameProperty.getPropertyId())
-					.andStatusEqualTo(PropertyExchangeStatusEnum.SOLD.getValue());
+					.andStatusEqualTo(PropertyExchangeStatusEnum.SOLD.getValue())
+					.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());
+				
 			exchangeExample2.setLimit(9);
 			List<Object> listExchange2 = dao.exchangeDao.selectByExample(exchangeExample2);
 			
@@ -360,7 +362,8 @@ public class PropertyHelper implements ActorService {
 			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
 			CWVMarketExchangeExample.Criteria criteria2 = exchangeExample.createCriteria()
 					.andPropertyIdEqualTo(gameProperty.getPropertyId())
-					.andStatusEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue());
+					.andStatusEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue())
+					.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());
 
 			if (pb.getUserOnly() == 1) {
 				if (StringUtils.isEmpty(pb.getExchangeStatus())) {// 查询普通房产
@@ -843,9 +846,9 @@ public class PropertyHelper implements ActorService {
 		buy.setExchangeId(exchange.getExchangeId());
 		buy.setAmount(exchange.getSellPrice());
 		buy.setBuyerAddress(userWalletBuyer.getAccount());
-		CWVGameProperty property = new CWVGameProperty();
-		property.setPropertyId(exchange.getPropertyId());
-		property = dao.gamePropertyDao.selectByPrimaryKey(property);
+		CWVGameProperty gameProperty = new CWVGameProperty();
+		gameProperty.setPropertyId(exchange.getPropertyId());
+		final CWVGameProperty property = dao.gamePropertyDao.selectByPrimaryKey(gameProperty);
 		buy.setPropertyToken(property.getCryptoToken());
 		CWVUserWallet seller = walletHelper.getUserAccount(exchange.getCreateUser(), CoinEnum.CWB);
 		buy.setSellerAddress(seller.getAccount());
@@ -876,6 +879,10 @@ public class PropertyHelper implements ActorService {
 		// exchange.setChainContract();
 		exchange.setChainTransHash(exchangeRet.getTxHash());
 
+		//设置房产状态
+		property.setChainStatus(ChainTransStatusEnum.START.getKey());
+		property.setChainTransHash(exchangeRet.getTxHash());
+		
 		// 设置账户信息
 		userWalletBuyer.setBalance(userWalletBuyer.getBalance().subtract(exchange.getSellPrice()));
 
@@ -900,6 +907,10 @@ public class PropertyHelper implements ActorService {
 				dao.exchangeBuyDao.updateByPrimaryKeySelective(buy);
 				// 更新交易
 				dao.exchangeDao.updateByPrimaryKeySelective(exchange);
+				
+				//更新房产
+				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
+				
 				// 用户交易
 				// 账户余额
 				userWalletBuyer.setUpdateTime(new Date());
@@ -1049,11 +1060,24 @@ public class PropertyHelper implements ActorService {
 		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
 		exchange.setChainContract("");
 		exchange.setChainTransHash(exchangeRet.getTxHash());
-		dao.exchangeDao.insert(exchange);
-
+		
+		//更新房产
 		Property.Builder propertyBuilder = Property.newBuilder();
-		CWVGameProperty propertyUpdated = dao.gamePropertyDao.selectByPrimaryKey(property);
-		propertyCopy(propertyBuilder, propertyUpdated);
+		property.setChainStatus(ChainTransStatusEnum.START.getKey());
+		property.setChainTransHash(exchangeRet.getTxHash());
+		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
+			
+			@Override
+			public Object doInTransaction() {
+				
+				dao.exchangeDao.insert(exchange);
+				
+				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
+				return null;
+			}
+		});
+		
+		propertyCopy(propertyBuilder, property);
 		ret.setProperty(propertyBuilder);
 		ExchangeInfo.Builder exchangeInfo = ExchangeInfo.newBuilder();
 		CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();

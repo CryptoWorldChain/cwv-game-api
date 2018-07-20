@@ -147,12 +147,35 @@ public class PropertyExchangeBuyTask implements Runnable {
 		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(inputs, outputs);
 		if(ret.getRetCode() == 1) {
 			
+			List<String> tokens = new ArrayList<>();
+			
+			List<Integer> exchangeIds = new ArrayList<>();
+			//更新购买申请
 			for(Object o : list){
 				CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
 				buy.setChainStatusGroup(ChainTransStatusEnum.START.getKey());
 				buy.setChainTransHashGroup(ret.getTxHash());
+				tokens.add(buy.getPropertyToken());
+				exchangeIds.add(buy.getExchangeId());
 			}
 			dao.exchangeBuyDao.batchUpdate(list);
+			//更新交易
+			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
+			exchangeExample.createCriteria().andExchangeIdIn(exchangeIds);
+			CWVMarketExchange exchange = new CWVMarketExchange();
+			exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
+			exchange.setChainTransHash(ret.getTxHash());
+			
+			dao.gamePropertyDao.updateByExampleSelective(exchange, exchangeExample);
+			
+			//更新房产
+			CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
+			propertyExample.createCriteria().andCryptoTokenIn(tokens);
+			CWVGameProperty record = new CWVGameProperty();
+			record.setChainStatus(ChainTransStatusEnum.START.getKey());
+			record.setChainTransHash(ret.getTxHash());
+			dao.gamePropertyDao.updateByExampleSelective(record, propertyExample);
+			
 		}else if(ret.getRetCode() == -1 ){
 			for(Object o : list){
 				CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
@@ -203,6 +226,8 @@ public class PropertyExchangeBuyTask implements Runnable {
 		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(buy.getAmount(), buy.getBuyerAddress(), PropertyJobHandle.SYS_PROPERTY_ADDR);
 		if(ret.getRetCode() == 1){
 			//TODO 回滚交易字段赋值
+			buy.setChainStatusRollback(ChainTransStatusEnum.START.getKey());
+			buy.setChainTransHashRollback(ret.getTxHash());
 			propertyHelper.getDao().exchangeBuyDao.updateByPrimaryKeySelective(buy);
 		}else{
 			//数据库插入日志
@@ -424,9 +449,27 @@ public class PropertyExchangeBuyTask implements Runnable {
 		
 	}
 
+	/**
+	 * 后买房产转账交易失败回滚
+	 * @param buy
+	 */
 	private void exchangeBuyError(CWVMarketExchangeBuy buy) {
+		//设置购买申请状态
 		buy.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
 		propertyHelper.getDao().exchangeBuyDao.updateByPrimaryKeySelective(buy);
+		
+		//回滚交易状态
+		CWVMarketExchange exchange = new CWVMarketExchange();
+		exchange.setExchangeId(buy.getExchangeId());
+		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		exchange.setChainTransHash(null);
+		
+		//回滚房产状态
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		CWVGameProperty property = new CWVGameProperty();
+		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		property.setChainTransHash(null);
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(property, example);
 		
 		//通知买家买入失败
 		
@@ -450,6 +493,8 @@ public class PropertyExchangeBuyTask implements Runnable {
 
 		buy.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		propertyHelper.getDao().exchangeBuyDao.updateByPrimaryKeySelective(buy);
+		
+		
 		
 	}
 	 

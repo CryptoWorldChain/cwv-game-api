@@ -710,6 +710,8 @@ public class TransactionStatusTask implements Runnable {
 		final CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyId(exchange.getPropertyId());
 		property.setPropertyStatus(PropertyStatusEnum.ONSALE.getValue());// 出售中
+		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		
 		//TODO setChainStatus
 		propertyHelper.getDao().exchangeDao.doInTransaction(new TransactionExecutor() {
 			@Override
