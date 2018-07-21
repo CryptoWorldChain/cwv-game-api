@@ -1,12 +1,11 @@
-package org.brewchain.cwv.game.service.exchange;
+package org.brewchain.cwv.game.service.draw;
 
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.cwv.service.game.Draw.PDrawCommand;
 import org.brewchain.cwv.service.game.Draw.PDrawModule;
-import org.brewchain.cwv.service.game.Draw.PSDrawTxInfo;
-import org.brewchain.cwv.service.game.Exchange.PSSellProperty;
+import org.brewchain.cwv.service.game.Draw.PSPropertyDrawTx;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
 import org.brewchain.cwv.service.game.Game.RetCodeMsg;
 
@@ -22,7 +21,7 @@ import onight.tfw.otransio.api.beans.FramePacket;
 @NActorProvider
 @Slf4j
 @Data
-public class DrawTxInfoService extends SessionModules<PSDrawTxInfo> {
+public class PropertyDrawTxService extends SessionModules<PSPropertyDrawTx> {
 	
 //	@ActorRequire
 //	AppSmHelper appSmHelper;
@@ -37,7 +36,7 @@ public class DrawTxInfoService extends SessionModules<PSDrawTxInfo> {
 	
 	@Override
 	public String[] getCmds() {
-		return new String[] { PDrawCommand.DTI.name() };
+		return new String[] { PDrawCommand.PDT.name() };
 	}
 
 	@Override
@@ -46,14 +45,14 @@ public class DrawTxInfoService extends SessionModules<PSDrawTxInfo> {
 	}
 	
 	@Override
-	public void onPBPacket(final FramePacket pack, final PSDrawTxInfo pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final PSPropertyDrawTx pb, final CompleteHandler handler) {
 		
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetCommon.Builder ret = PRetCommon.newBuilder();
 		RetCodeMsg.Builder builder = RetCodeMsg.newBuilder();
 		
 		try{
-			propertyHelper.getDrawTxInfo(pb, ret, builder);
+			propertyHelper.drawTxInfo(pb, ret, builder);
 			ret.setCodeMsg(builder);
 		}catch(Exception e){
 			builder.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
