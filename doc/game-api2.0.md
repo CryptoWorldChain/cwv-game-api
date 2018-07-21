@@ -14,6 +14,7 @@
 * [钱包信息](## 钱包信息)
 * [钱包充值](## 钱包充值)
 * [抽奖房产](## 抽奖房产)
+* [抽奖房产交易查询](## 抽奖房产交易查询)
 * [分享游戏](## 分享游戏)
 * [游戏说明](## 游戏说明)
 * [收益查询](## 收益查询)
@@ -87,10 +88,12 @@ price|string|价格|
 longitude|string|经度|
 latitude|string|纬度|
 price_line|string|最近 10历史价格曲线 英文逗号分隔|
+chain_status|string|链上状态 0 未确定 1确定|
 exchange|object|数组中的交易对象|
 exchange_id|string|交易ID|
 price|string|卖出价格|
 status|string|交易状态  0 售出中 1已售出 2撤销|
+chain_status|string|链上状态 0 进行中 1成功 -1失败|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -118,12 +121,14 @@ total_count|string|总量|
 	                "price": "2000.0000",
 	                "longitude": "null",
 	                "latitude": "null",
-	                "price_line": "1000.0000,2000.0000"
+	                "price_line": "1000.0000,2000.0000",
+	                "chain_status": 1
 	            },
 	            "exchange": {
 	                "exchange_id": "67",
 	                "status": "1",
-	                "price": "2000.0000"
+	                "price": "2000.0000",
+	                "chain_status": 1
 	            }
 	        }
 	    ]
@@ -170,6 +175,7 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+chain_status|string|链上状态 0 进行中 1成功 -1失败|
 	
 	{
 	    "ret_code": "01",
@@ -188,7 +194,8 @@ image_url|string|房产图片地址|
 	        "income": 1000000,
 	        "image_url": "house/apartment/13008.png",
 	        "map_template": "2101",
-	        "price": "3000.0000"
+	        "price": "3000.0000",
+	        "chain_status": 1
 	    }
 	}
 
@@ -196,7 +203,7 @@ image_url|string|房产图片地址|
 
 ## 卖出房产
 ### 接口说明
-	
+	卖出的房产必须是未出售的房产（property_status='0'）且链上状态为确定状态（chain_status='1'）
 ### URL
 	/cwv/gea/pbsps.do
 ### HTTP请求方式
@@ -234,6 +241,12 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+chain_status|string|链上状态|
+exchange|object|交易对象|
+exchange_id|string|交易ID|
+price|string|交易价格|
+status|string|交易状态0 出售中 1已售出 2撤销 |
+chain_status|string|链上状态 0 进行中 1成功 -1失败|
 
 	{
 	    "ret_code": "01",
@@ -252,12 +265,14 @@ image_url|string|房产图片地址|
 	        "income": 1000000,
 	        "image_url": "house/small-house/11017.png",
 	        "map_template": "2101",
-	        "price": "12.0000"
+	        "price": "12.0000",
+	        "chain_status": 1
 	    },
 	    "exchange": {
 	        "exchange_id": "52",
 	        "price": 4000,
-	        "status": 0
+	        "status": 0,
+	        "chain_status": 1
 	    }
 	}
 -----------
@@ -825,6 +840,34 @@ amount|string|总额|
 :----|:----|:----|:----
 ret_code|string|返回状态码<br/>01.查询成功<br/>02.抽奖次数不足<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "成功"
+	}
+
+
+## 抽奖房产交易查询
+### 接口说明
+	
+### URL
+	/cwv/gda/pbpdt.do
+### HTTP请求方式
+	POST
+### 输入参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+tx_hash|string|交易hash值|
+
+	{
+	    "tx_hash": "f6cb3e001757928cf6094ff2d7286bca65ed805ce3c461931f6eb203fab6dd3b",
+	}
+	
+### 输出参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.查询成功<br/>99.未知异常|[01]
+ret_msg|string|返回消息|
 property|object|房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
@@ -838,6 +881,7 @@ property_status|string|房产状态|
 price|string|价格|
 income_remark|string|收益说明|
 image_url|string|房产图片地址|
+chain_status|string|链上状态 0 未确定 1确定|
 	
 	{
 	    "ret_code": "01",
@@ -856,9 +900,12 @@ image_url|string|房产图片地址|
 	        "income": 1000000,
 	        "image_url": "house/big-floor/14003.png",
 	        "map_template": "2101",
-	        "price": "1000.0000"
+	        "price": "1000.0000",
+	        "chain_status": 1
 	    }
 	}
+	
+
 	
 ## 分享游戏
 ### 接口说明
@@ -1291,8 +1338,17 @@ codeMsg|object|返回状态对象|
 ret_code|string|返回状态码<br/>01.成功<br/>02.地图Id错误<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
 data|object|返回数据|
-property|object|数组中的房产对象|
-country_id|string|所属国家|
+mapPropertyDetail|object|地图详情对象
+propertyState|Object[]|房产状态对象数组
+property_id|string|房产Id|
+property_name|string|房产名称|
+price|string|房产价格|
+property_status|int|房产状态 |
+up_down|string|涨幅0 持平 1上涨 2下跌 |
+page|object|分页对象|
+page_index|string|页码|
+page_size|string|数量|
+total_count|string|总量|
 	
 	{
 	    "codeMsg": {
