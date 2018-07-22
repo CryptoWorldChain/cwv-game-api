@@ -43,24 +43,85 @@ public class PropertyExchangeBuyTask implements Runnable {
 	@Override
 	public void run() {
 		log.info("PropertyExchangeBuyTask start ....");
-		try {
-			//买入交易状态处理
-			buyTransStatus();
-		} catch (Exception e) {
-			System.out.println(e.getStackTrace());
-		}
 		
 		try {
-			//转账状态处理位于TransactionStatusTask
 			exchangeBuyGroupProcess(propertyHelper.getDao());
-			
 		} catch (Exception e) {
 			System.out.println(e.getStackTrace());
 		}
 		
+		exchangeBuyRollbackGroupProcess(propertyHelper.getDao());
 		log.info("PropertyExchangeBuyTask ended ....");
 	}
 	
+	/**
+	 *  group交易失败 退款买家
+	 * @param dao
+	 */
+	private void exchangeBuyRollbackGroupProcess(Daos dao) {
+		//查询group状态失败的交易
+		CWVMarketExchangeBuyExample buyExample = new CWVMarketExchangeBuyExample();
+		buyExample.createCriteria()
+		.andChainStatusGroupEqualTo(ChainTransStatusEnum.ERROR.getKey())
+		.andChainStatusGroupIsNotNull();//hash为null的情况，已在group执行失败时处理
+		final List<Object> list = dao.exchangeBuyDao.selectByExample(buyExample);
+		
+		//返回参数
+		RespCreateTransaction.Builder respCreateTransaction = RespCreateTransaction.newBuilder();
+		//获取发起发账户nonce
+		
+		RespGetAccount.Builder accountMap = propertyHelper.getWltHelper().getAccountInfo(PropertyJobHandle.MARKET_EXCHANGE_AGENT);
+		if(accountMap==null){
+			respCreateTransaction.setRetMsg("查询账户发生错误");
+			respCreateTransaction.setRetCode(-1);
+			log.debug("查询账户发生错误");
+			return ;
+		}
+		
+		List<MultiTransactionInputImpl.Builder> inputs = new ArrayList<>();
+		List<MultiTransactionOutputImpl.Builder> outputs = new ArrayList<>();
+		AccountValueImpl account = accountMap.getAccount();
+		if(list == null || list.isEmpty())
+			return;
+		for(Object o : list) {
+			CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
+			
+			//amount input
+			MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
+			input.setAddress(accountMap.getAddress());//发起方地址 *
+			input.setNonce(account.getNonce());//交易次数 *
+			input.setAmount(buy.getAmount().toString() );
+			inputs.add(input);
+			
+
+			//amount output
+			MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
+			output.setAddress(buy.getBuyerAddress());//接收方地址 *
+			output.setAmount(input.getAmount());
+			
+			outputs.add(output);
+			
+		}
+		
+		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(inputs, outputs);
+		if(ret.getRetCode() == 1) {
+			
+			//更新购买申请
+			for(Object o : list){
+				CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
+				buy.setChainStatusRollback(ChainTransStatusEnum.START.getKey());
+				buy.setChainTransHashRollback(ret.getTxHash());
+			}
+			dao.exchangeBuyDao.batchUpdate(list);
+		}else if(ret.getRetCode() == -1 ){
+			for(Object o : list){
+				CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
+				buy.setChainStatusRollback(ChainTransStatusEnum.ERROR.getKey());
+			}
+			dao.exchangeBuyDao.batchUpdate(list);
+		}
+	}
+
 	/**
 	 * 买入操作二group处理
 	 * @param dao
@@ -72,8 +133,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 		buyExample.createCriteria()
 		.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey())
 		.andChainStatusGroupIsNull();
-		List<Object> list = dao.exchangeBuyDao.selectByExample(buyExample);
-		String outputAddress = "";
+		final List<Object> list = dao.exchangeBuyDao.selectByExample(buyExample);
 		//整合分组交易
 		//发起方详情
 		
@@ -126,7 +186,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			outputCharge.setAddress(PropertyJobHandle.SYS_INCOME_ADDRESS);//接收方地址 *
 			outputCharge.setAmount(inputCharge.getAmount());
 			
-			outputs.add(output);
+			outputs.add(outputCharge);
 			
 			//token input
 			MultiTransactionInputImpl.Builder inputToken = MultiTransactionInputImpl.newBuilder();
@@ -181,21 +241,32 @@ public class PropertyExchangeBuyTask implements Runnable {
 				CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
 				buy.setChainStatusGroup(ChainTransStatusEnum.ERROR.getKey());
 			}
-			dao.exchangeBuyDao.batchUpdate(list);
-			exchangeBuyRollBackList(list);
+			try {
+				dao.exchangeBuyDao.batchUpdate(list);
+				dao.exchangeBuyDao.doInTransaction(new TransactionExecutor() {
+					@Override
+					public Object doInTransaction() {
+						exchangeBuyRollBackList(list);
+						return null;
+					}
+				});
+			} catch (Exception e) {
+				// TODO: 加入日志管理
+				log.error("");
+			}
+			
+			
 		}
 		
 	}
 	
-	/**
-	 * 回滚买家金额 发起回滚交易
-	 * @param userId
-	 */
-	private void exchangeBuyRollBack(String chainTransHashGroup) {
+
+	private void exchangeBuyGroupAmountRollBack(String chainTransHashGroup) {
 		CWVMarketExchangeBuyExample example = new CWVMarketExchangeBuyExample();
 		example.createCriteria().andChainTransHashGroupEqualTo(chainTransHashGroup);
 		List<Object> list = propertyHelper.getDao().exchangeBuyDao.selectByExample(example);
 		exchangeBuyRollBackList(list);
+		
 	}
 	
 	/**
@@ -218,7 +289,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 	}
 	
 	/**
-	 * 回滚买家金额 发起回滚交易
+	 * 发起回滚交易single
 	 * @param userId
 	 */
 	private void exchangeBuyRollBack(CWVMarketExchangeBuy buy) {
@@ -268,7 +339,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			}else {
 				HashMap busiMap = new HashMap<String,String>();
 				busiMap.put("exchangeId", buy.getExchangeId());
-				busiMap.put("txHash", buy.getChainTransHashGroup());
+				busiMap.put("txHash", buy.getChainTransHash());
 				
 				String status = TransactionStatusTask.getTransStatus(propertyHelper,buy.getChainTransHash(), TransHashTypeEnum.EXCHANGE_BUY.getValue(), busiMap);
 				if(StringUtils.isEmpty(status)) 
@@ -289,7 +360,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 	
 		for(Object o : listChainGroup) {
 			CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
-			if(transStatusSet.contains(buy.getChainTransHash())) {
+			if(transStatusSet.contains(buy.getChainTransHashGroup())) {
 				continue ;
 			}else {
 				HashMap busiMap = new HashMap<String,String>();
@@ -311,13 +382,13 @@ public class PropertyExchangeBuyTask implements Runnable {
 		
 		for(Object o : listChainRollback) {
 			CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
-			if(transStatusSet.contains(buy.getChainTransHash())) {
+			if(transStatusSet.contains(buy.getChainTransHashRollback())) {
 				continue ;
 			}else {
 				HashMap busiMap = new HashMap<String,String>();
 				busiMap.put("txHash", buy.getChainTransHashRollback());
 				
-				String status = TransactionStatusTask.getTransStatus(propertyHelper, buy.getChainTransHashGroup(), TransHashTypeEnum.EXCHANGE_BUY_GROUP.getValue(), busiMap);
+				String status = TransactionStatusTask.getTransStatus(propertyHelper, buy.getChainTransHashRollback(), TransHashTypeEnum.EXCHANGE_BUY_ROLLBACK_GROUP.getValue(), busiMap);
 				if(StringUtils.isEmpty(status)) 
 					continue;
 				
@@ -355,10 +426,17 @@ public class PropertyExchangeBuyTask implements Runnable {
 		
 	}
 
+	/**
+	 * 退款成功回滚处理
+	 * @param chainTransHashGroup
+	 */
 	private void exchangeBuyRollBackDone(String chainTransHashGroup) {
+		//回滚申请记录
 		updateTransRollBackStatus(chainTransHashGroup, ChainTransStatusEnum.DONE.getKey());
-		
 		//退款成功 处理
+		updateExchangeGroup(chainTransHashGroup, ChainTransStatusEnum.DONE.getKey());
+		//房产状态更新
+		exchangeBuyGroupPropertyRollBack(chainTransHashGroup);
 		
 	}
 
@@ -371,16 +449,31 @@ public class PropertyExchangeBuyTask implements Runnable {
 			
 			@Override
 			public Object doInTransaction() {
+				
+				
 				//更新交易状态
 				updateBuyGroupStatus(chainTransHashGroup,ChainTransStatusEnum.ERROR.getKey());
 				//回滚相关买入交易
-				updateExchangeGroup(chainTransHashGroup,ChainTransStatusEnum.ERROR.getKey());
+				updateExchangeGroup(chainTransHashGroup,ChainTransStatusEnum.DONE.getKey());
+				
+				//回滚相关买入交易
+				exchangeBuyGroupPropertyRollBack(chainTransHashGroup);
 				
 				//回滚买家金额
-				exchangeBuyRollBack(chainTransHashGroup);
+				exchangeBuyGroupAmountRollBack(chainTransHashGroup);
 				return null;
 			}
+
 		});
+		
+	}
+	
+	private void exchangeBuyGroupPropertyRollBack(String chainTransHashGroup) {
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		example.createCriteria().andChainTransHashEqualTo(chainTransHashGroup);
+		CWVGameProperty property = new CWVGameProperty();
+		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(property, example);
 		
 	}
 
@@ -463,6 +556,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 		exchange.setExchangeId(buy.getExchangeId());
 		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		exchange.setChainTransHash(null);
+		propertyHelper.getDao().exchangeDao.updateByPrimaryKeySelective(exchange);
 		
 		//回滚房产状态
 		CWVGamePropertyExample example = new CWVGamePropertyExample();

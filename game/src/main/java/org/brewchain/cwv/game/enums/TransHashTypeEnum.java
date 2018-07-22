@@ -9,6 +9,7 @@ public enum TransHashTypeEnum {
 	EXCHANGE_SELL( "exchange_sell"),//
 	EXCHANGE_SELL_ROLLBACK( "exchange_sell_rollback"),//
 	
+	BID_CREATE( "bid_create"),//
 	BID_ACUTION( "bid_acution"),//
 	BID_ACUTION_ROLLBACK( "bid_acution_rollback"),//
 

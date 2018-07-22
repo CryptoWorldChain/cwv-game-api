@@ -9,6 +9,7 @@ import org.brewchain.cwv.dbgens.game.entity.CWVGameDic;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGame;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
@@ -95,6 +96,10 @@ public class Daos implements ActorService, IJPAClient{
 	
 	@StoreDAO
 	public OJpaDAO<CWVGameContractAddress> contractDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVGameTxManage> txManangeDao;
+	
 	
 	@ActorRequire(name="DB_Provider")
 	public DBProvider provider;

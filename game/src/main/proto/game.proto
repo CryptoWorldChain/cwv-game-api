@@ -134,6 +134,7 @@ message Property
     string longitude = 17;//经度
     string latitude = 18;//纬度
     string price_line = 20; //最近十个价格线
+    string chain_status = 21;//链上状态
 }
 message ExchangeInfo
 {
@@ -148,6 +149,7 @@ message ExchangeInfo
 	string price = 15; //最终价格
 	string user_price = 18;//用户出价
 	string max_price_user = 19;//最高出价者
+	string chain_status = 20;//链上状态
 }
 
 message BidInfo
@@ -159,6 +161,7 @@ message BidInfo
 	string user_price = 18;//用户出价
 	string max_price_user = 19;//最高出价者
 	string status = 5; //竞拍状态  0发起，1竞拍中 ，2完成
+	string chain_status = 20;//链上状态
 }
 
 message PRetRefGameProperty //GMP 获取游戏房产

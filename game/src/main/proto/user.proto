@@ -174,7 +174,7 @@ message PRetStatusMsg //统一输出参数
 }
 
 message PSRecharge{ //PTC
-	string inputAddress = 1; //客服平台钱包地址
+	string input_address = 1; //客服平台钱包地址
 	string amount = 2; //账户金额
-	string outputAddress = 3; //用户钱包地址
+	string output_address = 3; //用户钱包地址
 }

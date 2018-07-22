@@ -6,14 +6,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-
-import javax.swing.plaf.basic.BasicColorChooserUI.PropertyHandler;
 
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
+import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManageExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuctionExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
@@ -21,7 +20,11 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketBidExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDrawExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuy;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuyExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeExample;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
@@ -34,11 +37,12 @@ import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.TransHashTypeEnum;
+import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.helper.GameNoticeHelper;
 import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTradeTypeEnum;
-import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.cwv.game.util.DateUtil;
+import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetTxByHash;
 
 import lombok.extern.slf4j.Slf4j;
@@ -73,65 +77,21 @@ public class TransactionStatusTask implements Runnable {
 	@Override
 	public void run() {
 		log.info("TransactionStatusTask start ....");
-		//1 执行交易 卖出，撤销卖出 
-			//买入，放入单独任务
-		List<Object> listExchange = getExchangeSell();
-		for(Object o : listExchange) {
-			CWVMarketExchange exchange = (CWVMarketExchange) o;
-			HashMap busiMap = new HashMap<String,String>();
-			busiMap.put("exchangeId", exchange.getExchangeId());
-			busiMap.put("txHash", exchange.getChainTransHash());
-			String status = getTransStatus(propertyHelper, exchange.getChainTransHash(), TransHashTypeEnum.EXCHANGE_SELL.getValue(), busiMap);
+	
+		List<Object> list = getTxManageUndone();
+		
+		for(Object o : list) {
+			CWVGameTxManage manage = (CWVGameTxManage) o;
+			String status = getTransStatus(propertyHelper, manage.getTxHash(), TransactionTypeEnum.EXCHANGE_SELL.getValue());
 			
 			if(StringUtils.isEmpty(status)) {
 				continue;
 			}
 			
-			exchangeProcess(exchange,status);
+			manageProcess(manage,status);
 
 		}
 		
-		//2 执行竞拍  发起竞拍 撤销
-		List<Object> listBid = getUndoneBid();
-		
-		for(Object o : listBid) {
-			CWVMarketBid bid = (CWVMarketBid) o;
-			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(bid.getChainTransHash());
-			if(respGetTxByHash.getRetCode() == -1) {//失败
-				log.error("bidId:"+bid.getBidId()+",chainTransHash:"+bid.getChainTransHash()+"==>查询异常");
-				continue;
-			}
-			String status = respGetTxByHash.getTransaction().getStatus();
-			
-			if( status == null || status.equals("") ) {
-				continue;
-			}
-			
-			bidProcess(bid,status);
-			
-			
-		}
-		
-		//执行竞价 竞价
-		List<Object> listAuction = getUndoneAuction();
-		
-		for(Object o : listAuction) {
-			CWVMarketAuction auction = (CWVMarketAuction) o;
-			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(auction.getChainTransHash());
-			if(respGetTxByHash.getRetCode() == -1) {//失败
-				log.error("auctionId:"+auction.getBidId()+",chainTransHash:"+auction.getChainTransHash()+"==>查询异常");
-				continue;
-			}
-			String status = respGetTxByHash.getTransaction().getStatus();
-			
-			if( status == null || status.equals("") ) {
-				continue;
-			}
-			
-			auctionProcess(auction,status);
-			
-			
-		}
 		//抽奖
 //		List<Object> listDraw = getUndoneDraw();
 //		for(Object o : listDraw) {
@@ -179,6 +139,563 @@ public class TransactionStatusTask implements Runnable {
 		log.info("TransactionStatusTask ended ....");
 	}
 	
+	/**
+	 * 交易成功处理
+	 * @param manage
+	 */
+	private void manageProcess(CWVGameTxManage manage , String status) {
+		
+		if(status.equals(ChainTransStatusEnum.DONE.getValue())){
+			manageUpdateStatus(manage,ChainTransStatusEnum.DONE.getKey());
+		}
+		else if(status.equals(ChainTransStatusEnum.ERROR.getValue())){
+			manageUpdateStatus(manage,ChainTransStatusEnum.ERROR.getKey());
+		}
+		
+		//卖出房产
+		if(manage.getType().equals(TransactionTypeEnum.EXCHANGE_SELL.getKey())) {
+			
+			try {
+				exchangeSellProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+
+		//卖出房产撤销	
+		}else if(manage.getType().equals(TransactionTypeEnum.EXCHANGE_SELL_CANCEL.getKey())) {
+			try {
+				exchangeSellCancelProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT.getKey())) {
+			try {
+				exchangeBuyAmountProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.EXCHANGE_BUY_GROUP.getKey())) {
+			try {
+				exchangeBuyGroupProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT_ROLLBACK.getKey())) {
+			try {
+				exchangeBuyAmountRollbackProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.BID_CREATE.getKey())) {
+			try {
+				bidCreateProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.BID_CREATE_CANCEL.getKey())) {
+			try {
+				bidCreateCancelProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.BID_AUCTION.getKey())) {
+			try {
+				bidAuctionProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.DRAW_RANDOM.getKey())) {
+			try {
+				drawRandomProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.DRAW_GROUP.getKey())) {
+			try {
+				drawGroupProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.INCOME_CREATE.getKey())) {
+			try {
+				incomeCreateProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else if(manage.getType().equals(TransactionTypeEnum.INCOME_CLAIM.getKey())) {
+			try {
+				incomeClaimProcess(manage);
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
+		
+	}
+
+	private void incomeClaimProcess(CWVGameTxManage manage) {
+		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
+		example.createCriteria().andChainTransHashClaimEqualTo(manage.getTxHash() );
+		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
+		income.setChainStatusClaim(manage.getChainStatus().byteValue());
+		
+		propertyHelper.getDao().incomeDao.updateByExampleSelective(income, example);
+	
+	}
+
+
+	private void incomeCreateProcess(CWVGameTxManage manage) {
+		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
+		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash() );
+		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
+		income.setChainStatus(manage.getChainStatus().byteValue());
+		
+		propertyHelper.getDao().incomeDao.updateByExampleSelective(income, example);
+	}
+
+	private List<Object> getIncomeClaimListByTxHash(String txHash) {
+		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
+		example.createCriteria().andChainTransHashClaimEqualTo(txHash);
+		return propertyHelper.getDao().incomeDao.selectByExample(example);
+	}
+
+
+	/**
+	 * 抽奖房产
+	 * @param manage
+	 */
+	private void drawGroupProcess(CWVGameTxManage manage) {
+		List<Object> list = getDrawGroupListByTxHash(manage.getTxHash());
+		
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			for(Object o : list) {
+				drawGroupDone((CWVMarketDraw) o);
+			}
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			for(Object o : list) {
+				drawGroupError((CWVMarketDraw) o);
+			}
+	}
+
+	private void drawGroupError(final CWVMarketDraw draw) {
+		draw.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
+		propertyHelper.getDao().drawDao.doInTransaction(new TransactionExecutor() {
+			
+			@Override
+			public Object doInTransaction() {
+				propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
+				drawRollBack(draw.getUserId());
+				return null;
+			}
+		});
+	}
+
+
+	private void drawRandomProcess(CWVGameTxManage manage) {
+		List<Object> list = getDrawRandomListByTxHash(manage.getTxHash());
+		
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			for(Object o : list) {
+				drawRandomDone((CWVMarketDraw) o);
+			}
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			for(Object o : list) {
+				drawRandomError((CWVMarketDraw) o);
+			}
+	}
+
+
+	private void drawRandomDone(CWVMarketDraw draw) {
+		//TODO: 获取随机数
+		String random = "5";
+		
+		String token = getTokenByRandom(random);
+		draw.setPropertyToken(token);
+		draw.setChainRandom(random);
+		draw.setChainStatusRandom(ChainTransStatusEnum.DONE.getKey());
+		
+		propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
+		
+	}
+	
+
+	private void drawRandomError(CWVMarketDraw draw) {
+		draw.setChainStatusRandom(ChainTransStatusEnum.ERROR.getKey());
+		
+		propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
+		
+		drawRollBack(draw.getUserId());
+	}
+
+	/**
+	 * 回滚抽奖次数
+	 * @param userId
+	 */
+	private void drawRollBack(Integer userId) {
+		CWVUserWallet userWallet = propertyHelper.getWalletHelper().getUserAccount(userId, CoinEnum.CWB);
+		userWallet.setDrawCount(userWallet.getDrawCount()+1);
+		propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(userWallet);
+	}
+	
+	private String getTokenByRandom(String random) {
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		String superUserId = propertyHelper.getCommonHelper().getSysSettingValue("super_user");
+		
+		example.createCriteria().andUserIdEqualTo(Integer.parseInt(superUserId)).andGameMapIdIsNotNull()
+				.andPropertyTypeEqualTo("2").addCriterion(
+						"property_id not in ( select property_id from cwv_market_draw where chain_status != '-1' or chain_status is null )");
+
+		example.setOffset(Integer.parseInt(random) - 1);
+		Object o = propertyHelper.getDao().gamePropertyDao.selectOneByExample(example);
+
+		final CWVGameProperty gameProperty = (CWVGameProperty) o;
+
+		
+		
+		
+		return gameProperty.getCryptoToken();
+	}
+
+	private void bidAuctionProcess(CWVGameTxManage manage) {
+		List<Object> list = getBidListByTxHash(manage.getTxHash());
+		
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			for(Object o : list) {
+				bidAuctionDone((CWVMarketAuction) o);
+			}
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			for(Object o : list) {
+				bidAuctionError((CWVMarketAuction) o);
+			}
+
+	}
+
+	/**
+	 * 撤销创建竞拍
+	 * @param manage
+	 */
+	private void bidCreateCancelProcess(CWVGameTxManage manage) {
+		
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+				bidCreateCancelDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+				bidCreateCancelError(manage);
+		
+	}
+
+	/**
+	 * 创建竞拍处理
+	 * @param manage
+	 */
+	private void bidCreateProcess(CWVGameTxManage manage) {
+		
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			bidCreateDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			bidCreateError(manage);
+	}
+
+
+	private void exchangeBuyAmountRollbackProcess(CWVGameTxManage manage) {
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			exchangeBuyAmountRollbackDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			exchangeBuyAmountRollbackError(manage);
+	}
+
+
+	private void exchangeBuyAmountRollbackError(CWVGameTxManage manage) {
+		//更新申请记录退款状态
+		exchangeBuyRollbackUpdateStatus(manage.getTxHash(),ChainTransStatusEnum.ERROR.getKey());
+		
+		//TODO 加入人工处理
+	}
+
+
+	private void exchangeBuyAmountRollbackDone(CWVGameTxManage manage) {
+		//更新申请记录退款状态
+		exchangeBuyRollbackUpdateStatus(manage.getTxHash(),ChainTransStatusEnum.DONE.getKey());
+		
+	}
+
+
+	private void exchangeBuyRollbackUpdateStatus(String txHash, byte status) {
+		CWVMarketExchangeBuyExample buyExample = new CWVMarketExchangeBuyExample();
+		buyExample.createCriteria().andChainTransHashRollbackEqualTo(txHash);
+		
+		CWVMarketExchangeBuy buy = new CWVMarketExchangeBuy();
+		buy.setChainStatusRollback(status);
+				
+		propertyHelper.getDao().exchangeBuyDao.updateByExample(buy, buyExample);
+	}
+
+
+	private void exchangeBuyGroupProcess(CWVGameTxManage manage) {
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			exchangeBuyGroupDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			exchangeBuyGroupError(manage);
+	}
+
+	/**
+	 * 
+	 * @param manage
+	 */
+	private void exchangeBuyGroupError(CWVGameTxManage manage) {
+		// 更新申请记录信息
+		exchangeBuyGroupUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.ERROR.getKey());
+		
+		//退回买家金额 单独任务处理
+//		exchangeBuyAmountRollback(manage.getTxHash());
+		//更新交易信息
+		exchangeUpdateToSellByTxHash(manage.getTxHash());
+		
+		//更新房产信息
+		propertyUpdateByBuyGroupHash(manage);
+		
+	}
+
+	/**
+	 * 用于回滚买入失败 交易更新 出售中状态
+	 * @param txHash
+	 */
+	private void exchangeUpdateToSellByTxHash(String txHash) {
+		
+		CWVMarketExchangeExample example = new CWVMarketExchangeExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		CWVMarketExchange exchange = new CWVMarketExchange();
+		exchange.setStatus(PropertyExchangeStatusEnum.ONSALE.getValue());
+		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		propertyHelper.getDao().exchangeDao.updateByExample(exchange, example);
+		
+	}
+	
+	private void propertyUpdateToSellByTxHash(String txHash) {
+		CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
+		propertyExample.createCriteria().andChainTransHashEqualTo(txHash);
+		CWVGameProperty property = new CWVGameProperty();
+		property.setPropertyStatus(PropertyStatusEnum.ONSALE.getValue());
+		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		propertyHelper.getDao().gamePropertyDao.updateByExample(property, propertyExample);
+		
+	}
+	
+	private void exchangeBuyGroupDone(CWVGameTxManage manage) {
+		// 更新申请记录信息
+		exchangeBuyGroupUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
+		
+		//更新交易信息
+		exchangeUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
+		
+		//更新房产信息
+		propertyUpdateByBuyGroupHash(manage);
+		
+	}
+
+
+	private void propertyUpdateByBuyGroupHash(CWVGameTxManage manage) {
+		CWVMarketExchangeExample example = new CWVMarketExchangeExample();
+		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash());
+		List<Object> list = propertyHelper.getDao().exchangeDao.selectByExample(example);
+		for(Object o : list){
+			try {
+				CWVMarketExchange exchange = (CWVMarketExchange) o;
+				CWVGameProperty property = new CWVGameProperty();
+				property.setPropertyId(exchange.getPropertyId());
+				property.setLastPrice(exchange.getSellPrice());
+				property.setIncome(new BigDecimal("0"));
+				property.setUserId(exchange.getUserId());
+				property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+				
+				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
+//				
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+		}
+	}
+
+
+	private void exchangeBuyAmountProcess(CWVGameTxManage manage) {
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			exchangeBuyAmountDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			exchangeBuyAmountError(manage);
+	}
+
+
+	private void exchangeBuyAmountError(CWVGameTxManage manage) {
+		
+		//更新买入信息
+		exchangeBuyAmountUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.ERROR.getKey());
+		
+		//更新交易信息
+		exchangeUpdateToSellByTxHash(manage.getTxHash());
+		//更新房产信息 卖出状态
+		propertyUpdateToSellByTxHash(manage.getTxHash());
+	}
+
+
+
+	private void exchangeBuyAmountDone(CWVGameTxManage manage) {
+		//更新 交易买入金额状态
+		exchangeBuyAmountUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());;
+		
+	}
+
+
+	private void exchangeSellCancelProcess(CWVGameTxManage manage) {
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			exchangeSellCancelDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			exchangeSellCancelError(manage);
+	}
+
+
+	private List<Object> getDrawRandomListByTxHash(String txHash) {
+		CWVMarketDrawExample example = new CWVMarketDrawExample();
+		example.createCriteria().andChainTransHashRandomEqualTo(txHash);
+		
+		return propertyHelper.getDao().drawDao.selectByExample(example);
+		
+	}
+
+	private List<Object> getDrawGroupListByTxHash(String txHash) {
+		CWVMarketDrawExample example = new CWVMarketDrawExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		
+		return propertyHelper.getDao().drawDao.selectByExample(example);
+		
+	}
+
+
+	private List<Object> getExchangeBuyAmountListByTxHash(String txHash) {
+		CWVMarketExchangeBuyExample example = new CWVMarketExchangeBuyExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		
+		return propertyHelper.getDao().exchangeDao.selectByExample(example);
+		
+	}
+	
+	private List<Object> getExchangeBuyGroupListByTxHash(String txHash) {
+		CWVMarketExchangeBuyExample example = new CWVMarketExchangeBuyExample();
+		example.createCriteria().andChainTransHashGroupEqualTo(txHash);
+		
+		return propertyHelper.getDao().exchangeDao.selectByExample(example);
+		
+	}
+	
+
+	private List<Object> getExchangeListByTxHash(String txHash) {
+		CWVMarketExchangeExample example = new CWVMarketExchangeExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		
+		return propertyHelper.getDao().exchangeDao.selectByExample(example);
+		
+	}
+	
+	private List<Object> getBidListByTxHash(String txHash) {
+		CWVMarketBidExample example = new CWVMarketBidExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		
+		return propertyHelper.getDao().bidDao.selectByExample(example);
+		
+	}
+
+
+	/**
+	 * 卖出房产逻辑处理
+	 * @param manage
+	 */
+	private void exchangeSellProcess(CWVGameTxManage manage) {
+
+		List<Object> list = getExchangeListByTxHash(manage.getTxHash());
+		
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			for(Object o : list) {
+				exchangeSellDone((CWVMarketExchange) o);
+			}
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			exchangeSellError(manage);
+	}
+
+
+	private void exchangeSellError(CWVGameTxManage manage) {
+		//更新交易
+		exchangeUpdateByTxHash(manage.getTxHash(),ChainTransStatusEnum.ERROR.getKey());
+		//更新房产
+		propertyUpdateByTxHash(manage.getTxHash(),ChainTransStatusEnum.DONE.getKey());
+	}
+
+	private void bidUpdateByTxHash(String txHash, byte status) {
+		CWVMarketBidExample example = new CWVMarketBidExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		CWVMarketBid bid = new CWVMarketBid();
+		bid.setChainStatus(status);
+		propertyHelper.getDao().bidDao.updateByExample(bid, example);
+		
+	}
+
+	private void exchangeBuyAmountUpdateByTxHash(String txHash, byte status) {
+		CWVMarketExchangeBuyExample example = new CWVMarketExchangeBuyExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		CWVMarketExchangeBuy buy = new CWVMarketExchangeBuy();
+		buy.setChainStatus(status);;
+		propertyHelper.getDao().exchangeBuyDao.updateByExample(buy, example);
+		
+	}
+	
+	private void exchangeBuyGroupUpdateByTxHash(String txHash, byte status) {
+		CWVMarketExchangeBuyExample example = new CWVMarketExchangeBuyExample();
+		example.createCriteria().andChainTransHashGroupEqualTo(txHash);
+		CWVMarketExchangeBuy buy = new CWVMarketExchangeBuy();
+		buy.setChainStatusGroup(status);;
+		propertyHelper.getDao().exchangeBuyDao.updateByExample(buy, example);
+		
+	}
+	private void exchangeUpdateByTxHash(String txHash, byte status) {
+		CWVMarketExchangeExample example = new CWVMarketExchangeExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		CWVMarketExchange exchange = new CWVMarketExchange();
+		exchange.setChainStatus(status);
+		propertyHelper.getDao().exchangeDao.updateByExample(exchange, example);
+		
+	}
+	
+	private void propertyUpdateByTxHash(String txHash, byte status) {
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		CWVGameProperty property = new CWVGameProperty();
+		property.setChainStatus(status);
+		propertyHelper.getDao().exchangeDao.updateByExample(property, example);
+		
+		
+	}
+
+
+	/**
+	 * 更新交易管理信息
+	 * @param manage
+	 */
+	private void manageUpdateStatus(CWVGameTxManage manage, byte status) {
+		manage.setChainStatus((int) status);
+		propertyHelper.getDao().txManangeDao.updateByPrimaryKeySelective(manage);
+	}
+
+
+	/**
+	 * 获取进行中的交易
+	 * @param key
+	 * @return
+	 */
+	private List<Object> getTxManageUndone() {
+		
+		CWVGameTxManageExample example = new CWVGameTxManageExample();
+		example.createCriteria().andChainStatusEqualTo((int) ChainTransStatusEnum.START.getKey())
+		;
+		return propertyHelper.getDao().txManangeDao.selectByExample(example);
+	}
+
 
 	private void topupError(CWVUserWalletTopup topup) {
 		//人工处理转账失败
@@ -220,89 +737,37 @@ public class TransactionStatusTask implements Runnable {
 		return propertyHelper.getDao().topupDao.selectByExample(example);
 	}
 
-
-	private void drawProcess(CWVMarketDraw draw, String status) {
-		if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-			drawDone(draw);
-		else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-			drawError(draw);
-		
-	}
-
-	/**
-	 * 抽奖房产交易失败
-	 * @param draw
-	 */
-	private void drawError(final CWVMarketDraw draw) {
-		//抽奖合约交易状态
-		draw.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
-		
-		final CWVUserWallet wallet = propertyHelper.getWalletHelper().getUserAccount(draw.getUserId(), CoinEnum.CWB);
-		wallet.setDrawCount(wallet.getDrawCount()+1);
-		
-		propertyHelper.getDao().drawDao.doInTransaction(new TransactionExecutor() {
-			
-			@Override
-			public Object doInTransaction() {
-				//更新抽奖信息
-				propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
-				
-				//回退抽奖次数
-				propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(wallet);
-				
-				return null;
-			}
-		});
-		
-		
-	}
-
 	/**
 	 * 抽奖房产交易成功
 	 * @param draw
 	 */
-	private void drawDone(final CWVMarketDraw draw) {
-
-		//抽奖合约交易状态
-		draw.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+	private void drawGroupDone(final CWVMarketDraw draw) {
 		
-		//房产信息
-		final CWVGameProperty gameProperty = new CWVGameProperty();
-		gameProperty.setUserId(draw.getUserId());
-		gameProperty.setPropertyStatus("0");
-		gameProperty.setLastPrice(new BigDecimal("1000"));
+		draw.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		final CWVGameProperty property =  new CWVGameProperty();
+		property.setPropertyId(draw.getPropertyId());
+		property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
+		property.setUserId(draw.getUserId());
+		property.setLastPrice(new BigDecimal("1000"));
+		property.setLastPriceTime(new Date());
 		
 		propertyHelper.getDao().drawDao.doInTransaction(new TransactionExecutor() {
 			
 			@Override
 			public Object doInTransaction() {
 
-				//抽奖信息
 				propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
-				//房产信息
-				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(gameProperty);
+				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
+				
 				return null;
 			}
 		});
-		// 更新房产信息
 		
 		
 	}
 
-	/**
-	 * 竞价处理
-	 * @param auction
-	 * @param status
-	 */
-	private void auctionProcess(CWVMarketAuction auction, String status) {
-		if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-			auctionDone(auction);
-		else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-			auctionError(auction);
-	}
 
-
-	private void auctionError(final CWVMarketAuction auction) {
+	private void bidAuctionError(final CWVMarketAuction auction) {
 		
 		auction.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
 		
@@ -310,11 +775,6 @@ public class TransactionStatusTask implements Runnable {
 		CWVMarketBid bidOld = new CWVMarketBid();
 		bidOld.setBidId(auction.getBidId());
 		final CWVMarketBid bid = propertyHelper.getDao().bidDao.selectByPrimaryKey(bidOld);
-		
-		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
-		// 竞拍账户
-		final CWVUserWallet auctionAccount = propertyHelper.getWalletHelper().getUserAccount(auction.getUserId(), CoinEnum.CWB);
-
 		
 		final CWVUserTransactionRecord recordAuction = new CWVUserTransactionRecord();
 		// 设置交易记录
@@ -325,7 +785,6 @@ public class TransactionStatusTask implements Runnable {
 		
 		// 账户金额
 		BigDecimal gainCost = auction.getBidPrice().subtract(auction.getBidPrice());
-		auctionAccount.setBalance(auctionAccount.getBalance().add(gainCost));
 	
 		recordAuction.setGainCost(gainCost);
 		
@@ -353,8 +812,7 @@ public class TransactionStatusTask implements Runnable {
 				// 更新竞拍信息
 				propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
 				// 更新竞价用户账户金额
-				auctionAccount.setUpdateTime(new Date());
-				propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(auctionAccount);
+				
 				// 插入竞价用户钱包操作记录
 				propertyHelper.getDao().userTransactionRecordDao.insert(recordAuction);
 				return null;
@@ -365,17 +823,16 @@ public class TransactionStatusTask implements Runnable {
 	}
 
 
-	private void auctionDone(final CWVMarketAuction auction) {
+	private void bidAuctionDone(final CWVMarketAuction auction) {
 		
 		auction.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 	
 		CWVMarketBid marketBid = new CWVMarketBid();
 		marketBid.setBidId(auction.getBidId());
-		marketBid.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		final CWVMarketBid bid = propertyHelper.getDao().bidDao.selectByPrimaryKey(marketBid);
 		// 发起竞拍账户
-		final CWVUserWallet bidAccount = propertyHelper.getWalletHelper().getUserAccount(Integer.parseInt(bid.getCreateUser()), CoinEnum.CWB);
-		bidAccount.setBalance(bidAccount.getBalance().add(auction.getBidPrice()).subtract(auction.getLastBidPrice()));
+//		final CWVUserWallet bidAccount = propertyHelper.getWalletHelper().getUserAccount(Integer.parseInt(bid.getCreateUser()), CoinEnum.CWB);
+//		bidAccount.setBalance(bidAccount.getBalance().add(auction.getBidPrice()).subtract(auction.getLastBidPrice()));
 		
 		final CWVUserTransactionRecord recordBid = new CWVUserTransactionRecord();
 		// 设置交易记录
@@ -398,7 +855,7 @@ public class TransactionStatusTask implements Runnable {
 				//房产竞拍信息更新
 				propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
 				//发起者账户余额更新
-				propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(bidAccount);
+//				propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(bidAccount);
 				//发起者账户交易记录
 				propertyHelper.getDao().userTransactionRecordDao.insert(recordBid);
 				return null;
@@ -407,172 +864,71 @@ public class TransactionStatusTask implements Runnable {
 	}
 
 
-	private void bidProcess(CWVMarketBid bid, String status) {
-
-		//发起竞拍
-		if(bid.getStatus().byteValue() == PropertyBidStatusEnum.PREVIEW.getValue()) {
-			
-			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-				bidCreateDone(bid);
-			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-				bidCreateError(bid);
-		}
-		
-		//取消竞拍
-		if(bid.getStatus().byteValue() == PropertyExchangeStatusEnum.CANCEL.getValue()) {
-			
-			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-				bidCancelDone(bid);
-			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-				bidCancelError(bid);
-		}
-		
-		
-	}
-
-
-	private void bidCancelError(CWVMarketBid bid) {
-		bid.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
+	private void bidCreateCancelError(CWVGameTxManage manage) {
+		//更新竞拍信息 预竞拍（定时任务处理状态）
+		CWVMarketBidExample bidExample = new CWVMarketBidExample();
+		bidExample.createCriteria().andChainTransHashEqualTo(manage.getTxHash());
+		CWVMarketBid bid = new CWVMarketBid();
+		bid.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		bid.setStatus(PropertyBidStatusEnum.PREVIEW.getValue());
 		propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
+		
+		//更新房产  竞拍中
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash());
+		CWVGameProperty property = new CWVGameProperty();
+		property.setPropertyStatus(PropertyStatusEnum.BIDDING.getValue());
+		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		
+		propertyHelper.getDao().gamePropertyDao.updateByExample(property, example);
 	}
 
 
-	private void bidCancelDone(final CWVMarketBid bid) {
-		bid.setStatus(PropertyBidStatusEnum.CANCEL.getValue());
-			
-		final CWVGameProperty property = new CWVGameProperty();
-		property.setPropertyId(bid.getGamePropertyId());
+	private void bidCreateCancelDone(CWVGameTxManage manage) {
+		//更新竞拍信息
+		bidUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
+		//更新房产信息
+		propertyUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
+		
+	}
+
+
+	private void bidCreateError(CWVGameTxManage manage) {
+		//更新竞拍信息
+		bidUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.ERROR.getKey());
+		
+		//更新房产信息  未出售状态
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash());
+		CWVGameProperty property = new CWVGameProperty();
+		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
-		propertyHelper.getDao().bidDao.doInTransaction(new TransactionExecutor() {
-			
-			@Override
-			public Object doInTransaction() {
-				
-				propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
-				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
-				return null;
-			}
-		});
+		propertyHelper.getDao().gamePropertyDao.updateByExample(property, example);
 		
 	}
 
 
-	private void bidCreateError(final CWVMarketBid bid) {
-		bid.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
-		propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
+	private void bidCreateDone(CWVGameTxManage manage) {
+		//更新竞拍信息
+		bidUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
+		//更新房产 
+		propertyUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
 		
 	}
 
 
-	private void bidCreateDone(final CWVMarketBid bid) {
-
-		bid.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+	private void exchangeSellCancelDone(CWVGameTxManage manage) {
 		
-		final CWVGameProperty property = new CWVGameProperty();
-		property.setPropertyId(bid.getGamePropertyId());
-		property.setPropertyStatus(PropertyStatusEnum.BIDDING.getValue());// 竞拍中
-
-		// 更新房产
-		propertyHelper.getDao().bidDao.doInTransaction(new TransactionExecutor() {
-			
-			@Override
-			public Object doInTransaction() {
-				
-				propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
-				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
-				return null;
-			}
-		});
-		
-		//创建公告
-		CWVAuthUser user = propertyHelper.getUserHelper().getUserById(property.getUserId());
-		String noticeContent = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.BID.getValue(),user.getNickName(),property.getPropertyName(), null );
-	
-		Calendar c = Calendar.getInstance();
-		String startTime = DateUtil.getDayTime(c.getTime());
-		c.add(Calendar.MINUTE, 2);
-//		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.TRADE.getValue(), startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeContent);
-	
-		
-	}
-
-
-	private void exchangeProcess(CWVMarketExchange exchange, String status) {
-		
-		//执行卖出
-		if(exchange.getStatus().equals(PropertyExchangeStatusEnum.ONSALE.getValue())) {
-			
-			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-				exchangeOnsaleDone(exchange);
-			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-				exchangeOnsaleError(exchange);
-		}
-		//买入逻辑单独处理 PropertyExchangeTask
-//		if(exchange.getStatus().equals(PropertyExchangeStatusEnum.SOLD.getValue())) {
-//			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-//				exchangeSoldDone(exchange);
-//			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-//				exchangeSoldError(exchange);
-//			
-//			
-//		}
-		//撤销
-		if(exchange.getStatus().equals(PropertyExchangeStatusEnum.CANCEL.getValue())) {
-			if(status.equals(ChainTransStatusEnum.DONE.getValue()))
-				exchangeCancelDone(exchange);
-			else if(status.equals(ChainTransStatusEnum.ERROR.getValue()))
-				exchangeCancelError(exchange);
-			
-		}
-		
-	}
-
-
-	private void exchangeCancelDone(final CWVMarketExchange exchange) {
 		//更新交易信息
-		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		exchangeUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
 		
-		//房产信息
-		final CWVGameProperty property = new CWVGameProperty();
-		property.setPropertyId(exchange.getPropertyId());
+		//更新房产信息 设置 房产未出售
+		CWVGamePropertyExample example = new CWVGamePropertyExample();
+		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash());
+		CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
-		propertyHelper.getDao().exchangeDao.doInTransaction(new TransactionExecutor() {
-			
-			@Override
-			public Object doInTransaction() {
-				
-				// 更新交易
-				propertyHelper.getDao().exchangeDao.updateByPrimaryKeySelective(exchange);
-			
-				//更新房产
-				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
-				return null;
-			}
-		});
-		
-		
-		
-	}
-
-
-	private void exchangeCancelError(final CWVMarketExchange exchange) {
-		//
-		//更新交易信息
-		exchange.setStatus(PropertyExchangeStatusEnum.ONSALE.getValue());
-		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
-		
-		propertyHelper.getDao().exchangeDao.doInTransaction(new TransactionExecutor() {
-			
-			@Override
-			public Object doInTransaction() {
-				
-				propertyHelper.getDao().exchangeDao.updateByPrimaryKeySelective(exchange);
-				
-				return null;
-			}
-		});
-		//
+		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		propertyHelper.getDao().gamePropertyDao.updateByExample(property, example);
 		
 	}
 
@@ -703,7 +1059,7 @@ public class TransactionStatusTask implements Runnable {
 	}
 
 
-	private void exchangeOnsaleDone(final CWVMarketExchange exchange) {
+	private void exchangeSellDone(final CWVMarketExchange exchange) {
 		//更新交易信息
 		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		
@@ -736,12 +1092,29 @@ public class TransactionStatusTask implements Runnable {
 		
 	}
 
+	/**
+	 * 购买
+	 * @param buy
+	 */
+	private void exchangeBuyDone(CWVMarketExchangeBuy buy) {
 
-	private void exchangeOnsaleError(CWVMarketExchange exchange) {
-		//更新交易信息
-		exchange.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
-		propertyHelper.getDao().exchangeDao.updateByPrimaryKeySelective(exchange);
+		buy.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		propertyHelper.getDao().exchangeBuyDao.updateByPrimaryKeySelective(buy);
 		
+		
+		
+	}
+
+	private void exchangeSellCancelError(CWVGameTxManage manage) {
+		CWVMarketExchangeExample example = new CWVMarketExchangeExample();
+		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash());
+		CWVMarketExchange exchange = new CWVMarketExchange();
+		//更新交易信息
+		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+		exchange.setStatus(PropertyExchangeStatusEnum.ONSALE.getValue());
+		propertyHelper.getDao().exchangeDao.updateByExampleSelective(exchange, example);
+		//更新房产信息
+		propertyUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
 	}
 	
 	
@@ -755,28 +1128,6 @@ public class TransactionStatusTask implements Runnable {
 		return list;
 	}
 	
-	private List<Object>  getUndoneAuction() {
-		//
-		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
-		example.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey());
-		return propertyHelper.getDao().getAuctionDao().selectByExample(example);
-	}
-	private List<Object>  getUndoneBid() {
-		//
-		CWVMarketBidExample example = new CWVMarketBidExample();
-		example.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey());
-		
-		return propertyHelper.getDao().getBidDao().selectByExample(example);
-	}
-	
-	private List<Object>  getUndoneDraw() {
-		//
-		CWVMarketDrawExample example = new CWVMarketDrawExample();
-		example.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey());
-		
-		return propertyHelper.getDao().getDrawDao().selectByExample(example);
-	}
-	
 	
 	/**
 	 * 查询交易hash状态
@@ -785,7 +1136,7 @@ public class TransactionStatusTask implements Runnable {
 	 * @param busiMap 业务日志记录MAP参数
 	 * @return
 	 */
-	public static String getTransStatus(PropertyHelper propertyHelper,String hash,String hashType, HashMap<String,String> busiMap){
+	public static String getTransStatus(PropertyHelper propertyHelper,String hash,String hashType){
 		String status = null;
 		RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(hash);
 		if(respGetTxByHash.getRetCode() == -1) {//失败
@@ -808,16 +1159,86 @@ public class TransactionStatusTask implements Runnable {
 				
 			}
 			
-			
 			StringBuffer sb = new StringBuffer(hashType).append("==>transaction hash check error").append(":::");
-			for(Map.Entry<String,String>  key : busiMap.entrySet()){
-				sb.append(key).append(":").append(busiMap.get(key));
-			}
+			
 			log.error(sb.toString());
 		}else
 			status = respGetTxByHash.getTransaction().getStatus();
 		return status;
 	}
+	
+	/**
+	 * 抽奖交易状态批量处理
+	 */
+	private void drawTransStatusGroup(){
+		CWVMarketDrawExample drawExample = new CWVMarketDrawExample();
+		drawExample.createCriteria().andChainStatusEqualTo(ChainTransStatusEnum.START.getKey());
+		List<Object> list = propertyHelper.getDao().drawDao.selectByExample(drawExample);
+		
+		//存储交易HASH
+		HashSet transStatusSet = new HashSet<String>();
+		
+		for(Object o : list){
+			final CWVMarketDraw draw = (CWVMarketDraw) o;
+			
+			try {
+				if(transStatusSet.contains(draw.getChainTransHash())) {
+					continue ;
+				}else {
+					
+					HashMap busiMap = new HashMap<String,String>();
+					busiMap.put("drawId", draw.getDrawId());
+					busiMap.put("txHash", draw.getChainTransHash());
+					
+					String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHash(), TransHashTypeEnum.DRAW.getValue());
+					
+					if(StringUtils.isEmpty(status)) {
+						continue;
+					}
+					
+					if(status.equals(ChainTransStatusEnum.DONE.getValue())) {
+						draw.setChainStatus(ChainTransStatusEnum.DONE.getKey());
+						final CWVGameProperty property =  new CWVGameProperty();
+						property.setPropertyId(draw.getPropertyId());
+						property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
+						property.setUserId(draw.getUserId());
+						property.setLastPrice(new BigDecimal("1000"));
+						property.setLastPriceTime(new Date());
+						
+						propertyHelper.getDao().drawDao.doInTransaction(new TransactionExecutor() {
+							
+							@Override
+							public Object doInTransaction() {
+		
+								propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
+								propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
+								
+								return null;
+							}
+						});
+					}
+					else if(status.equals(ChainTransStatusEnum.ERROR.getValue())) {
+						draw.setChainStatus(ChainTransStatusEnum.ERROR.getKey());
+						propertyHelper.getDao().drawDao.doInTransaction(new TransactionExecutor() {
+							
+							@Override
+							public Object doInTransaction() {
+								propertyHelper.getDao().drawDao.updateByPrimaryKeySelective(draw);
+								drawRollBack(draw.getUserId());
+								return null;
+							}
+						});
+						
+					}
+				}
+			
+			} catch (Exception e) {
+				log.error("draw:drawId="+draw.getDrawId()+"====drawTransStatusGroup done exception \n"+e.getStackTrace());
+			}
+		}
+	}
+	
+	
 
 }
 

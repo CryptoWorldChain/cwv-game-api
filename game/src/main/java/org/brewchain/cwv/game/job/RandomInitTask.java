@@ -131,7 +131,7 @@ public class RandomInitTask implements Runnable {
 					}
 					ret = propertyHelper.getWltHelper().excuteContract(new BigDecimal(0), wallet.getAccount(), contractAddress,data2);
 				
-					if(ret.getRetCode()==1) {
+				 	if(ret.getRetCode()==1) {
 						sb.append("|"+ret.getTxHash());
 					}
 				} catch (Exception e) {

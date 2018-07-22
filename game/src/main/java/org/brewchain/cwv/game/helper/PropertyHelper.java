@@ -25,6 +25,7 @@ import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGame;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGameExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuctionExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
@@ -55,6 +56,7 @@ import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
+import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.enums.UpAndDownEnum;
 import org.brewchain.cwv.game.job.PropertyJobHandle;
 import org.brewchain.cwv.game.util.Arith;
@@ -76,8 +78,8 @@ import org.brewchain.cwv.service.game.Draw.PRetPropertyDraw;
 import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord;
 import org.brewchain.cwv.service.game.Draw.PRetPropertyDrawRecord.PropertyDraw;
 import org.brewchain.cwv.service.game.Draw.PSCommonDraw;
-import org.brewchain.cwv.service.game.Draw.PSDrawTxInfo;
 import org.brewchain.cwv.service.game.Draw.PSPropertyDrawRecord;
+import org.brewchain.cwv.service.game.Draw.PSPropertyDrawTx;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PRetPropertyExchange.PropertyExchange;
 import org.brewchain.cwv.service.game.Exchange.PSBuyProperty;
@@ -117,7 +119,6 @@ import org.brewchain.wallet.service.Wallet.RespCreateContractTransaction;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetAccount;
 import org.brewchain.wallet.service.Wallet.RespGetTxByHash;
-import org.codehaus.classworlds.BytesURLConnection;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -859,6 +860,11 @@ public class PropertyHelper implements ActorService {
 				buy.getBuyerAddress());
 		// 添加调取合约日志 TODO
 
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT.getKey(),exchangeRet.getTxHash());
+		
+//		txManage.getDescription()
+		
 		if (exchangeRet.getRetCode() != 1) {
 			ret.setRetCode("99");
 			ret.setRetMsg(exchangeRet.getRetMsg());
@@ -949,6 +955,15 @@ public class PropertyHelper implements ActorService {
 
 	}
 
+	private void txManageAdd(String key,String txHash) {
+		CWVGameTxManage txManage = new CWVGameTxManage();
+		txManage.setChainStatus((int) ChainTransStatusEnum.START.getKey());
+		txManage.setTxHash(txHash);
+		txManage.setType(key);
+		txManage.setStatus(0);
+		
+	}
+
 	/**
 	 * 卖出房产
 	 * 
@@ -1014,6 +1029,10 @@ public class PropertyHelper implements ActorService {
 		RespCreateTransaction.Builder exchangeRet = exchangeInvoker.sellProperty(account.getAccount(),
 				property.getCryptoToken(), 0);
 
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.EXCHANGE_SELL.getKey(),exchangeRet.getTxHash());
+		
+		
 		// 添加调取合约日志 TODO
 
 		if (exchangeRet.getRetCode() != 1) {
@@ -1243,7 +1262,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void auctionProperty(FramePacket pack, final PSAuctionProperty pb, Builder ret) {
+	public void auctionProperty(FramePacket pack, final PSAuctionProperty pb, final Builder ret) {
 
 		// 1校验
 		// 1.1非空校验
@@ -1317,11 +1336,12 @@ public class PropertyHelper implements ActorService {
 
 		// 2.1调取竞拍合约
 		final RespCreateTransaction.Builder retContract = bidInvoker.auctionProperty(cwbAccount.getAccount(),
-				bid.getGamePropertyId() + "", pb.getPrice() + "");
+				bid.getChainContract(), pb.getPrice());
+
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),retContract.getTxHash());
+				
 		// 2.2新增竞价记录，并更新竞价记录
-
-		// TODO 增加调取竞拍合约日志
-
 		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
 		example.createCriteria().andBidIdEqualTo(Integer.parseInt(pb.getBidId())).andUserIdEqualTo(user.getUserId())// 当前用户
 				.andStatusEqualTo((byte) 1)// 有效
@@ -1331,6 +1351,8 @@ public class PropertyHelper implements ActorService {
 		// 竞拍账户
 		final CWVUserWallet auctionAccount = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
 
+		
+		
 		if (retContract.getRetCode() == 1) {
 			dao.bidDao.doInTransaction(new TransactionExecutor() {
 
@@ -1350,25 +1372,40 @@ public class PropertyHelper implements ActorService {
 					newAuction.setStatus((byte) 1);
 					newAuction.setUserId(user.getUserId());
 					newAuction.setChainStatus(ChainTransStatusEnum.START.getKey());
-					newAuction.setChainContract("");
+					newAuction.setChainContract(bid.getChainContract());
 					newAuction.setChainTransHash(retContract.getTxHash());
 					// 更新个人竞拍记录
 					if (old != null) {// 存在历史竞价
+						
+						
 						// 账户金额
 						BigDecimal gainCost = new BigDecimal(pb.getPrice()).subtract(old.getBidPrice());
-						auctionAccount.setBalance(auctionAccount.getBalance().subtract(gainCost));
+						BigDecimal balance = auctionAccount.getBalance().subtract(gainCost);
+						if(balance.longValue()<0) {
+							ret.setRetCode(ReturnCodeMsgEnum.APS_ERROR_ACCOUNT.getRetCode())
+							.setRetMsg(ReturnCodeMsgEnum.APS_ERROR_ACCOUNT.getRetMsg());
+							return null;
+						}
+						auctionAccount.setBalance(balance);
 						// 交易记录
 						recordAuction.setGainCost(gainCost.negate());
 						newAuction.setLastBidPrice(old.getBidPrice());
 						newAuction.setBidPrice(new BigDecimal(pb.getPrice()));
 						// 更新参与人数数
 					} else {
-
+						
+						
 						newAuction.setBidPrice(new BigDecimal(pb.getPrice()));
-						newAuction.setLastBidPrice(new BigDecimal(0));
-						// 账户金额
 						BigDecimal gainCost = newAuction.getBidPrice();
-						auctionAccount.setBalance(auctionAccount.getBalance().subtract(gainCost));
+						BigDecimal balance = auctionAccount.getBalance().subtract(gainCost);
+						if(balance.longValue()<0) {
+							ret.setRetCode(ReturnCodeMsgEnum.APS_ERROR_ACCOUNT.getRetCode())
+							.setRetMsg(ReturnCodeMsgEnum.APS_ERROR_ACCOUNT.getRetMsg());
+							return null;
+						}
+						newAuction.setLastBidPrice(new BigDecimal(0));
+						// 账户金额 ：查询余额时会同步链上余额，此处不做业务处理
+//						auctionAccount.setBalance(balance);
 						// 交易记录
 						recordAuction.setGainCost(gainCost.negate());
 						// 更新参与人数
@@ -1381,11 +1418,10 @@ public class PropertyHelper implements ActorService {
 					bid.setBidAmount(new BigDecimal(pb.getPrice()));
 					bid.setOwner(user.getUserId());
 					bid.setLastUpdateTime(new Date());
-					bid.setChainStatus(ChainTransStatusEnum.START.getKey());
 					dao.bidDao.updateByPrimaryKeySelective(bid);
 					// 更新账户金额
-					auctionAccount.setUpdateTime(new Date());
-					dao.walletDao.updateByPrimaryKeySelective(auctionAccount);
+//					auctionAccount.setUpdateTime(new Date());
+//					dao.walletDao.updateByPrimaryKeySelective(auctionAccount);
 					// 插入钱包操作记录
 					recordAuction.setMarketId(bid.getBidId());
 					recordAuction.setType(MarketTypeEnum.BID.getValue());
@@ -1466,6 +1502,9 @@ public class PropertyHelper implements ActorService {
 			return ;
 		}
 		
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.DRAW_GROUP.getKey(),retTrans.getTxHash());
+				
 		draw.setChainTransHash(retTrans.getTxHash());
 		draw.setChainStatus(ChainTransStatusEnum.START.getKey());
 		
@@ -1546,10 +1585,12 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.DRAW_RANDOM.getKey(),retStr.getTxHash());
+				
 		// 更新抽奖次数
 		walletCWB.setDrawCount(walletCWB.getDrawCount() - 1);
 
-		
 		//定时任务处理
 		
 		CWVUserWallet wallet = walletHelper.getUserAccount(authUser.getUserId(), CoinEnum.CWB);
@@ -1887,6 +1928,9 @@ public class PropertyHelper implements ActorService {
 		// 调取撤销合约
 		RespCreateTransaction.Builder cancelBidRet = bidInvoker.cancelBid(bid);
 
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.BID_CREATE_CANCEL.getKey(),cancelBidRet.getTxHash());
+				
 		bid.setStatus(PropertyBidStatusEnum.CANCEL.getValue());
 		// 设置合约交易信息
 		bid.setChainStatus(ChainTransStatusEnum.START.getKey());
@@ -2007,6 +2051,9 @@ public class PropertyHelper implements ActorService {
 		
 		RespCreateContractTransaction.Builder exchangeRet = bidInvoker.createBid(bid, wallet.getAccount(), property.getCryptoToken());
 
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),exchangeRet.getTxHash());
+		
 		// 添加调取合约日志 TODO
 
 		if (exchangeRet.getRetCode() != 1) {
@@ -2264,6 +2311,10 @@ public class PropertyHelper implements ActorService {
 			ret.setRetCode("99").setRetMsg(retCommon.getRetMsg());
 			return;
 		}
+		
+		//插入交易管理
+		txManageAdd(TransactionTypeEnum.EXCHANGE_SELL_CANCEL.getKey(),retCommon.getTxHash());
+		
 		// 设置交易状态： 撤销
 		exchange.setStatus((byte) 2);
 		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
@@ -2488,7 +2539,7 @@ public class PropertyHelper implements ActorService {
 	 * @param ret
 	 * @param builder
 	 */
-	public void getDrawTxInfo(PSDrawTxInfo pb, Builder ret,
+	public void drawTxInfo(PSPropertyDrawTx pb, Builder ret,
 			org.brewchain.cwv.service.game.Game.RetCodeMsg.Builder builder) {
 		RetData.Builder data = RetData.newBuilder();
 		
@@ -2539,5 +2590,6 @@ public class PropertyHelper implements ActorService {
 		}
 		
 	}
+
 
 }

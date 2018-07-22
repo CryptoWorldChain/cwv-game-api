@@ -19,6 +19,7 @@ import org.brewchain.cwv.auth.util.jwt.CheckResult;
 import org.brewchain.cwv.auth.util.jwt.TokenMgr;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDrawExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuy;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
@@ -288,12 +289,17 @@ public class PropertyIncomeTask implements Runnable {
 			
 			propertyHelper.getDao().incomeDao.updateByExampleSelective(income, incomeExample);
 
+			CWVGameTxManage txManage = new CWVGameTxManage();
+			txManage.setChainStatus((int) ChainTransStatusEnum.START.getKey());
+			txManage.setTxHash(ret.getTxHash());
+//			txManage.setDescription("");
+			txManage.setStatus(0);
+			
 		}else if(ret.getRetCode() == -1 ){
 			log.error("income error : txhash="+ret.getTxHash());
-			//TODO: 加入人工处理
 		}
-				
 		
+		);
 	}
 	
 	public void userIncomeStatus() {

@@ -232,6 +232,7 @@ public class WalletHelper implements ActorService {
 		if(accInfo.getRetCode()==1){
 			if(!account.getBalance().equals(accInfo.getAccount().getBalance())) {
 				account.setBalance(new BigDecimal(accInfo.getAccount().getBalance()));
+				account.setUpdateTime(new Date());
 				dao.walletDao.updateByPrimaryKeySelective(account);
 			}
 			

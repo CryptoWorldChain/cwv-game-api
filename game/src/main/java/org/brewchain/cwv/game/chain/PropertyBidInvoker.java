@@ -7,6 +7,7 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.bcvm.CodeBuild;
 import org.brewchain.cwv.auth.enums.ContractTypeEnum;
+import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.wallet.service.Wallet.RespCreateContractTransaction;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
@@ -81,9 +82,14 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 	 * @param propertyId
 	 * @return
 	 */
-	public RespCreateTransaction.Builder auctionProperty(String auctionAddress, String propertyId, String bidAmount ){
+	public RespCreateTransaction.Builder auctionProperty(String auctionAddress, String contractAddress, Double bidAmount ){
 		
-		return this.executeContract(auctionAddress, ContractTypeEnum.AUCTION_CONTRACT.getName(), "", bidAmount);
+		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
+		CodeBuild.Result res = wltHelper.buildContract(ContractTypeEnum.AUCTION_CONTRACT.getName());
+		
+		String data = wltHelper.methodBuild(res, "auctionBid", bidAmount.longValue());
+		
+		return wltHelper.excuteContract(new BigDecimal("0"), auctionAddress, contractAddress, data);
 		
 	}
 	
