@@ -1,6 +1,8 @@
 package org.brewchain.cwv.game.job;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -250,6 +252,8 @@ public class TransactionStatusTask implements Runnable {
 		income.setChainStatus(manage.getChainStatus().byteValue());
 		
 		propertyHelper.getDao().incomeDao.updateByExampleSelective(income, example);
+	
+		
 	}
 
 	private List<Object> getIncomeClaimListByTxHash(String txHash) {
@@ -641,7 +645,7 @@ public class TransactionStatusTask implements Runnable {
 		example.createCriteria().andChainTransHashEqualTo(txHash);
 		CWVMarketExchangeBuy buy = new CWVMarketExchangeBuy();
 		buy.setChainStatus(status);;
-		propertyHelper.getDao().exchangeBuyDao.updateByExample(buy, example);
+		propertyHelper.getDao().exchangeBuyDao.updateByExampleSelective(buy, example);
 		
 	}
 	
@@ -650,7 +654,7 @@ public class TransactionStatusTask implements Runnable {
 		example.createCriteria().andChainTransHashGroupEqualTo(txHash);
 		CWVMarketExchangeBuy buy = new CWVMarketExchangeBuy();
 		buy.setChainStatusGroup(status);;
-		propertyHelper.getDao().exchangeBuyDao.updateByExample(buy, example);
+		propertyHelper.getDao().exchangeBuyDao.updateByExampleSelective(buy, example);
 		
 	}
 	private void exchangeUpdateByTxHash(String txHash, byte status) {
@@ -658,7 +662,7 @@ public class TransactionStatusTask implements Runnable {
 		example.createCriteria().andChainTransHashEqualTo(txHash);
 		CWVMarketExchange exchange = new CWVMarketExchange();
 		exchange.setChainStatus(status);
-		propertyHelper.getDao().exchangeDao.updateByExample(exchange, example);
+		propertyHelper.getDao().exchangeDao.updateByExampleSelective(exchange, example);
 		
 	}
 	
@@ -667,7 +671,7 @@ public class TransactionStatusTask implements Runnable {
 		example.createCriteria().andChainTransHashEqualTo(txHash);
 		CWVGameProperty property = new CWVGameProperty();
 		property.setChainStatus(status);
-		propertyHelper.getDao().exchangeDao.updateByExample(property, example);
+		propertyHelper.getDao().exchangeDao.updateByExampleSelective(property, example);
 		
 		
 	}
@@ -689,10 +693,12 @@ public class TransactionStatusTask implements Runnable {
 	 * @return
 	 */
 	private List<Object> getTxManageUndone() {
-		
+		String setting = propertyHelper.getCommonHelper().getSysSettingValue("job_trans_set");
 		CWVGameTxManageExample example = new CWVGameTxManageExample();
 		example.createCriteria().andChainStatusEqualTo((int) ChainTransStatusEnum.START.getKey())
-		;
+		.andTypeIn(Arrays.asList(setting.split(",")))
+		.andTxHashIsNotNull()
+		.andTxHashNotEqualTo("");
 		return propertyHelper.getDao().txManangeDao.selectByExample(example);
 	}
 
@@ -880,7 +886,7 @@ public class TransactionStatusTask implements Runnable {
 		property.setPropertyStatus(PropertyStatusEnum.BIDDING.getValue());
 		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		
-		propertyHelper.getDao().gamePropertyDao.updateByExample(property, example);
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(property, example);
 	}
 
 
@@ -903,7 +909,7 @@ public class TransactionStatusTask implements Runnable {
 		CWVGameProperty property = new CWVGameProperty();
 		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 		property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
-		propertyHelper.getDao().gamePropertyDao.updateByExample(property, example);
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(property, example);
 		
 	}
 
@@ -928,7 +934,7 @@ public class TransactionStatusTask implements Runnable {
 		CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
 		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
-		propertyHelper.getDao().gamePropertyDao.updateByExample(property, example);
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(property, example);
 		
 	}
 
@@ -1185,10 +1191,6 @@ public class TransactionStatusTask implements Runnable {
 				if(transStatusSet.contains(draw.getChainTransHash())) {
 					continue ;
 				}else {
-					
-					HashMap busiMap = new HashMap<String,String>();
-					busiMap.put("drawId", draw.getDrawId());
-					busiMap.put("txHash", draw.getChainTransHash());
 					
 					String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHash(), TransHashTypeEnum.DRAW.getValue());
 					

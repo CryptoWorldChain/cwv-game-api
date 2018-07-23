@@ -5,9 +5,11 @@ import java.util.List;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDicExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +56,21 @@ public class CommonHelper implements ActorService {
 		example.createCriteria().andNameEqualTo(key);
 		List<Object> list = dao.settingDao.selectByExample(example);
 		return list == null || list.isEmpty() ? null :( (CWVSysSetting) list.get(0)).getValue() ;
+	}
+	
+	/**
+	 * 添加交易记录
+	 * @param key
+	 * @param txHash
+	 */
+	public void txManageAdd(String key,String txHash) {
+		CWVGameTxManage txManage = new CWVGameTxManage();
+		txManage.setChainStatus((int) ChainTransStatusEnum.START.getKey());
+		txManage.setTxHash(txHash);
+		txManage.setType(key);
+		txManage.setStatus(0);
+		dao.txManangeDao.insert(txManage);
+		
 	}
 
 

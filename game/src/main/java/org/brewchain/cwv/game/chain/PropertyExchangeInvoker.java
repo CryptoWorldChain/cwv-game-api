@@ -6,8 +6,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.WltHelper;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
+import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.helper.CommonHelper;
+import org.brewchain.cwv.game.helper.WalletHelper;
 import org.brewchain.cwv.game.job.PropertyJobHandle;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
@@ -31,9 +36,14 @@ public class PropertyExchangeInvoker implements ActorService {
 	@ActorRequire(name="Wlt_Helper", scope = "global")
 	WltHelper wltHelper;
 	
+	@ActorRequire(name = "Wallet_Helper")
+	WalletHelper walletHelper;
+	
 	@ActorRequire(name="Common_Helper")
 	CommonHelper commonHelper;
 	
+	@ActorRequire(name = "Daos", scope = "global")
+	Daos dao;
 	/**
 	 *申请记录是否存在
 	 * 	存在：返回操作失败
@@ -79,10 +89,13 @@ public class PropertyExchangeInvoker implements ActorService {
 	}
 
 
-	public RespCreateTransaction.Builder cancelExchange(String address, String exchangeId) {
+	public RespCreateTransaction.Builder cancelExchange(CWVMarketExchange exchange) {
 		
-		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
-		return ret.setRetCode(1);
+		CWVUserWallet wallet = walletHelper.getUserAccount(exchange.getCreateUser(), CoinEnum.CWB);
+		CWVGameProperty property = new CWVGameProperty();
+		property.setPropertyId(exchange.getPropertyId());
+		property = dao.gamePropertyDao.selectByPrimaryKey(property);
+		return wltHelper.createTx(new BigDecimal("0"), wallet.getAccount(), PropertyJobHandle.MARKET_EXCHANGE_AGENT, "house", property.getCryptoToken());
 	}
 	
 	

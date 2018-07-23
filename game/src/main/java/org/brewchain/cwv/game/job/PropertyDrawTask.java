@@ -304,11 +304,7 @@ public class PropertyDrawTask implements Runnable {
 					continue ;
 				}else {
 					
-					HashMap busiMap = new HashMap<String,String>();
-					busiMap.put("drawId", draw.getDrawId());
-					busiMap.put("txHash", draw.getChainTransHash());
-					
-					String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHash(), TransHashTypeEnum.DRAW.getValue(), busiMap);
+					String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHash(), TransHashTypeEnum.DRAW.getValue());
 					
 					if(StringUtils.isEmpty(status)) {
 						continue;
@@ -375,11 +371,7 @@ public class PropertyDrawTask implements Runnable {
 					continue ;
 				}else {
 					
-					HashMap busiMap = new HashMap<String,String>();
-					busiMap.put("drawId", draw.getDrawId());
-					busiMap.put("txHash", draw.getChainTransHash());
-					
-					String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHash(), TransHashTypeEnum.DRAW.getValue(), busiMap);
+					String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHash(), TransHashTypeEnum.DRAW.getValue());
 					
 					if(StringUtils.isEmpty(status)) {
 						continue;

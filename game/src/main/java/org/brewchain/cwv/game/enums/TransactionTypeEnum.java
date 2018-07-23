@@ -26,11 +26,11 @@ public enum TransactionTypeEnum {
 	
 	MARKET("01","market"),
 	EXCHANGE("0101","exchange"),
-	EXCHANGE_SELL("010101","exchange_sell"),
-	EXCHANGE_SELL_CANCEL("010102","exchange_sell_cancel"),
-	EXCHANGE_BUY_AMOUNT("010103","exchange_buy_amount"),
+	EXCHANGE_SELL("010101","exchange_sell"),//√
+	EXCHANGE_SELL_CANCEL("010102","exchange_sell_cancel"),//√
+	EXCHANGE_BUY_AMOUNT("010103","exchange_buy_amount"),//√
 	EXCHANGE_BUY_AMOUNT_ROLLBACK("01010301","exchange_buy_amount_rollback"),
-	EXCHANGE_BUY_GROUP("010104","exchange_buy_group"),
+	EXCHANGE_BUY_GROUP("010104","exchange_buy_group"),//√
 	BID("0102","bid"),
 	BID_CREATE("010201","bid_create"),
 	BID_CREATE_CANCEL("010202","bid_create_cancel"),

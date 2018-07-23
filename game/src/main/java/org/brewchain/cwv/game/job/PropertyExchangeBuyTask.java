@@ -1,6 +1,7 @@
 package org.brewchain.cwv.game.job;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuy;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuyExample;
@@ -16,6 +18,7 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeExample;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.TransHashTypeEnum;
+import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.wallet.service.Wallet.AccountValueImpl;
 import org.brewchain.wallet.service.Wallet.MultiTransactionInputImpl;
@@ -50,7 +53,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			System.out.println(e.getStackTrace());
 		}
 		
-		exchangeBuyRollbackGroupProcess(propertyHelper.getDao());
+//		exchangeBuyRollbackGroupProcess(propertyHelper.getDao());
 		log.info("PropertyExchangeBuyTask ended ....");
 	}
 	
@@ -104,6 +107,10 @@ public class PropertyExchangeBuyTask implements Runnable {
 		}
 		
 		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(inputs, outputs);
+		
+		//添加交易管理记录
+		propertyHelper.getCommonHelper().txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT_ROLLBACK.getKey(),ret.getTxHash());
+				
 		if(ret.getRetCode() == 1) {
 			
 			//更新购买申请
@@ -158,43 +165,28 @@ public class PropertyExchangeBuyTask implements Runnable {
 		for(Object o : list) {
 			CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
 			
+			BigDecimal charge = buy.getAmount().multiply(new BigDecimal(PropertyJobHandle.EXCHANGE_CHARGE)).setScale(0, RoundingMode.HALF_UP);
 			//amount input
 			MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
 			input.setAddress(accountMap.getAddress());//发起方地址 *
 			input.setNonce(account.getNonce());//交易次数 *
-			input.setAmount(buy.getAmount().multiply(new BigDecimal(1).subtract(new BigDecimal(PropertyJobHandle.EXCHANGE_CHARGE))).toString() );
+			input.setAmount(buy.getAmount().toString() );
+			input.setSymbol("house");
+			input.setCryptoToken(buy.getPropertyToken());
 			inputs.add(input);
 			
-
 			//amount output
 			MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
 			output.setAddress(buy.getSellerAddress());//接收方地址 *
-			output.setAmount(input.getAmount());
-			
+			output.setAmount(buy.getAmount().subtract(charge).toString());
 			outputs.add(output);
-			
-			//amount charge input
-			MultiTransactionInputImpl.Builder inputCharge = MultiTransactionInputImpl.newBuilder();
-			inputCharge.setAddress(accountMap.getAddress());//发起方地址 *
-			inputCharge.setNonce(account.getNonce());//交易次数 *
-			inputCharge.setAmount(buy.getAmount().subtract(new BigDecimal(input.getAmount())).toString() );
-			inputs.add(inputCharge);
 			
 
 			//amount charge output
 			MultiTransactionOutputImpl.Builder outputCharge = MultiTransactionOutputImpl.newBuilder();
 			outputCharge.setAddress(PropertyJobHandle.SYS_INCOME_ADDRESS);//接收方地址 *
-			outputCharge.setAmount(inputCharge.getAmount());
-			
+			outputCharge.setAmount(charge.toString());
 			outputs.add(outputCharge);
-			
-			//token input
-			MultiTransactionInputImpl.Builder inputToken = MultiTransactionInputImpl.newBuilder();
-			inputToken.setAddress(accountMap.getAddress());//发起方地址 *
-			inputToken.setNonce(account.getNonce());//交易次数 *
-			inputToken.setCryptoToken(buy.getPropertyToken());
-			inputToken.setSymbol("house");
-			inputs.add(inputToken);
 			
 			//token output
 			MultiTransactionOutputImpl.Builder outputToken = MultiTransactionOutputImpl.newBuilder();
@@ -205,6 +197,8 @@ public class PropertyExchangeBuyTask implements Runnable {
 		}
 		
 		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(inputs, outputs);
+		//添加交易管理记录
+		propertyHelper.getCommonHelper().txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_GROUP.getKey(),ret.getTxHash());
 		if(ret.getRetCode() == 1) {
 			
 			List<String> tokens = new ArrayList<>();
@@ -226,7 +220,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
 			exchange.setChainTransHash(ret.getTxHash());
 			
-			dao.gamePropertyDao.updateByExampleSelective(exchange, exchangeExample);
+			dao.exchangeDao.updateByExampleSelective(exchange, exchangeExample);
 			
 			//更新房产
 			CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
@@ -309,7 +303,6 @@ public class PropertyExchangeBuyTask implements Runnable {
 			
 	}
 	
-	
 	/**
 	 * 定时任务处理买入房产交易 包含买家转账 以及 二次混合交易
 	 */
@@ -337,11 +330,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			if(transStatusSet.contains(buy.getChainTransHash())) {
 				continue ;
 			}else {
-				HashMap busiMap = new HashMap<String,String>();
-				busiMap.put("exchangeId", buy.getExchangeId());
-				busiMap.put("txHash", buy.getChainTransHash());
-				
-				String status = TransactionStatusTask.getTransStatus(propertyHelper,buy.getChainTransHash(), TransHashTypeEnum.EXCHANGE_BUY.getValue(), busiMap);
+				String status = TransactionStatusTask.getTransStatus(propertyHelper,buy.getChainTransHash(), TransHashTypeEnum.EXCHANGE_BUY.getValue());
 				if(StringUtils.isEmpty(status)) 
 					continue;
 				
@@ -363,10 +352,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			if(transStatusSet.contains(buy.getChainTransHashGroup())) {
 				continue ;
 			}else {
-				HashMap busiMap = new HashMap<String,String>();
-				busiMap.put("txHash", buy.getChainTransHashGroup());
-				
-				String status = TransactionStatusTask.getTransStatus(propertyHelper, buy.getChainTransHashGroup(), TransHashTypeEnum.EXCHANGE_BUY_GROUP.getValue(), busiMap);
+				String status = TransactionStatusTask.getTransStatus(propertyHelper, buy.getChainTransHashGroup(), TransHashTypeEnum.EXCHANGE_BUY_GROUP.getValue());
 				if(StringUtils.isEmpty(status)) 
 					continue;
 				
@@ -385,10 +371,8 @@ public class PropertyExchangeBuyTask implements Runnable {
 			if(transStatusSet.contains(buy.getChainTransHashRollback())) {
 				continue ;
 			}else {
-				HashMap busiMap = new HashMap<String,String>();
-				busiMap.put("txHash", buy.getChainTransHashRollback());
 				
-				String status = TransactionStatusTask.getTransStatus(propertyHelper, buy.getChainTransHashRollback(), TransHashTypeEnum.EXCHANGE_BUY_ROLLBACK_GROUP.getValue(), busiMap);
+				String status = TransactionStatusTask.getTransStatus(propertyHelper, buy.getChainTransHashRollback(), TransHashTypeEnum.EXCHANGE_BUY_ROLLBACK_GROUP.getValue());
 				if(StringUtils.isEmpty(status)) 
 					continue;
 				

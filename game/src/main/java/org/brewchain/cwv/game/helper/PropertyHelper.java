@@ -861,7 +861,7 @@ public class PropertyHelper implements ActorService {
 		// 添加调取合约日志 TODO
 
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT.getKey(),exchangeRet.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT.getKey(),exchangeRet.getTxHash());
 		
 //		txManage.getDescription()
 		
@@ -890,7 +890,7 @@ public class PropertyHelper implements ActorService {
 		property.setChainTransHash(exchangeRet.getTxHash());
 		
 		// 设置账户信息
-		userWalletBuyer.setBalance(userWalletBuyer.getBalance().subtract(exchange.getSellPrice()));
+//		userWalletBuyer.setBalance(userWalletBuyer.getBalance().subtract(exchange.getSellPrice()));
 
 		// 设置交易记录
 		final CWVUserTransactionRecord recordBuy = new CWVUserTransactionRecord();
@@ -953,15 +953,6 @@ public class PropertyHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.BPS_SUCCESS.getRetCode());
 		ret.setRetMsg(ReturnCodeMsgEnum.BPS_SUCCESS.getRetMsg());
 
-	}
-
-	private void txManageAdd(String key,String txHash) {
-		CWVGameTxManage txManage = new CWVGameTxManage();
-		txManage.setChainStatus((int) ChainTransStatusEnum.START.getKey());
-		txManage.setTxHash(txHash);
-		txManage.setType(key);
-		txManage.setStatus(0);
-		
 	}
 
 	/**
@@ -1030,7 +1021,7 @@ public class PropertyHelper implements ActorService {
 				property.getCryptoToken(), 0);
 
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.EXCHANGE_SELL.getKey(),exchangeRet.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_SELL.getKey(),exchangeRet.getTxHash());
 		
 		
 		// 添加调取合约日志 TODO
@@ -1339,7 +1330,7 @@ public class PropertyHelper implements ActorService {
 				bid.getChainContract(), pb.getPrice());
 
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),retContract.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),retContract.getTxHash());
 				
 		// 2.2新增竞价记录，并更新竞价记录
 		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
@@ -1503,7 +1494,7 @@ public class PropertyHelper implements ActorService {
 		}
 		
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.DRAW_GROUP.getKey(),retTrans.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.DRAW_GROUP.getKey(),retTrans.getTxHash());
 				
 		draw.setChainTransHash(retTrans.getTxHash());
 		draw.setChainStatus(ChainTransStatusEnum.START.getKey());
@@ -1586,7 +1577,7 @@ public class PropertyHelper implements ActorService {
 		}
 
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.DRAW_RANDOM.getKey(),retStr.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.DRAW_RANDOM.getKey(),retStr.getTxHash());
 				
 		// 更新抽奖次数
 		walletCWB.setDrawCount(walletCWB.getDrawCount() - 1);
@@ -1929,7 +1920,7 @@ public class PropertyHelper implements ActorService {
 		RespCreateTransaction.Builder cancelBidRet = bidInvoker.cancelBid(bid);
 
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.BID_CREATE_CANCEL.getKey(),cancelBidRet.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.BID_CREATE_CANCEL.getKey(),cancelBidRet.getTxHash());
 				
 		bid.setStatus(PropertyBidStatusEnum.CANCEL.getValue());
 		// 设置合约交易信息
@@ -2052,7 +2043,7 @@ public class PropertyHelper implements ActorService {
 		RespCreateContractTransaction.Builder exchangeRet = bidInvoker.createBid(bid, wallet.getAccount(), property.getCryptoToken());
 
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),exchangeRet.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),exchangeRet.getTxHash());
 		
 		// 添加调取合约日志 TODO
 
@@ -2109,7 +2100,7 @@ public class PropertyHelper implements ActorService {
 		criteria.andUserIdEqualTo(authUser.getUserId());
 		// criteria.andStatusEqualTo((byte) 0);// 新建收益
 		criteria.andPropertyIdIsNull();// property_id为null为统计数据
-		example.setLimit(1);
+		criteria.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());
 		example.setOrderByClause(" income_id desc ");
 		if (StringUtils.isEmpty(pb.getType())) {
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
@@ -2118,6 +2109,7 @@ public class PropertyHelper implements ActorService {
 		}
 
 		criteria.andTypeEqualTo(Byte.parseByte(pb.getType()));
+		
 		// 根据类型查询房产
 		List<Object> list = dao.incomeDao.selectByExample(example);
 		// 未领取收益
@@ -2299,29 +2291,45 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
-		if (exchange.getStatus().intValue() != 0) {// 出手中
+		if (exchange.getStatus().intValue() != 0 || exchange.getChainStatus()!=1) {// 出手中
 			ret.setRetCode(ReturnCodeMsgEnum.CPE_ERROR_STATUS.getRetCode())
 					.setRetMsg(ReturnCodeMsgEnum.CPE_ERROR_STATUS.getRetMsg());
 			return;
 		}
 
 		// 调取合约撤销
-		RespCreateTransaction.Builder retCommon = exchangeInvoker.cancelExchange("", "");
+		RespCreateTransaction.Builder retCommon = exchangeInvoker.cancelExchange(exchange);
 		if (retCommon.getRetCode() != 1) {
 			ret.setRetCode("99").setRetMsg(retCommon.getRetMsg());
 			return;
 		}
 		
 		//插入交易管理
-		txManageAdd(TransactionTypeEnum.EXCHANGE_SELL_CANCEL.getKey(),retCommon.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_SELL_CANCEL.getKey(),retCommon.getTxHash());
 		
 		// 设置交易状态： 撤销
-		exchange.setStatus((byte) 2);
+		exchange.setStatus(PropertyExchangeStatusEnum.CANCEL.getValue());
 		exchange.setChainStatus(ChainTransStatusEnum.START.getKey());
 		exchange.setChainContract("");
 		exchange.setChainTransHash(retCommon.getTxHash());
-		// 更新交易
-		dao.exchangeDao.updateByPrimaryKeySelective(exchange);
+		
+		final CWVGameProperty property = new CWVGameProperty();
+		property.setPropertyId(exchange.getPropertyId());
+		property.setChainStatus(ChainTransStatusEnum.START.getKey());
+		property.setChainTransHash(retCommon.getTxHash());
+		
+		dao.exchangeDao.doInTransaction(new TransactionExecutor() {
+			
+			@Override
+			public Object doInTransaction() {
+				
+				dao.gamePropertyDao.updateByPrimaryKeySelective(property);
+				// 更新交易
+				dao.exchangeDao.updateByPrimaryKeySelective(exchange);
+				return null;
+			}
+		});
+		
 
 		ret.setRetCode(ReturnCodeMsgEnum.CPE_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.CPE_SUCCESS.getRetMsg());
 
