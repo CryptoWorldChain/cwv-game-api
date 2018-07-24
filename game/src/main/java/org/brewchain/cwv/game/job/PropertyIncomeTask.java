@@ -326,9 +326,9 @@ public class PropertyIncomeTask implements Runnable {
 			}else{
 				masterUserIdMap.put(income.getUserId(), income.getAmount());
 			}
+			income.setMaster(0);
 			
 		}
-		
 		
 		//更新master数据
 		CWVUserPropertyIncomeExample masterExample = new CWVUserPropertyIncomeExample();
@@ -338,12 +338,36 @@ public class PropertyIncomeTask implements Runnable {
 		
 		List<Object> listMaster = propertyHelper.getDao().incomeDao.selectByExample(masterExample);
 		
-		for(Integer userId : masterUserIdMap.keySet()){
+		for(Object o : listMaster){
+			CWVUserPropertyIncome income = (CWVUserPropertyIncome) o;
+			//处理单条总收益 master 判断是否存在记录
+			if(masterUserIdMap.containsKey(income.getUserId())) {
+				income.setAmount(income.getAmount().add(masterUserIdMap.get(income.getUserId())));
+				
+			}
 			
+//			income.setAmount(amount);
+			masterUserIdMap.remove(income.getUserId());
 		}
 		
-//		CWVUserPropertyIncome income = (CWVUserPropertyIncome) o;
-//		income.setAmount(amount);
+		propertyHelper.getDao().getIncomeDao().batchUpdate(list);
+		
+		propertyHelper.getDao().getIncomeDao().batchUpdate(listMaster);
+		
+		List<Object> listNewMaster  = new ArrayList<>();
+		for(Integer userId : masterUserIdMap.keySet()) {
+			CWVUserPropertyIncome income = new CWVUserPropertyIncome();
+			income.setUserId(userId);
+			income.setAmount(masterUserIdMap.get(userId));
+			income.setStartTime(new Date());
+			income.setStatus(PropertyIncomeStatusEnum.NEW.getValue());
+			income.setType(Byte.parseByte(PropertyTypeEnum.TYPICAL.getValue()));
+
+			listNewMaster.add(income);
+		}
+		
+		propertyHelper.getDao().getIncomeDao().batchInsert(listNewMaster);
+		
 	}
 	
 	/**

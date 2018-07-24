@@ -1330,7 +1330,7 @@ public class PropertyHelper implements ActorService {
 				bid.getChainContract(), pb.getPrice());
 
 		//插入交易管理
-		commonHelper.txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),retContract.getTxHash());
+		commonHelper.txManageAdd(TransactionTypeEnum.BID_AUCTION.getKey(),retContract.getTxHash());
 				
 		// 2.2新增竞价记录，并更新竞价记录
 		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
@@ -1451,7 +1451,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawPropertyOld(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -1545,7 +1545,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawPropertyBack(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		final CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会

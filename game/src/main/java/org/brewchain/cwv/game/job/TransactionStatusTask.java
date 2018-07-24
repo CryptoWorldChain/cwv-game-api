@@ -429,7 +429,7 @@ public class TransactionStatusTask implements Runnable {
 		CWVMarketExchangeBuy buy = new CWVMarketExchangeBuy();
 		buy.setChainStatusRollback(status);
 				
-		propertyHelper.getDao().exchangeBuyDao.updateByExample(buy, buyExample);
+		propertyHelper.getDao().exchangeBuyDao.updateByExampleSelective(buy, buyExample);
 	}
 
 
@@ -469,7 +469,7 @@ public class TransactionStatusTask implements Runnable {
 		CWVMarketExchange exchange = new CWVMarketExchange();
 		exchange.setStatus(PropertyExchangeStatusEnum.ONSALE.getValue());
 		exchange.setChainStatus(ChainTransStatusEnum.DONE.getKey());
-		propertyHelper.getDao().exchangeDao.updateByExample(exchange, example);
+		propertyHelper.getDao().exchangeDao.updateByExampleSelective(exchange, example);
 		
 	}
 	
@@ -479,7 +479,7 @@ public class TransactionStatusTask implements Runnable {
 		CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyStatus(PropertyStatusEnum.ONSALE.getValue());
 		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
-		propertyHelper.getDao().gamePropertyDao.updateByExample(property, propertyExample);
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(property, propertyExample);
 		
 	}
 	
@@ -636,7 +636,7 @@ public class TransactionStatusTask implements Runnable {
 		example.createCriteria().andChainTransHashEqualTo(txHash);
 		CWVMarketBid bid = new CWVMarketBid();
 		bid.setChainStatus(status);
-		propertyHelper.getDao().bidDao.updateByExample(bid, example);
+		propertyHelper.getDao().bidDao.updateByExampleSelective(bid, example);
 		
 	}
 
@@ -671,7 +671,7 @@ public class TransactionStatusTask implements Runnable {
 		example.createCriteria().andChainTransHashEqualTo(txHash);
 		CWVGameProperty property = new CWVGameProperty();
 		property.setChainStatus(status);
-		propertyHelper.getDao().exchangeDao.updateByExampleSelective(property, example);
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(property, example);
 		
 		
 	}

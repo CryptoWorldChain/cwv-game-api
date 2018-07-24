@@ -32,8 +32,8 @@ public enum TransactionTypeEnum {
 	EXCHANGE_BUY_AMOUNT_ROLLBACK("01010301","exchange_buy_amount_rollback"),
 	EXCHANGE_BUY_GROUP("010104","exchange_buy_group"),//√
 	BID("0102","bid"),
-	BID_CREATE("010201","bid_create"),
-	BID_CREATE_CANCEL("010202","bid_create_cancel"),
+	BID_CREATE("010201","bid_create"),//√
+	BID_CREATE_CANCEL("010202","bid_create_cancel"),//√ 没有status
 	BID_AUCTION("010203","bid_auction"),
 	DRAW("0103","draw"),
 	DRAW_RANDOM("010301","draw_random"),
@@ -41,8 +41,8 @@ public enum TransactionTypeEnum {
 	PROPERTY("02","property"),
 	INCOME("0201","income"),
 	INCOME_CREATE("020101","income_create"),
-	INCOME_CLAIM("020102","income_claim");
-	
+	INCOME_CLAIM("020102","income_claim"),
+	CONTRACT_CREATE("0301","contract_create");
 	private final String key;
 	private final String value;
 	
