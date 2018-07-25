@@ -115,7 +115,9 @@ public class GameNoticeHelper implements ActorService {
 				.setRetMsg("公告内容不能为空");
 				return;
 			}
-			commonHelper.updateSysSettingValue("sys_notice", "sys_notice");
+			commonHelper.updateSysSettingValue("sys_notice", pb.getNoticeContent());
+			ret.setRetCode("01");
+			ret.setRetMsg("SUCCESS");
 			return;
 		}
 		
@@ -170,6 +172,8 @@ public class GameNoticeHelper implements ActorService {
 			PRetNoticeOut.Builder noticeOut = PRetNoticeOut.newBuilder();
 			noticeOut.setNoticeContent(commonHelper.getSysSettingValue("sys_notice"));
 			ret.addNotices(noticeOut);
+			ret.setRetCode("01");
+			ret.setRetMsg("SUCCESS");
 			return;
 		}
 		
