@@ -72,7 +72,7 @@ public class GameNoticeHelper implements ActorService {
 	public enum NoticeTypeEnum{
 		ALL("0"),//无此类型，用于查询所有
 		OFFICE("1"),
-		TRADE("2");
+		USER("2");
 		private String value;
 		NoticeTypeEnum(String value){
 			this.value = value;
@@ -133,7 +133,7 @@ public class GameNoticeHelper implements ActorService {
 		ObjectNode jsonMap = mapper.createObjectNode();
 		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
 		jsonMap.put("type", noticeType);
-		jsonMap.put("userid", userId);
+		
 		
 		
 		ObjectNode timeMap = mapper.createObjectNode();
@@ -145,6 +145,7 @@ public class GameNoticeHelper implements ActorService {
 		dataMap.put("time", timeMap);
 		dataMap.put("times", count);
 		dataMap.put("content", noticeContent);
+		dataMap.put("user_id", userId);
 		
 
 		jsonMap.put("data", dataMap);
@@ -161,7 +162,7 @@ public class GameNoticeHelper implements ActorService {
 	/**
 	 * 查询公告
 	 */
-	public void noticeOut(PBGameNoticeOut pb,PRetGameNoticeOut.Builder ret){
+	public void noticeOut(FramePacket pack, PBGameNoticeOut pb,PRetGameNoticeOut.Builder ret){
 		//校验
 		if(StringUtils.isBlank(pb.getPageIndex())){
 			throw new IllegalArgumentException("页索引不能为空");
@@ -181,8 +182,14 @@ public class GameNoticeHelper implements ActorService {
 		url.append(noticeOutUrl);
 		url.append("?");
 		url.append("type="+pb.getNoticeType());
+		String userId = "";
+		if(NoticeTypeEnum.USER.getValue().equals(pb.getNoticeType())) {
+			CWVAuthUser authUser = userHelper.getCurrentUser(pack);
+			userId = authUser.getUserId().toString();
+		}
 		url.append("&");
-		url.append("user_id="+pb.getUserId());
+		url.append("user_id="+userId);
+		
 		url.append("&");
 //		url.append("topic="+pb.getNoticeTopic());
 		url.append("topic="+NoticeTopicEnum.NOTICE.getValue());
@@ -214,6 +221,8 @@ public class GameNoticeHelper implements ActorService {
 							noticeOut.setEndTime(coun.get("endtime").toString());
 						if(coun.get("times") != null)
 							noticeOut.setCount((Integer)coun.get("times"));
+						if(coun.get("user_id") != null)
+							noticeOut.setUserId(coun.get("user_id").toString());
 						if(coun.get("publicity") != null)
 							noticeOut.setCyclePeriod((Integer)coun.get("publicity"));
 						if(coun.get("interval") != null)

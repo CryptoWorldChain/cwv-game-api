@@ -62,7 +62,7 @@ public class GameNoticeOutService extends SessionModules<PBGameNoticeOut> {
 		pack.getExtHead().buildFor(pack.getHttpServerletResponse());
 		PRetGameNoticeOut.Builder ret = PRetGameNoticeOut.newBuilder();
 		try{
-			gameNoticeHelper.noticeOut(pb, ret);
+			gameNoticeHelper.noticeOut(pack, pb, ret);
 		}catch(Exception e){
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());

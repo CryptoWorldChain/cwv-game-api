@@ -59,6 +59,8 @@ message PRetGameNoticeOut //GNO 获取消息
 		string end_time = 5;// 结束时间
 		int32 cycle_period = 6; //循环周期
 		int32 count = 7; //轮播次数
+		string user_id = 8;//消息id
+		
 	}
 	repeated PRetNoticeOut notices = 3;//消息
 }

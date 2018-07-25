@@ -219,7 +219,7 @@ public class PropertyHelper implements ActorService {
 		page.setTotalCount(0);
 		criteria.andPropertyStatusNotEqualTo(PropertyStatusEnum.NOOWNER.getValue());
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
-		if (pb.getUserOnly() == 1) {
+		if (pb.getUserOnly() == 1 && PropertyExchangeStatusEnum.ONSALE.getValue()!=Byte.parseByte(pb.getExchangeStatus()) ) {
 			CWVUserWalletExample wltExample = new CWVUserWalletExample();
 			wltExample.createCriteria().andUserIdEqualTo(user.getUserId()).andCoinTypeEqualTo((byte) 0);
 			List<Object> wltList = dao.walletDao.selectByExample(wltExample);
@@ -270,11 +270,17 @@ public class PropertyHelper implements ActorService {
 				criteria.andPropertyStatusEqualTo(pb.getExchangeStatus());
 			}
 			
-		} else {
+		} else if(pb.getUserOnly() == 1){//个人出售中房产
+		
+			criteria.andUserIdEqualTo(user.getUserId());
+			if(StringUtils.isNotEmpty(pb.getExchangeStatus()))
+				criteria.addCriterion(" property_id in (select property_id from cwv_market_exchange where status ='"+pb.getExchangeStatus()+"')");
+			
+		} else {//房产交易列表
 			
 			criteria.andUserIdNotEqualTo(user.getUserId());
-			criteria.andPropertyStatusEqualTo(PropertyStatusEnum.ONSALE.getValue());
-			
+			if(StringUtils.isNotEmpty(pb.getExchangeStatus()))
+				criteria.addCriterion(" property_id in (select property_id from cwv_market_exchange where status ='"+pb.getExchangeStatus()+"')");
 			
 		}
 		criteria.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey())
@@ -365,7 +371,6 @@ public class PropertyHelper implements ActorService {
 			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
 			CWVMarketExchangeExample.Criteria criteria2 = exchangeExample.createCriteria()
 					.andPropertyIdEqualTo(gameProperty.getPropertyId())
-					.andStatusEqualTo(PropertyExchangeStatusEnum.ONSALE.getValue())
 					.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());
 
 			if (pb.getUserOnly() == 1) {
@@ -2427,6 +2432,9 @@ public class PropertyHelper implements ActorService {
 		propertyExample.setOrderByClause(" price_increase desc ");
 		RetData.Builder data = RetData.newBuilder();
 		MapPropertyDetail.Builder mapPropertyDetail = MapPropertyDetail.newBuilder();
+		mapPropertyDetail.setAveragePrice("");
+		mapPropertyDetail.setTotalValue("");
+		mapPropertyDetail.setRemainCount("");
 		for (Object o : list) {
 			CWVGameProperty gameProperty = (CWVGameProperty) o;
 
