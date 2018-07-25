@@ -53,7 +53,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			System.out.println(e.getStackTrace());
 		}
 		
-//		exchangeBuyRollbackGroupProcess(propertyHelper.getDao());
+		exchangeBuyRollbackGroupProcess(propertyHelper.getDao());
 		log.info("PropertyExchangeBuyTask ended ....");
 	}
 	
@@ -108,10 +108,9 @@ public class PropertyExchangeBuyTask implements Runnable {
 		
 		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(inputs, outputs);
 		
-		//添加交易管理记录
-		propertyHelper.getCommonHelper().txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT_ROLLBACK.getKey(),ret.getTxHash());
-				
 		if(ret.getRetCode() == 1) {
+			//添加交易管理记录
+			propertyHelper.getCommonHelper().txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT_ROLLBACK.getKey(),ret.getTxHash());
 			
 			//更新购买申请
 			for(Object o : list){

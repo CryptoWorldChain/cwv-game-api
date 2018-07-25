@@ -5,13 +5,17 @@ import java.util.List;
 
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.service.game.Game.PRetCommon;
+import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import onight.osgi.annotation.iPojoBean;
 import onight.tfw.ntrans.api.ActorService;
+import onight.tfw.ntrans.api.annotation.ActorRequire;
 
 
 /**
@@ -26,6 +30,10 @@ import onight.tfw.ntrans.api.ActorService;
 @Data
 @Instantiate(name="Property_Income_Invoker")
 public class PropertyIncomeInvoker implements ActorService {
+	
+	@ActorRequire(name="Wlt_Helper", scope = "global")
+	WltHelper wltHelper;
+	
 	
 	/**
 	 * 创建竞拍
@@ -46,10 +54,9 @@ public class PropertyIncomeInvoker implements ActorService {
 	 * @param amount 收益金额
 	 * @return
 	 */
-	public static PRetCommon.Builder claimIncome(String address, Byte type, BigDecimal amount ){
+	public RespCreateTransaction.Builder claimIncome(CWVUserWallet wallet, BigDecimal amount ){
 		
-		PRetCommon.Builder ret = PRetCommon.newBuilder();
-		return ret.setRetCode("01").setRetMsg("成功");
+		return wltHelper.createTx(amount, wallet.getAccount(), wallet.getIncomeAddress());
 	}
 	
 	

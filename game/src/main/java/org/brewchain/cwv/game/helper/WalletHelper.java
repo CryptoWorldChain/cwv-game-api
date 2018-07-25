@@ -182,6 +182,7 @@ public class WalletHelper implements ActorService {
 		example.createCriteria().andUserIdEqualTo(authUser.getUserId());
 		int count = dao.userTransactionRecordDao.countByExample(example);
 		pageUtil.setTotalCount(count);
+		example.setOrderByClause("record_id desc");
 		List<Object> list = dao.userTransactionRecordDao.selectByExample(example);
 		for(Object o: list) {
 			CWVUserTransactionRecord record = (CWVUserTransactionRecord) o;

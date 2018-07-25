@@ -108,15 +108,14 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 							log.info("job service start....");
 //							service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.SECONDS);
 //							//任务开启时间 设置
-//							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
+							service.scheduleAtFixedRate(new PropertyDrawTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 //							//任务开启时间 设置
-//							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 							
 							//任务开启时间 设置
+//							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-//							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-//							service.scheduleAtFixedRate(new PropertyDrawTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 							
 						}
 					}

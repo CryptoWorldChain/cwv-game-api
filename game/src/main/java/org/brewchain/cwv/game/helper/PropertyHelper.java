@@ -1,6 +1,7 @@
 package org.brewchain.cwv.game.helper;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,6 +54,7 @@ import org.brewchain.cwv.game.enums.CryptoTokenEnum;
 import org.brewchain.cwv.game.enums.MarketTypeEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
+import org.brewchain.cwv.game.enums.PropertyIncomeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
@@ -860,8 +862,6 @@ public class PropertyHelper implements ActorService {
 				buy.getBuyerAddress());
 		// 添加调取合约日志 TODO
 
-		//插入交易管理
-		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT.getKey(),exchangeRet.getTxHash());
 		
 //		txManage.getDescription()
 		
@@ -872,6 +872,9 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
+		//插入交易管理
+		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT.getKey(),exchangeRet.getTxHash());
+				
 		// 设置 交易成功数据 start
 		buy.setChainStatus(ChainTransStatusEnum.START.getKey());
 		buy.setChainTransHash(exchangeRet.getTxHash());
@@ -1040,7 +1043,7 @@ public class PropertyHelper implements ActorService {
 
 		exchange.setPropertyId(Integer.parseInt(pb.getPropetyId()));
 		exchange.setSellPrice(new BigDecimal(pb.getPrice()));
-		exchange.setTax(new BigDecimal(charge));
+		exchange.setTax(new BigDecimal(charge).setScale(0, RoundingMode.HALF_UP));
 		exchange.setUserId(user.getUserId());
 		exchange.setCreateUser(user.getUserId()); // 卖出
 		exchange.setStatus((byte) 0);
@@ -1329,6 +1332,11 @@ public class PropertyHelper implements ActorService {
 		final RespCreateTransaction.Builder retContract = bidInvoker.auctionProperty(cwbAccount.getAccount(),
 				bid.getChainContract(), pb.getPrice());
 
+		if(retContract.getRetCode()!=1) {
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode())
+			.setRetMsg(retContract.getRetMsg());
+			return;
+		}
 		//插入交易管理
 		commonHelper.txManageAdd(TransactionTypeEnum.BID_AUCTION.getKey(),retContract.getTxHash());
 				
@@ -1451,7 +1459,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawPropertyOld(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -1504,17 +1512,22 @@ public class PropertyHelper implements ActorService {
 				
 //		wltHelper.excuteContract("", "", "");
 		//设置抽奖合约返回ID
-//		gameProperty.setPropertyId(1);
-//		gameProperty.setUserId(authUser.getUserId());
-//		gameProperty.setPropertyStatus("0");
-//		gameProperty.setLastPrice(new BigDecimal("1000"));
+		gameProperty.setPropertyId(1);
+		gameProperty.setUserId(authUser.getUserId());
+		gameProperty.setPropertyStatus("0");
+		gameProperty.setLastPrice(new BigDecimal("1000"));
+		gameProperty.setChainStatus(ChainTransStatusEnum.START.getKey());
+		gameProperty.setChainTransHash(retTrans.getTxHash());
+		
 		// 更新抽奖次数
 		wallet.setDrawCount(wallet.getDrawCount() - 1);
 		
 		dao.walletDao.updateByPrimaryKeySelective(wallet);
 
+		Property.Builder property = Property.newBuilder();
+		propertyCopy(property, gameProperty);
 		ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg())
-				;
+		.setProperty(property)		;
 
 	}
 
@@ -1545,7 +1558,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawPropertyBack(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		final CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -1918,7 +1931,11 @@ public class PropertyHelper implements ActorService {
 
 		// 调取撤销合约
 		RespCreateTransaction.Builder cancelBidRet = bidInvoker.cancelBid(bid);
-
+		if(cancelBidRet.getRetCode()!=1) {
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode())
+			.setRetMsg(cancelBidRet.getRetMsg());
+			return;
+		}
 		//插入交易管理
 		commonHelper.txManageAdd(TransactionTypeEnum.BID_CREATE_CANCEL.getKey(),cancelBidRet.getTxHash());
 				
@@ -2041,7 +2058,11 @@ public class PropertyHelper implements ActorService {
 		CWVUserWallet wallet = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
 		
 		RespCreateContractTransaction.Builder exchangeRet = bidInvoker.createBid(bid, wallet.getAccount(), property.getCryptoToken());
-
+		if(exchangeRet.getRetCode()!=1) {
+			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode())
+			.setRetMsg(exchangeRet.getRetMsg());
+			return;
+		}
 		//插入交易管理
 		commonHelper.txManageAdd(TransactionTypeEnum.BID_CREATE.getKey(),exchangeRet.getTxHash());
 		
@@ -2097,7 +2118,7 @@ public class PropertyHelper implements ActorService {
 		CWVUserWallet userWallet = walletHelper.getUserAccount(authUser.getUserId(), CoinEnum.CWB);
 		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
 		CWVUserPropertyIncomeExample.Criteria criteria = example.createCriteria();
-		criteria.andUserIdEqualTo(authUser.getUserId());
+		criteria.andUserIdEqualTo(authUser.getUserId()).andMasterEqualTo(1);
 		// criteria.andStatusEqualTo((byte) 0);// 新建收益
 		criteria.andPropertyIdIsNull();// property_id为null为统计数据
 		criteria.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());
@@ -2123,38 +2144,12 @@ public class PropertyHelper implements ActorService {
 		PropertyInfo.Builder propertyInfo = PropertyInfo.newBuilder();
 		// propertyInfo.setSubTypeInfo(index, value)
 		propertyInfo.setDescription("");
-		CWVGameDicExample dicExample = new CWVGameDicExample();
-		if (pb.getType().equals(PropertyTypeEnum.ORDINARY.getValue())) {// 普通房产
-			CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
-			CWVGamePropertyExample.Criteria propertyCriteria = propertyExample.createCriteria();
-			propertyCriteria.andUserIdEqualTo(authUser.getUserId()).andPropertyTypeEqualTo(pb.getType());
-			List<Object> listProperty = dao.gamePropertyDao.selectByExample(propertyExample);
-			double totalValue = 0;
-			for (Object o : listProperty) {
-				CWVGameProperty gameProperty = (CWVGameProperty) o;
-				totalValue = totalValue
-						+ (gameProperty.getLastPrice() == null ? 0 : gameProperty.getLastPrice().doubleValue());
-			}
+		CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
+		CWVGamePropertyExample.Criteria propertyCriteria = propertyExample.createCriteria();
+		propertyCriteria.andUserIdEqualTo(authUser.getUserId()).andPropertyTypeEqualTo(pb.getType());
+		Integer count = dao.gamePropertyDao.countByExample(propertyExample);
 
-			propertyInfo.setTotalValue(totalValue + "");// 房产总价值
-
-		} else { //
-
-			dicExample.createCriteria().andParentKeyEqualTo(pb.getType());
-			List<Object> listDic = dao.dicDao.selectByExample(dicExample);
-			for (Object o : listDic) {
-				CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
-				CWVGamePropertyExample.Criteria propertyCriteria = propertyExample.createCriteria();
-				propertyCriteria.andUserIdEqualTo(authUser.getUserId()).andPropertyTypeEqualTo(pb.getType());
-				CWVGameDic dic = (CWVGameDic) o;
-				SubTypeInfo.Builder subType = SubTypeInfo.newBuilder();
-				subType.setPropertySubType(dic.getDicKey());
-				propertyCriteria.andPropertySubTypeEqualTo(Byte.parseByte(dic.getDicKey()));
-				int countType = dao.gamePropertyDao.countByExample(propertyExample);
-				subType.setCount(countType + "");
-				propertyInfo.addSubTypeInfo(subType);
-			}
-		}
+		propertyInfo.setTotalValue(count.toString());// 房产总价值
 
 		PropertyIncome.Builder income = PropertyIncome.newBuilder();
 		if (list != null && !list.isEmpty()) {
@@ -2218,18 +2213,19 @@ public class PropertyHelper implements ActorService {
 		propertyIncome2.setStatus((byte) 1);// 已领取
 
 		// 调取合约领取收益
-		PRetCommon.Builder retCommon = incomeInvoker.claimIncome(wallet.getAccount(), propertyIncome2.getType(),
+		RespCreateTransaction.Builder retData = incomeInvoker.claimIncome(wallet,
 				propertyIncome2.getAmount());
 
 		// 获取房产收益超级账户
-		String incomeAddress = wltHelper.getWltUrl("sys_income_address");
-
-		RespCreateTransaction.Builder retData = wltHelper.createTx(propertyIncome2.getAmount(), wallet.getAccount(),
-				incomeAddress);
 		if (retData.getRetCode() != 1) {
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode()).setRetMsg(ReturnCodeMsgEnum.EXCEPTION.getRetMsg());
 			return;
 		}
+		//加入交易管理
+		commonHelper.txManageAdd(TransactionTypeEnum.INCOME_CLAIM.getKey(), retData.getTxHash());
+		propertyIncome2.setStatus(PropertyIncomeStatusEnum.CLAIMED.getValue());
+		propertyIncome2.setChainStatusClaim(ChainTransStatusEnum.START.getKey());
+		propertyIncome2.setChainTransHashClaim(retData.getTxHash());
 		dao.incomeDao.doInTransaction(new TransactionExecutor() {
 
 			@Override
@@ -2238,30 +2234,6 @@ public class PropertyHelper implements ActorService {
 				// 更新收益状态
 				dao.incomeDao.updateByPrimaryKeySelective(propertyIncome2);
 
-				// 更新各个房产收益记录状态
-				CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
-				example.createCriteria().andUserIdEqualTo(propertyIncome2.getUserId())
-						.andTypeEqualTo(propertyIncome2.getType()).andPropertyIdIsNotNull();
-				CWVUserPropertyIncome income = new CWVUserPropertyIncome();
-				income.setStatus((byte) 1);
-				dao.incomeDao.updateByExampleSelective(income, example);
-				// 更新账户历史收益
-				switch (propertyIncome2.getType()) {
-				case 1:
-					wallet.setIncomeOrdinary(wallet.getIncomeOrdinary().add(propertyIncome2.getAmount()));
-					break;
-				case 2:
-					wallet.setIncomeTypical(wallet.getIncomeTypical().add(propertyIncome2.getAmount()));
-					break;
-				case 3:
-					wallet.setIncomeFunctional(wallet.getIncomeFunctional().add(propertyIncome2.getAmount()));
-					break;
-				default:
-					break;
-				}
-
-				wallet.setBalance(wallet.getBalance().add(propertyIncome2.getAmount()));
-				dao.walletDao.updateByPrimaryKeySelective(wallet);
 				return null;
 			}
 		});

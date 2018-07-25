@@ -1,11 +1,10 @@
 package org.brewchain.cwv.game.job;
 
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -36,15 +35,16 @@ import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.MarketTypeEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
+import org.brewchain.cwv.game.enums.PropertyIncomeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.TransHashTypeEnum;
 import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.helper.GameNoticeHelper;
 import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTradeTypeEnum;
+import org.brewchain.cwv.game.service.exchange.UserPropertyExchangeService;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.cwv.game.util.DateUtil;
-import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetTxByHash;
 
 import lombok.extern.slf4j.Slf4j;
@@ -234,18 +234,38 @@ public class TransactionStatusTask implements Runnable {
 		
 	}
 
-	private void incomeClaimProcess(CWVGameTxManage manage) {
-		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
-		example.createCriteria().andChainTransHashClaimEqualTo(manage.getTxHash() );
-		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
-		income.setChainStatusClaim(manage.getChainStatus().byteValue());
+	private void incomeCreateProcess(CWVGameTxManage manage) {
+//		List<Object> list = getDrawGroupListByTxHash(manage.getTxHash());
 		
-		propertyHelper.getDao().incomeDao.updateByExampleSelective(income, example);
-	
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+				incomeCreateDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+				incomeCreateError(manage);
 	}
 
 
-	private void incomeCreateProcess(CWVGameTxManage manage) {
+	private void incomeCreateError(CWVGameTxManage manage) {
+		
+		//更新收益发放状态
+		userPropertyIncomeCreateUpdateByTxHash(manage);
+		
+	}
+
+	private void incomeClaimProcess(CWVGameTxManage manage) {
+//		List<Object> list = getDrawGroupListByTxHash(manage.getTxHash());
+		
+		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
+			incomeClaimDone(manage);
+		else if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.ERROR.getKey())
+			incomeClaimError(manage);
+	}
+	
+	private void incomeClaimError(CWVGameTxManage manage) {
+		// TODO Auto-generated method stub
+		userPropertyIncomeClaimUpdateByTxHash(manage);
+	}
+	
+	private void userPropertyIncomeCreateUpdateByTxHash(CWVGameTxManage manage) {
 		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
 		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash() );
 		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
@@ -255,13 +275,115 @@ public class TransactionStatusTask implements Runnable {
 	
 		
 	}
-
-	private List<Object> getIncomeClaimListByTxHash(String txHash) {
+	
+	private void userPropertyIncomeClaimUpdateByTxHash(CWVGameTxManage manage) {
 		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
-		example.createCriteria().andChainTransHashClaimEqualTo(txHash);
-		return propertyHelper.getDao().incomeDao.selectByExample(example);
+		example.createCriteria().andChainTransHashClaimEqualTo(manage.getTxHash() );
+		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
+		income.setChainStatusClaim(manage.getChainStatus().byteValue());
+		
+		propertyHelper.getDao().incomeDao.updateByExampleSelective(income, example);
 	}
 
+
+	private void incomeClaimDone(CWVGameTxManage manage) {
+		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
+		example.createCriteria().andChainTransHashClaimEqualTo(manage.getTxHash() );
+		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
+		income.setChainStatusClaim(manage.getChainStatus().byteValue());
+		
+		propertyHelper.getDao().incomeDao.updateByExampleSelective(income, example);
+	
+		CWVUserPropertyIncomeExample incomeExample = new CWVUserPropertyIncomeExample();
+		
+		Object o = propertyHelper.getDao().incomeDao.selectOneByExample(example);
+		income = (CWVUserPropertyIncome) o;
+		// 更新各个房产收益记录状态
+		incomeExample.createCriteria().andUserIdEqualTo(income.getUserId())
+				.andTypeEqualTo(income.getType()).andPropertyIdIsNotNull();
+		
+		CWVUserPropertyIncome record = new CWVUserPropertyIncome();
+		record.setStatus(PropertyIncomeStatusEnum.CLAIMED.getValue());
+		propertyHelper.getDao().gamePropertyDao.updateByExampleSelective(record, incomeExample);
+		
+		//更新房产信息
+		List<Object> list = propertyHelper.getDao().gamePropertyDao.selectByExample(incomeExample);
+		for(Object ob : list) {
+			CWVUserPropertyIncome incomeProperty = (CWVUserPropertyIncome) ob;
+			CWVGameProperty property = new CWVGameProperty();
+			property.setPropertyId(incomeProperty.getIncomeId());
+			property.setIncome(property.getIncome().add(incomeProperty.getAmount()));
+			propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
+		}
+		
+		// 更新账户历史收益
+		CWVUserWallet wallet = propertyHelper.getWalletHelper().getUserAccount(income.getUserId(), CoinEnum.CWB);
+		switch (income.getType()) {
+		case 2:
+			wallet.setIncomeOrdinary(wallet.getIncomeOrdinary().add(income.getAmount()));
+			break;
+		case 1:
+			wallet.setIncomeTypical(wallet.getIncomeTypical().add(income.getAmount()));
+			break;
+		case 3:
+			wallet.setIncomeFunctional(wallet.getIncomeFunctional().add(income.getAmount()));
+			break;
+		default:
+			break;
+		}
+
+		propertyHelper.getDao().walletDao.updateByPrimaryKeySelective(wallet);
+	}
+
+
+	private void incomeCreateDone(CWVGameTxManage manage) {
+		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
+		example.createCriteria().andChainTransHashEqualTo(manage.getTxHash() );
+		
+		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
+		income.setChainStatus(manage.getChainStatus().byteValue());
+		income.setMaster(0);
+		propertyHelper.getDao().incomeDao.updateByExampleSelective(income, example);
+	
+		List<Object> listSlave = propertyHelper.getDao().incomeDao.selectByExample(example);
+
+		CWVUserPropertyIncomeExample exampleMaster = new CWVUserPropertyIncomeExample();
+		exampleMaster.createCriteria().andMasterEqualTo(1);
+		
+		List<Object> listMaster = propertyHelper.getDao().incomeDao.selectByExample(exampleMaster);
+		if(listMaster.isEmpty()){
+			for(Object o :listSlave){
+				CWVUserPropertyIncome incomeO = (CWVUserPropertyIncome) o;
+				incomeO.setIncomeId(null);
+				incomeO.setMaster(1);
+				propertyHelper.getDao().incomeDao.insert(incomeO);
+			}
+			
+		}else {
+//			List<Object> newMaster = new ArrayList<>();
+			for(Object o : listSlave){
+				CWVUserPropertyIncome slave = (CWVUserPropertyIncome) o;
+				boolean exist = false;
+				for(Object m : listMaster){
+					CWVUserPropertyIncome master = (CWVUserPropertyIncome) m;
+					if(master.getUserId().equals(slave.getUserId())&& master.getType().equals(slave.getType())){
+						master.setAmount(master.getAmount().add(slave.getAmount()));
+						exist = true;
+						break;
+					}
+				}
+				if(!exist){
+					slave.setMaster(1);
+					slave.setIncomeId(null);
+					propertyHelper.getDao().incomeDao.insert(slave);
+				}
+				
+			}
+			
+			propertyHelper.getDao().incomeDao.batchUpdate(listMaster);
+		}
+		
+	}
 
 	/**
 	 * 抽奖房产
@@ -490,7 +612,7 @@ public class TransactionStatusTask implements Runnable {
 		//更新交易信息
 		exchangeUpdateByTxHash(manage.getTxHash(), ChainTransStatusEnum.DONE.getKey());
 		
-		//更新房产信息
+		//更新房产信息 增加卖家交易记录
 		propertyUpdateByBuyGroupHash(manage);
 		
 	}
@@ -505,13 +627,31 @@ public class TransactionStatusTask implements Runnable {
 				CWVMarketExchange exchange = (CWVMarketExchange) o;
 				CWVGameProperty property = new CWVGameProperty();
 				property.setPropertyId(exchange.getPropertyId());
+				//设置价格
 				property.setLastPrice(exchange.getSellPrice());
+				//重置收益
 				property.setIncome(new BigDecimal("0"));
+				//修改房产状态 未出售
+				property.setPropertyStatus(PropertyStatusEnum.NOSALE.getValue());
+				//修改用户
 				property.setUserId(exchange.getUserId());
 				property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 				
 				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
 //				
+				
+				CWVUserWallet seller = propertyHelper.getWalletHelper().getUserAccount(exchange.getCreateUser(), CoinEnum.CWB);
+				CWVUserTransactionRecord transactionRecord = new CWVUserTransactionRecord();
+				transactionRecord.setCreateUser(seller.getUserId());
+				transactionRecord.setCreateTime(new Date());
+				transactionRecord.setDetail("卖出房产");
+				transactionRecord.setMarketId(exchange.getExchangeId());
+				transactionRecord.setType(MarketTypeEnum.EXCHANGE.getValue());
+				transactionRecord.setStatus((byte)0);
+				transactionRecord.setGainCost(exchange.getSellPrice().subtract(exchange.getTax()));
+				propertyHelper.getDao().userTransactionRecordDao.insert(transactionRecord);
+				
+				
 			} catch (Exception e) {
 				// TODO: handle exception
 			}

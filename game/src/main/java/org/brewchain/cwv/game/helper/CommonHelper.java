@@ -52,10 +52,23 @@ public class CommonHelper implements ActorService {
 	 * @return
 	 */
 	public String getSysSettingValue(String key) {
+		CWVSysSetting o = getSysSettingEntity(key);
+		return  o == null ? null : o.getValue();
+	}
+	
+	public CWVSysSetting getSysSettingEntity(String key) {
 		CWVSysSettingExample example = new CWVSysSettingExample();
 		example.createCriteria().andNameEqualTo(key);
-		List<Object> list = dao.settingDao.selectByExample(example);
-		return list == null || list.isEmpty() ? null :( (CWVSysSetting) list.get(0)).getValue() ;
+		Object o = dao.settingDao.selectOneByExample(example);
+		return o == null ? null :(CWVSysSetting) o ;
+	}
+	
+	public void updateSysSettingValue(String key,String value) {
+		CWVSysSettingExample example = new CWVSysSettingExample();
+		example.createCriteria().andNameEqualTo(key);
+		CWVSysSetting setting = new CWVSysSetting();
+		setting.setValue(value);
+		dao.settingDao.updateByExampleSelective(setting, example);
 	}
 	
 	/**

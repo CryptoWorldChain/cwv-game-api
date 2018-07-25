@@ -94,7 +94,7 @@ message PRetPropertyIncome	 //PIS
 	message PropertyInfo 
 	{
 		string description = 1;//收益描述
-		string total_value = 2;//房产总价值（普通房产）
+		string total_value = 2;//数量
 		message SubTypeInfo
 		{
 			string property_sub_type =2; //房产子类型

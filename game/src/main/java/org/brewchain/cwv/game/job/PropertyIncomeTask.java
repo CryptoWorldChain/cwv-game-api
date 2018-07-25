@@ -14,7 +14,10 @@ import java.util.Map;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManageExample;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
@@ -66,12 +69,15 @@ public class PropertyIncomeTask implements Runnable {
 	@Override
 	public void run() {
 		log.info("PropertyIncomeTask start ....");
+//		incomeRecordProcess();
+		
+		log.info("PropertyIncomeTask execute time : "+DateUtil.getDayTime(new Date()));
+		//收益处理
 		//判断执行时间
-		Object o = propertyHelper.getCommonHelper().getSysSettingValue(PropertyIncomeTask.INCOME_TIME);
-		if(o == null) {
+		CWVSysSetting setting = propertyHelper.getCommonHelper().getSysSettingEntity(PropertyIncomeTask.INCOME_TIME);
+		if(setting == null) {
 			return;
 		}
-		CWVSysSetting setting = (CWVSysSetting) o;
 		Date incomeTime = null;
 		try {
 			incomeTime = DateUtil.getDateTime(setting.getValue());
@@ -81,24 +87,33 @@ public class PropertyIncomeTask implements Runnable {
 		if(org.brewchain.cwv.auth.util.DateUtil.compare(new Date(), incomeTime)<0) {
 			return;
 		}
-		log.info("PropertyIncomeTask execute time : "+DateUtil.getDayTime(new Date()));
-		//收益处理
-		
-		
-		incomeProcess();
-		
+	
+		incomeRecordCreate();
 		Calendar a = Calendar.getInstance();
 		a.setTime(incomeTime);
 		a.add(Calendar.MINUTE, 7);
 		setting.setValue(DateUtil.getDayTime(a.getTime()));
 		propertyHelper.getDao().settingDao.updateByPrimaryKeySelective(setting);
 		log.info("PropertyIncomeTask execute next time : "+setting.getValue());
-	
+		
+		userIncomeCreateProcess();
+			
 		log.info("PropertyIncomeTask ended ....");
 	}
 	
 	
-	public void incomeProcess() {
+
+	public void incomeRecordCreate() {
+		
+		CWVGameTxManageExample example = new CWVGameTxManageExample();
+		example.createCriteria().addCriterion("tx_hash in (select value from cwv_sys_setting where name='income_last_tx_hash')");
+		Object tx = propertyHelper.getDao().txManangeDao.selectOneByExample(example);
+		String processOk = propertyHelper.getCommonHelper().getSysSettingValue("income_create_success");
+		
+		if(tx != null && !(((CWVGameTxManage) tx).getChainStatus().intValue()==1 && processOk.equals("1") ) ){
+			return;
+		}
+		
 		//查询收益合约 返回总收益
 		RespGetAccount.Builder account = propertyHelper.getWltHelper().getAccountInfo(PropertyJobHandle.SYS_INCOME_ADDRESS);
 		
@@ -108,7 +123,8 @@ public class PropertyIncomeTask implements Runnable {
 		
 		double totalIncome = Double.parseDouble(account.getAccount().getBalance());
 		
-		
+		if(totalIncome<1000)
+			return;
 		//查询登陆有效用户ID
 //		Set<String> userIdSet = SessionFilter.userMap.keySet();
 //		if(userIdSet.isEmpty())
@@ -124,20 +140,20 @@ public class PropertyIncomeTask implements Runnable {
 		//
 		//计算 普通房产+标志性房产的分工收益
 		CWVGamePropertyExample ordinaryExample = new CWVGamePropertyExample();
-		CWVGamePropertyExample.Criteria criteria1 =  ordinaryExample.createCriteria();
-		criteria1.andPropertyTypeEqualTo(PropertyTypeEnum.ORDINARY.getValue());
+		ordinaryExample.createCriteria().andPropertyTypeEqualTo(PropertyTypeEnum.ORDINARY.getValue())
+		.andCryptoTokenIsNotNull();
 //		criteria1.andUserIdIn(listUser);
 		List<Object> listOrdinary = propertyHelper.getDao().gamePropertyDao.selectByExample(ordinaryExample);
 	
 		CWVGamePropertyExample typicalExample = new CWVGamePropertyExample();
-		CWVGamePropertyExample.Criteria criteria2 =  typicalExample.createCriteria();
-		criteria2.andPropertyTypeEqualTo(PropertyTypeEnum.TYPICAL.getValue());
+		typicalExample.createCriteria().andPropertyTypeEqualTo(PropertyTypeEnum.TYPICAL.getValue())
+		.andCryptoTokenIsNotNull();
 //		criteria2.andUserIdIn(listUser);
 		List<Object> listTypical = propertyHelper.getDao().gamePropertyDao.selectByExample(typicalExample);
 		
 		CWVGamePropertyExample functionalExample = new CWVGamePropertyExample();
-		CWVGamePropertyExample.Criteria criteria3 =  functionalExample.createCriteria();
-		criteria3.andPropertyTypeEqualTo(PropertyTypeEnum.FUNCTIONAL.getValue());
+		functionalExample.createCriteria().andPropertyTypeEqualTo(PropertyTypeEnum.FUNCTIONAL.getValue())
+		.andCryptoTokenIsNotNull();
 //		criteria2.andUserIdIn(listUser);
 		List<Object> listFunctional = propertyHelper.getDao().gamePropertyDao.selectByExample(functionalExample);
 		
@@ -146,22 +162,22 @@ public class PropertyIncomeTask implements Runnable {
 		//单个普通房产收益
 //		double singleOrdinary = incomeDivided/((listTypical.size() * TYPICAL_TO_DIVIDED/ORDINARY_TO_DIVIDED) + listOrdinary.size());
 		
-		double singleOrdinary = Arith.div(incomeDivided, Arith.add(Arith.div(Arith.mul(listTypical.size(), TYPICAL_TO_DIVIDED), ORDINARY_TO_DIVIDED), listOrdinary.size()) );
+		double singleOrdinary = Arith.div(incomeDivided, listOrdinary.size() );
 		BigDecimal singleOrdinaryAmount = new BigDecimal(singleOrdinary).setScale(0, RoundingMode.FLOOR);
 		
 		//单个功能房产收益
-		double singleTypical = Arith.div(Arith.mul(singleOrdinary, TYPICAL_TO_DIVIDED), ORDINARY_TO_DIVIDED) ;
+		double singleTypical = Arith.div(incomeDivided, listTypical.size() ); 
 		BigDecimal singleTypicalAmount = new BigDecimal(singleTypical).setScale(0, RoundingMode.FLOOR);
 		
 		//单个功能房产收益
-		double singleFunctional = Arith.div(Arith.mul(singleOrdinary, FUNCTIONAL_TO_DIVIDED),FUNCTIONAL_TO_DIVIDED) ;
+		double singleFunctional = Arith.div(incomeDivided, listFunctional.size() );
 		BigDecimal singleFunctionalAmount = new BigDecimal(singleFunctional).setScale(0, RoundingMode.FLOOR);
 		
 		
 		//计算实际总收益
-		double remain = singleOrdinaryAmount.longValue() * listOrdinary.size()
-				+(singleTypicalAmount.longValue() * listTypical.size())
-				+(singleFunctionalAmount.longValue() * listFunctional.size());
+		double remain = incomeDivided * 3 - singleOrdinaryAmount.longValue() * listOrdinary.size()
+				-(singleTypicalAmount.longValue() * listTypical.size())
+				-(singleFunctionalAmount.longValue() * listFunctional.size());
 		
 		HashMap<Integer,BigDecimal> userOrdinaryTotalIncomeMap = new HashMap<>();
 		HashMap<Integer,BigDecimal> userTypicalTotalIncomeMap = new HashMap<>();
@@ -177,7 +193,7 @@ public class PropertyIncomeTask implements Runnable {
 			dividedIncomeSet(property,singleTypicalAmount, userTypicalTotalIncomeMap);
 		}
 		//处理功能性房产
-		for(Object o: listTypical) {
+		for(Object o: listFunctional) {
 			CWVGameProperty property = (CWVGameProperty) o;
 			dividedIncomeSet(property,singleFunctionalAmount, userFunctionalTotalIncomeMap);
 		}
@@ -193,16 +209,14 @@ public class PropertyIncomeTask implements Runnable {
 			income.setType(Byte.parseByte(PropertyTypeEnum.ORDINARY.getValue()));
 			propertyHelper.getDao().getIncomeDao().insert(income);
 			
-			
-				
 		}
 		
 		//添加用户标志性房产类型收益
-		for(Integer userId : userOrdinaryTotalIncomeMap.keySet()) {
+		for(Integer userId : userTypicalTotalIncomeMap.keySet()) {
 			
 			CWVUserPropertyIncome income = new CWVUserPropertyIncome();
 			income.setUserId(userId);
-			income.setAmount(userOrdinaryTotalIncomeMap.get(userId));
+			income.setAmount(userTypicalTotalIncomeMap.get(userId));
 			income.setStartTime(new Date());
 			income.setStatus(PropertyIncomeStatusEnum.NEW.getValue());
 			income.setType(Byte.parseByte(PropertyTypeEnum.TYPICAL.getValue()));
@@ -212,19 +226,17 @@ public class PropertyIncomeTask implements Runnable {
 		}
 		
 		//添加用户功能型房产类型收益
-		for(Integer userId : userOrdinaryTotalIncomeMap.keySet()) {
+		for(Integer userId : userFunctionalTotalIncomeMap.keySet()) {
 			
 			CWVUserPropertyIncome income = new CWVUserPropertyIncome();
 			income.setUserId(userId);
-			income.setAmount(userOrdinaryTotalIncomeMap.get(userId));
+			income.setAmount(userFunctionalTotalIncomeMap.get(userId));
 			income.setStartTime(new Date());
 			income.setStatus(PropertyIncomeStatusEnum.NEW.getValue());
 			income.setType(Byte.parseByte(PropertyTypeEnum.FUNCTIONAL.getValue()));
 			propertyHelper.getDao().getIncomeDao().insert(income);
 				
 		}
-		
-		
 		
 	}
 	
@@ -233,6 +245,7 @@ public class PropertyIncomeTask implements Runnable {
 	 * @param userIncomeMap
 	 */
 	public void userIncomeCreateProcess() {
+		
 		CWVUserPropertyIncomeExample example = new CWVUserPropertyIncomeExample();
 		example.createCriteria().andStatusEqualTo(PropertyIncomeStatusEnum.NEW.getValue())
 		.andChainStatusIsNull()
@@ -241,6 +254,8 @@ public class PropertyIncomeTask implements Runnable {
 		
 		List<Object> list = propertyHelper.getDao().incomeDao.selectByExample(example);
 	
+		if(list.isEmpty())
+			return;
 		//返回参数
 		RespCreateTransaction.Builder respCreateTransaction = RespCreateTransaction.newBuilder();
 		//获取发起发账户nonce
@@ -263,7 +278,9 @@ public class PropertyIncomeTask implements Runnable {
 		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
 		input.setAddress(accountMap.getAddress());//发起方地址 *
 		input.setNonce(account.getNonce());//交易次数 *
-		input.setAmount("0");
+		input.setAmount(account.getBalance());
+		inputs.add(input);
+		double propertyIncome = 0;
 		for(Object o : list) {
 			CWVUserPropertyIncome income = (CWVUserPropertyIncome) o;
 			
@@ -272,20 +289,30 @@ public class PropertyIncomeTask implements Runnable {
 				userAddressMap.put(income.getUserId(), wallet.getIncomeAddress());
 			}
 			
-			input.setAmount(new BigDecimal(input.getAmount()).add(income.getAmount()).toString());
+			propertyIncome = Arith.add(propertyIncome, income.getAmount().doubleValue());
 
 			//amount output
 			MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
 			output.setAddress(userAddressMap.get(income.getUserId()));//接收方地址 *
-			output.setAmount(input.getAmount());
-			
+			output.setAmount(income.getAmount().toString());
 			outputs.add(output);
-			
 		}
-		inputs.add(input);
+		
+		//基金会收益
+		String fundAddress = propertyHelper.getCommonHelper().getSysSettingValue("income_fund_address");
+		double totalIncome = Double.parseDouble(account.getBalance());
+		MultiTransactionOutputImpl.Builder output = MultiTransactionOutputImpl.newBuilder();
+		output.setAddress(fundAddress);//接收方地址 *
+		output.setAmount(Arith.sub(totalIncome, propertyIncome)+"");
+		outputs.add(output);
+		
 		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(inputs, outputs);
 		if(ret.getRetCode() == 1) {
 			propertyHelper.getCommonHelper().txManageAdd(TransactionTypeEnum.INCOME_CREATE.getKey(), ret.getTxHash());
+			//更新 收益发放状态
+			propertyHelper.getCommonHelper().updateSysSettingValue("income_last_tx_hash", ret.getTxHash());
+			//更新 收益发放状态
+			propertyHelper.getCommonHelper().updateSysSettingValue("income_create_success", "1");
 			
 			//根据用户Id更新income
 			for(Object o : list){
@@ -301,9 +328,14 @@ public class PropertyIncomeTask implements Runnable {
 				income.setStatus(PropertyIncomeStatusEnum.EXCEPTION.getValue());
 			}
 			propertyHelper.getDao().incomeDao.batchUpdate(list);
-
+			//更新 收益发放状态
+			propertyHelper.getCommonHelper().updateSysSettingValue("income_create_success", "0");
+			
+		
 			log.error("income error : txhash="+ret.getTxHash());
 		}
+		
+						
 		
 	}
 	/**
@@ -376,49 +408,17 @@ public class PropertyIncomeTask implements Runnable {
 	 * @param singleOrdinary
 	 */
 	public void dividedIncomeSet(final CWVGameProperty property, BigDecimal incomeAmount, HashMap<Integer,BigDecimal> userMap) {
-		property.setIncome(property.getIncome().add(incomeAmount));
-		
-		CWVUserPropertyIncomeExample userPropertyIncomeExample = new CWVUserPropertyIncomeExample();
-		userPropertyIncomeExample.createCriteria().andUserIdEqualTo(property.getUserId())
-		.andStatusEqualTo(PropertyIncomeStatusEnum.NEW.getValue())
-		.andPropertyIdEqualTo(property.getPropertyId());
-		
-		Object incomeO = propertyHelper.getDao().incomeDao.selectOneByExample(userPropertyIncomeExample);
-		
-		if(incomeO == null){
-			final CWVUserPropertyIncome ordinaryIncome = new CWVUserPropertyIncome();
-			ordinaryIncome.setPropertyId(property.getPropertyId());
-			ordinaryIncome.setUserId(property.getUserId());
-			ordinaryIncome.setAmount(incomeAmount);
-			ordinaryIncome.setStartTime(new Date());
-			ordinaryIncome.setStatus(PropertyIncomeStatusEnum.NEW.getValue());
-			ordinaryIncome.setType(PropertyIncomeTypeEnum.DIVIDED.getValue());
-			propertyHelper.getDao().getIncomeDao().doInTransaction(new TransactionExecutor() {
-				@Override
-				public Object doInTransaction() {
-					propertyHelper.getDao().getIncomeDao().insert(ordinaryIncome);
-					propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
-					return null;
-				}
-			});
+//		property.setIncome(property.getIncome().add(incomeAmount));
+	
+		CWVUserPropertyIncome income = new CWVUserPropertyIncome();
+		income.setPropertyId(property.getPropertyId());
+		income.setUserId(property.getUserId());
+		income.setAmount(incomeAmount);
+		income.setStartTime(new Date());
+		income.setStatus(PropertyIncomeStatusEnum.NEW.getValue());
+		income.setType(Byte.parseByte(property.getPropertyType()));
+		propertyHelper.getDao().getIncomeDao().insert(income);
 			
-		}else{
-			CWVUserPropertyIncome o2 = (CWVUserPropertyIncome) incomeO;
-			jobIncomeSet.add(o2.getIncomeId());
-			final CWVUserPropertyIncome ordinaryIncome = propertyHelper.getDao().getIncomeDao().selectByPrimaryKey(o2);
-			ordinaryIncome.setAmount(ordinaryIncome.getAmount().add(incomeAmount));
-			propertyHelper.getDao().getIncomeDao().doInTransaction(new TransactionExecutor() {
-				@Override
-				public Object doInTransaction() {
-					propertyHelper.getDao().getIncomeDao().insert(ordinaryIncome);
-					propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
-					return null;
-				}
-			});
-			
-			jobIncomeSet.remove(o2.getIncomeId());
-		}
-		
 		//用户本次总收益
 		if(userMap.containsKey(property.getUserId())) {
 			userMap.put(property.getUserId(), userMap.get(property.getUserId()).add(incomeAmount));
