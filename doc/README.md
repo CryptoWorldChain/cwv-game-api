@@ -885,6 +885,7 @@ start_time|string|开始时间|
 end_time|string|结束时间|
 cycle_period|string|轮播周期|
 count|string|轮播次数|
+sys_notice|string|是否系统公告 0否 1是|
 
 	{	
 		"notice_type":"1",
@@ -923,6 +924,7 @@ ret_msg|String|返回消息|
 :----|:----|:----|:----
 notice_topic|string|公告主题 ："notice" 公告 |
 notice_type|string|公告类型 0查询所有类型 1官方公告 2用户公告|
+sys_notice|string|是否系统公告 0否 1是|
 page_index|string|页索引|
 page_size|string|页大小|
 page_num|string|页数|

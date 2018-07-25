@@ -26,6 +26,7 @@ message PBGameNoticeIn //GNI 添加消息
 	string end_time = 6;// 结束时间
 	int32 cycle_period = 7; //循环周期
 	int32 count = 8; //轮播次数
+	string sys_notice= 9;// 0 否 1是
 }
 
 message PRetGameNoticeIn //GNI 添加消息
@@ -42,7 +43,7 @@ message PBGameNoticeOut //GNO 获取消息
 	string page_index = 2;//页索引
 	string page_size = 3;//页大小
 	string page_num = 4;//是否分页，0：不分页，1分页
-	string user_id= 5;
+	string sys_notice= 5;// 0 否 1是
 
 }
 

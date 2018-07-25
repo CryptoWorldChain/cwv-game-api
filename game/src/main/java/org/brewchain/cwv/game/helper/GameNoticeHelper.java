@@ -9,6 +9,7 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
+import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.PageUtil;
@@ -107,14 +108,15 @@ public class GameNoticeHelper implements ActorService {
 	 */
 	public void noticeIn(FramePacket pack, PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
 		
-		if(StringUtils.isNotBlank(pb.getUserId())) {
-			CWVAuthUser authUser = userHelper.getCurrentUser(pack);
+		if(StringUtils.isNotBlank(pb.getSysNotice())&& "1".equals(pb.getSysNotice())) {
 			
-			if(!authUser.getUserId().toString().equals(pb.getUserId())) {
-				ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
-				ret.setRetMsg("FAILD");
-				return ;
+			if(StringUtils.isEmpty(pb.getNoticeContent())){
+				ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+				.setRetMsg("公告内容不能为空");
+				return;
 			}
+			commonHelper.updateSysSettingValue("sys_notice", "sys_notice");
+			return;
 		}
 		
 		Map<String,String> jsonRet = noticeCreate(pb.getNoticeType(),pb.getUserId(), pb.getStartTime(), pb.getEndTime(), pb.getCyclePeriod()+"", pb.getCount()+"", pb.getNoticeContent());
@@ -163,6 +165,14 @@ public class GameNoticeHelper implements ActorService {
 	 * 查询公告
 	 */
 	public void noticeOut(FramePacket pack, PBGameNoticeOut pb,PRetGameNoticeOut.Builder ret){
+
+		if(StringUtils.isNotBlank(pb.getSysNotice())&& "1".equals(pb.getSysNotice())) {
+			PRetNoticeOut.Builder noticeOut = PRetNoticeOut.newBuilder();
+			noticeOut.setNoticeContent(commonHelper.getSysSettingValue("sys_notice"));
+			ret.addNotices(noticeOut);
+			return;
+		}
+		
 		//校验
 		if(StringUtils.isBlank(pb.getPageIndex())){
 			throw new IllegalArgumentException("页索引不能为空");
