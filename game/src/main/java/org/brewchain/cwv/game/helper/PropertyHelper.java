@@ -219,7 +219,7 @@ public class PropertyHelper implements ActorService {
 		page.setTotalCount(0);
 		criteria.andPropertyStatusNotEqualTo(PropertyStatusEnum.NOOWNER.getValue());
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
-		if (pb.getUserOnly() == 1 && PropertyExchangeStatusEnum.ONSALE.getValue()!=Byte.parseByte(pb.getExchangeStatus()) ) {
+		if (pb.getUserOnly() == 1 && StringUtils.isEmpty(pb.getExchangeStatus()) ) {
 			CWVUserWalletExample wltExample = new CWVUserWalletExample();
 			wltExample.createCriteria().andUserIdEqualTo(user.getUserId()).andCoinTypeEqualTo((byte) 0);
 			List<Object> wltList = dao.walletDao.selectByExample(wltExample);
