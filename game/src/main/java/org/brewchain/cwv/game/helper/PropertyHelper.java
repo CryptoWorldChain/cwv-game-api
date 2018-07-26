@@ -333,38 +333,7 @@ public class PropertyHelper implements ActorService {
 
 			propertyCopy(property, gameProperty);
 
-			// 设置priceLine
-			StringBuffer exchangePrice = new StringBuffer();
-			//普通房产抽奖
-			if(PropertyTypeEnum.ORDINARY.getValue().equals(""+property.getPropertyType())) {
-				
-				exchangePrice.append("1000");
-			}else{
-				CWVMarketBidExample bidExample = new CWVMarketBidExample();
-				bidExample.createCriteria().andGamePropertyIdEqualTo(gameProperty.getPropertyId());
-				
-				Object bidO = dao.bidDao.selectOneByExample(bidExample);
-				
-				if(bidO != null)
-					exchangePrice.append(((CWVMarketBid) bidO).getBidAmount()).append(",");
-			}
-			CWVMarketExchangeExample exchangeExample2 = new CWVMarketExchangeExample();
-			exchangeExample2.createCriteria().andPropertyIdEqualTo(gameProperty.getPropertyId())
-					.andStatusEqualTo(PropertyExchangeStatusEnum.SOLD.getValue())
-					.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());
-				
-			exchangeExample2.setLimit(9);
-			List<Object> listExchange2 = dao.exchangeDao.selectByExample(exchangeExample2);
 			
-			if (listExchange2 != null && !listExchange2.isEmpty()) {
-				for (int i = 0; i < listExchange2.size(); i++) {
-					CWVMarketExchange echange2 = (CWVMarketExchange) listExchange2.get(i);
-					
-					exchangePrice.append(",").append(echange2.getSellPrice());
-				}
-			}
-			property.setPriceLine(exchangePrice.toString());
-
 			PropertyExchange.Builder propertyExchange = PropertyExchange.newBuilder();
 			propertyExchange.setProperty(property);
 			// 设置交易信息
@@ -1650,6 +1619,40 @@ public class PropertyHelper implements ActorService {
 			property.setPrice(gameProperty.getLastPrice() + "");
 			property.setLongitude(gameProperty.getLongitude() + "");
 			property.setLatitude(gameProperty.getLatitude() + "");
+			
+			// 设置priceLine
+			StringBuffer exchangePrice = new StringBuffer();
+			//普通房产抽奖
+			if(PropertyTypeEnum.ORDINARY.getValue().equals(""+property.getPropertyType())) {
+				
+				exchangePrice.append("1000");
+			}else{
+				CWVMarketBidExample bidExample = new CWVMarketBidExample();
+				bidExample.createCriteria().andGamePropertyIdEqualTo(gameProperty.getPropertyId());
+				
+				Object bidO = dao.bidDao.selectOneByExample(bidExample);
+				
+				if(bidO != null)
+					exchangePrice.append(((CWVMarketBid) bidO).getBidAmount()).append(",");
+			}
+			CWVMarketExchangeExample exchangeExample2 = new CWVMarketExchangeExample();
+			exchangeExample2.createCriteria().andPropertyIdEqualTo(gameProperty.getPropertyId())
+					.andStatusEqualTo(PropertyExchangeStatusEnum.SOLD.getValue())
+					.andChainStatusEqualTo(ChainTransStatusEnum.DONE.getKey());
+				
+			exchangeExample2.setLimit(9);
+			List<Object> listExchange2 = dao.exchangeDao.selectByExample(exchangeExample2);
+			
+			if (listExchange2 != null && !listExchange2.isEmpty()) {
+				for (int i = 0; i < listExchange2.size(); i++) {
+					CWVMarketExchange echange2 = (CWVMarketExchange) listExchange2.get(i);
+					
+					exchangePrice.append(",").append(echange2.getSellPrice());
+				}
+			}
+			property.setPriceLine(exchangePrice.toString());
+
+			
 		} catch (Exception e) {
 			log.error("propertyCopy exception:", e);
 		}

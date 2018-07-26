@@ -8,6 +8,8 @@ enum GNPSModule {
 enum GNPSCommand {
 	GNI = 0;//添加消息 - GameNoticeInService
 	GNO = 1;//获取消息 - GameNoticeOutService
+	LNI = 2;//修改登陆公告 - LoginNoticeInService
+	LNO = 3;//获取登陆公告 - LoginNoticeOutService
 };
 
 message PageOut{

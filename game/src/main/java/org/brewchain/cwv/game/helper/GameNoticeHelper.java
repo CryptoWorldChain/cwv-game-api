@@ -9,13 +9,13 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
-import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeIn;
 import org.brewchain.cwv.service.game.notice.GameNotice.PBGameNoticeOut;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeIn;
+import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeIn.Builder;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeOut;
 import org.brewchain.cwv.service.game.notice.GameNotice.PRetGameNoticeOut.PRetNoticeOut;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -107,20 +107,6 @@ public class GameNoticeHelper implements ActorService {
 	 * 新增官方公告
 	 */
 	public void noticeIn(FramePacket pack, PBGameNoticeIn pb,PRetGameNoticeIn.Builder ret){
-		
-		if(StringUtils.isNotBlank(pb.getSysNotice())&& "1".equals(pb.getSysNotice())) {
-			
-			if(StringUtils.isEmpty(pb.getNoticeContent())){
-				ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
-				.setRetMsg("公告内容不能为空");
-				return;
-			}
-			commonHelper.updateSysSettingValue("sys_notice", pb.getNoticeContent());
-			ret.setRetCode("01");
-			ret.setRetMsg("SUCCESS");
-			return;
-		}
-		
 		Map<String,String> jsonRet = noticeCreate(pb.getNoticeType(),pb.getUserId(), pb.getStartTime(), pb.getEndTime(), pb.getCyclePeriod()+"", pb.getCount()+"", pb.getNoticeContent());
 		if(jsonRet.get("errcode").equals("000")){
 			ret.setRetCode("01");
@@ -168,15 +154,6 @@ public class GameNoticeHelper implements ActorService {
 	 */
 	public void noticeOut(FramePacket pack, PBGameNoticeOut pb,PRetGameNoticeOut.Builder ret){
 
-		if(StringUtils.isNotBlank(pb.getSysNotice())&& "1".equals(pb.getSysNotice())) {
-			PRetNoticeOut.Builder noticeOut = PRetNoticeOut.newBuilder();
-			noticeOut.setNoticeContent(commonHelper.getSysSettingValue("sys_notice"));
-			ret.addNotices(noticeOut);
-			ret.setRetCode("01");
-			ret.setRetMsg("SUCCESS");
-			return;
-		}
-		
 		//校验
 		if(StringUtils.isBlank(pb.getPageIndex())){
 			throw new IllegalArgumentException("页索引不能为空");
@@ -200,9 +177,9 @@ public class GameNoticeHelper implements ActorService {
 		if(NoticeTypeEnum.USER.getValue().equals(pb.getNoticeType())) {
 			CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 			userId = authUser.getUserId().toString();
+			url.append("&");
+			url.append("user_id="+userId);
 		}
-		url.append("&");
-		url.append("user_id="+userId);
 		
 		url.append("&");
 //		url.append("topic="+pb.getNoticeTopic());
@@ -267,6 +244,29 @@ public class GameNoticeHelper implements ActorService {
 		}
 		
 		return null;
+	}
+
+	public void loginNoticeIn(FramePacket pack, PBGameNoticeIn pb, Builder ret) {
+
+		if(StringUtils.isEmpty(pb.getNoticeContent())){
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+			.setRetMsg("公告内容不能为空");
+			return;
+		}
+		commonHelper.updateSysSettingValue("sys_notice", pb.getNoticeContent());
+		ret.setRetCode("01");
+		ret.setRetMsg("SUCCESS");
+		return;
+	}
+	
+	public void loginNoticeOut(FramePacket pack, PBGameNoticeOut pb, PRetGameNoticeOut.Builder ret) {
+
+		PRetNoticeOut.Builder noticeOut = PRetNoticeOut.newBuilder();
+		noticeOut.setNoticeContent(commonHelper.getSysSettingValue("sys_notice"));
+		ret.addNotices(noticeOut);
+		ret.setRetCode("01");
+		ret.setRetMsg("SUCCESS");
+		return;
 	}
 
 
