@@ -15,16 +15,13 @@ import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManageExample;
-import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
-import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.PropertyIncomeStatusEnum;
-import org.brewchain.cwv.game.enums.PropertyIncomeTypeEnum;
 import org.brewchain.cwv.game.enums.PropertyTypeEnum;
 import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
@@ -37,7 +34,6 @@ import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 import org.brewchain.wallet.service.Wallet.RespGetAccount;
 
 import lombok.extern.slf4j.Slf4j;
-import onight.tfw.ojpa.api.TransactionExecutor;
 
 /**
  * 房产收益 普通房产25% 标志性房产 25% 功能性房产 25%
@@ -91,7 +87,7 @@ public class PropertyIncomeTask implements Runnable {
 		incomeRecordCreate();
 		Calendar a = Calendar.getInstance();
 		a.setTime(incomeTime);
-		a.add(Calendar.MINUTE, 7);
+		a.add(Calendar.DATE, DAY_PERIOD);
 		setting.setValue(DateUtil.getDayTime(a.getTime()));
 		propertyHelper.getDao().settingDao.updateByPrimaryKeySelective(setting);
 		log.info("PropertyIncomeTask execute next time : "+setting.getValue());

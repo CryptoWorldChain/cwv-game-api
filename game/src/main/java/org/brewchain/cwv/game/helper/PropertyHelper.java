@@ -997,10 +997,6 @@ public class PropertyHelper implements ActorService {
 		RespCreateTransaction.Builder exchangeRet = exchangeInvoker.sellProperty(account.getAccount(),
 				property.getCryptoToken(), 0);
 
-		//插入交易管理
-		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_SELL.getKey(),exchangeRet.getTxHash());
-		
-		
 		// 添加调取合约日志 TODO
 
 		if (exchangeRet.getRetCode() != 1) {
@@ -1009,6 +1005,9 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
+		//插入交易管理
+		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_SELL.getKey(),exchangeRet.getTxHash());
+				
 		final CWVMarketExchange exchange = new CWVMarketExchange();
 		// 设置合约交易信息
 //		exchange.setChainContract("");
@@ -1472,6 +1471,7 @@ public class PropertyHelper implements ActorService {
 		
 		if(retTrans.getRetCode() != 1) {
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode());
+			ret.setRetMsg(retTrans.getRetMsg());
 			return ;
 		}
 		
@@ -1619,6 +1619,7 @@ public class PropertyHelper implements ActorService {
 			property.setPrice(gameProperty.getLastPrice() + "");
 			property.setLongitude(gameProperty.getLongitude() + "");
 			property.setLatitude(gameProperty.getLatitude() + "");
+			property.setIsDisplay(Integer.parseInt(gameProperty.getIsDisplay()));
 			
 			// 设置priceLine
 			StringBuffer exchangePrice = new StringBuffer();

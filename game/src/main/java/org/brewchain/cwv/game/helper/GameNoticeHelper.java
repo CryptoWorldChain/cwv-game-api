@@ -85,16 +85,29 @@ public class GameNoticeHelper implements ActorService {
 	}
 	
 	public enum NoticeTradeTypeEnum{
-		TYPICAL_GET("0"),//无此类型，用于查询所有
-		SELL("1"),
-		FUNCTIONAL_GET("2"),
-		BID("3");
+		DRAW_ERROR("1","抽奖未获取到房产%"),
+		BUY_ERROR("2","购买房产%失败"),
+		AUCTION_ERROR("3","房产%竞拍未拿到第一"),
+		AUCTION_DONE("4","竞拍第一拿到房产%"),
+		SELL_DONE("5","出售的房产%已被购买"),
+		BUY_DONE("6","成功购买房产%");
+		private String key;
 		private String value;
-		NoticeTradeTypeEnum(String value){
+		private NoticeTradeTypeEnum(String key, String value) {
+			this.key = key;
 			this.value = value;
+		}
+		public String getKey() {
+			return key;
+		}
+		public void setKey(String key) {
+			this.key = key;
 		}
 		public String getValue() {
 			return value;
+		}
+		public void setValue(String value) {
+			this.value = value;
 		}
 		
 	}
@@ -231,16 +244,20 @@ public class GameNoticeHelper implements ActorService {
 		
 	}
 
-	public String noticeTradeTpl(String type, String nickName, String propertyName, String operate) {
+	public String noticeTradeTpl(NoticeTradeTypeEnum type, String propertyName, String operate) {
 
-		if(NoticeTradeTypeEnum.TYPICAL_GET.getValue().equals(type)) {
-			return "恭喜 “"+nickName+"” 通过 “"+operate+"” 获得标志性房产 “" +propertyName +"” ";
-		}else if(NoticeTradeTypeEnum.SELL.getValue().equals(type)){
-			return " “"+nickName+"” 开始出售 “" +propertyName +"” ";
-		}else if(NoticeTradeTypeEnum.FUNCTIONAL_GET.getValue().equals(type)){
-			return "恭喜 “"+nickName+"” 获得功能性房产 “" +propertyName +"” ";
-		}else if(NoticeTradeTypeEnum.BID.getValue().equals(type)){
-			return " “"+propertyName+"” 已开始公开竞拍，大家可以前往交易所查看 ";
+		if(NoticeTradeTypeEnum.DRAW_ERROR.equals(type)) {
+			return NoticeTradeTypeEnum.DRAW_ERROR.getValue().replace("%", "["+propertyName+"]");
+		}else if(NoticeTradeTypeEnum.BUY_ERROR.equals(type)){
+			return NoticeTradeTypeEnum.BUY_ERROR.getValue().replace("%", "["+propertyName+"]");
+		}else if(NoticeTradeTypeEnum.AUCTION_ERROR.equals(type)){
+			return NoticeTradeTypeEnum.AUCTION_ERROR.getValue().replace("%", "["+propertyName+"]");
+		}else if(NoticeTradeTypeEnum.AUCTION_DONE.equals(type)){
+			return NoticeTradeTypeEnum.AUCTION_DONE.getValue().replace("%", "["+propertyName+"]");
+		}else if(NoticeTradeTypeEnum.SELL_DONE.equals(type)){
+			return NoticeTradeTypeEnum.SELL_DONE.getValue().replace("%", "["+propertyName+"]");
+		}else if(NoticeTradeTypeEnum.BUY_DONE.equals(type)){
+			return NoticeTradeTypeEnum.BUY_DONE.getValue().replace("%", "["+propertyName+"]");
 		}
 		
 		return null;
