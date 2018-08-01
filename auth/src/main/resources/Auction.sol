@@ -10,6 +10,8 @@ contract Auction{
     uint256 blocklow;
     uint256 blockMax;
     uint256 blockTime;
+    uint256 currentTime;
+    uint256 currentBlockNum;
 
     uint256 bidStartingPrice;
     uint256 increasePrice;
@@ -28,16 +30,24 @@ contract Auction{
       uint256 _endTime,uint256 _blockTime,uint256 _bidStartingPrice,
       uint256 _increasePrice) public {
       beneficiary = msg.sender;
+      currentTime = now*1000;
+      currentBlockNum = block.number;
       bidStartingPrice = _bidStartingPrice;
       increasePrice = _increasePrice;
       startTime = _startTime;
       endTime = _endTime;
       tokenID = _tokenID;
       blockTime = _blockTime;
-      blocklow = block.number + 10;
-      blockMax = block.number + 100;
-      /* blocklow = _blocklow; */
-      /* blockMax = _blockMax; */
+      if(startTime <endTime && startTime > currentTime && endTime > currentTime){
+          uint256 tempStart = startTime - currentTime;
+          uint256 tempEnd = endTime - currentTime;
+
+          uint256 tempStartNum = tempStart/blockTime;
+          uint256 tempEndNum = tempEnd/blockTime;
+
+          blocklow = currentBlockNum + tempStartNum;
+          blockMax = currentBlockNum + tempEndNum;
+      }
     }
     event testData(uint256 num,address tempaddrs);
     /* event test(uint256 num,address tempaddrs); */
@@ -61,14 +71,15 @@ contract Auction{
 
         tempBidFrequency = auctionInfo.bidFrequency;
         tempBidFrequency = tempBidFrequency + 1;
+
+        pendingReturns[msg.sender] = AuctionInfo(_bigPrice,tempBidFrequency,true);
       }else{
         computerBidPrice = _bigPrice;
-        if(highestBidder>0){
-            differencePrice = _bigPrice - bidStartingPrice;
-        }else{
-            differencePrice = _bigPrice - highestBid;
-        }
+
+        differencePrice = _bigPrice - highestBid;
+
         tempBidFrequency = 1;
+        pendingReturns[msg.sender] = AuctionInfo(_bigPrice,tempBidFrequency,true);
         auctionUser.push(msg.sender);
       }
       require(msg.sender.balance >= computerBidPrice,"5");
@@ -77,8 +88,9 @@ contract Auction{
 
       highestBid = _bigPrice;
       highestBidder = msg.sender;
+      emit testData(computerBidPrice,msg.sender);
+
       beneficiary.transfer(computerBidPrice);
-      pendingReturns[msg.sender] = AuctionInfo(_bigPrice,tempBidFrequency,true);
 
     }
 

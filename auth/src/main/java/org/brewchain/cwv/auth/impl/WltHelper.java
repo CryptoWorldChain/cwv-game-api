@@ -919,9 +919,10 @@ public class WltHelper implements ActorService {
         return encAPI.hexEnc(functionCallBytes);
 	}
 	
-	public String methodBuild(CodeBuild.Result res,String methonName,Object...objs){
+	public String methodBuild(CodeBuild.Result res,String method, Object...objs){
         CallTransaction.Contract contract = new CallTransaction.Contract(res.abi);
-        CallTransaction.Function inc = contract.getByName(methonName);
+        CallTransaction.Function inc = method == null || method.equals("") ? 
+        		contract.getConstructor() : contract.getByName(method);
         byte[] functionCallBytes = inc.encode(objs);
         
         return encAPI.hexEnc(functionCallBytes);

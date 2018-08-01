@@ -125,7 +125,7 @@ public enum ReturnCodeMsgEnum {
 	 * 发送短信验证码
 	 */
 	SMC_SUCCESS("01","发送成功！"),
-	SMC_ERROR("02","短信发送失败"),
+	SMC_ERROR_CODE("02","图片验证码错误"),
 	SMC_ERROR_PHONE("03","手机号错误"),
 	SMC_EXCEPTION("99","未知异常"),
 	

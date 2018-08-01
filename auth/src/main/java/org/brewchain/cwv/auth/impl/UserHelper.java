@@ -138,10 +138,6 @@ public class UserHelper implements ActorService {
 			throw new IllegalArgumentException("国家不能为空");
 		}
 
-		if (StringUtils.isEmpty(pb.getRegVerifyCode())) {
-			throw new IllegalArgumentException("验证码不能为空");
-		}
-
 		if (StringUtils.isEmpty(pb.getPhoneVerifyCode())) {
 			throw new IllegalArgumentException("短信验证码不能为空");
 		}
@@ -149,17 +145,6 @@ public class UserHelper implements ActorService {
 			throw new IllegalArgumentException("手机代码不能为空");
 		}
 		// 1.2 短信验证码 前端调取 common by leo 验证码校验接口
-
-		// 注册验证码
-		HashMap<String, String> jsonMap = new HashMap<>();
-		jsonMap.put("code", pb.getRegVerifyCode());
-		jsonMap = InokeInterfaceHelper.checkCode(jsonMap, sender);
-
-		if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMap.get("ret_code"))) {
-			ret.setRetCode(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.REG_ERROR_CODE.getRetMsg());
-			return;
-		}
 
 		HashMap<String, String> jsonMapPhone = new HashMap<>();
 		jsonMapPhone.put("phone", pb.getPhone());
@@ -232,11 +217,17 @@ public class UserHelper implements ActorService {
 				if(address.getRetCode()!=1){
 					throw new IllegalArgumentException("获取钱包账户失败");
 				}
+				RetNewAddress.Builder incomeAddress=  wltHelper.createAccount("");
+				if(address.getRetCode()!=1){
+					throw new IllegalArgumentException("获取钱包账户失败");
+				}
 				dao.userDao.insertIfNoExist(authUser);
 				CWVAuthUser userInsert = getUserByPhone(authUser.getPhone());
 				
 				CWVUserWallet userWallet = new CWVUserWallet();
 				userWallet.setAccount(address.getAddress());
+				userWallet.setIncomeAddress(incomeAddress.getAddress());
+				//TODO: 收益地址
 				userWallet.setBalance(new BigDecimal(0));
 				userWallet.setCoinIcon("http://cwc.icon");
 				userWallet.setCoinType(Byte.valueOf("0"));
@@ -737,6 +728,23 @@ public class UserHelper implements ActorService {
 			return;
 		}
 
+		if(MsgCodeType.REG.value.equals(pb.getType())) {
+			if (StringUtils.isEmpty(pb.getCode())) {
+				ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
+				ret.setRetMsg("图片验证码不能为空");
+				return;
+			}
+			// 注册验证码
+			HashMap<String, String> jsonMap = new HashMap<>();
+			jsonMap.put("code", pb.getCode());
+			jsonMap = InokeInterfaceHelper.checkCode(jsonMap, sender);
+
+			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMap.get("ret_code"))) {
+				ret.setRetCode(ReturnCodeMsgEnum.SMC_ERROR_CODE.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.SMC_ERROR_CODE.getRetMsg());
+				return;
+			}
+		}
 		HashMap<String, String> jsonMap = new HashMap<>();
 		jsonMap.put("phone", pb.getPhone());
 		jsonMap.put("country_code", pb.getPhoneCode());
@@ -763,6 +771,8 @@ public class UserHelper implements ActorService {
 		return false;
 	}
 
+
+	
 	/**
 	 * 修改密码（需要先登陆）
 	 * 
@@ -772,6 +782,36 @@ public class UserHelper implements ActorService {
 	 */
 	public void setPwd(FramePacket pack, PSLogin pb, PRetCommon.Builder ret) {
 
+		if(!StringUtils.isEmpty(pb.getPasswordOld())){
+			// 1 校验入参
+			// 1.1 格式校验
+			if (!ValidatorUtil.isPassword(pb.getPasswordOld())) {
+				ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+						.setRetMsg(ValidateEnum.PASSWORD.getVerifyMsg());
+				return;
+			}
+
+			// 1.2查询当前用户
+
+			CWVAuthUser authUser = getCurrentUser(pack);
+
+			if (authUser == null) {
+				// TODO 次数限制 +1
+				ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("用户未登录");
+				return;
+			}
+
+			if (!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(authUser.getPassword())) {
+				ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetCode())
+						.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetMsg());
+				return;
+			}
+
+			// 2 更新密码
+			ret.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());
+			return ;
+		}
+		
 		// 1 校验入参
 		// 1.1 格式校验
 		if (!ValidatorUtil.isPassword(pb.getPassword())) {
@@ -806,11 +846,6 @@ public class UserHelper implements ActorService {
 				return;
 			}
 		}
-		if (!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(authUser.getPassword())) {
-			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetMsg());
-			return;
-		}
 
 		// 校验重复密码
 		String pwdMd5 = getPwdMd5(pb.getPassword(), authUser.getSalt());
@@ -827,7 +862,7 @@ public class UserHelper implements ActorService {
 		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
 
 	}
-
+	
 	public void duplicateInfo(PSRegistry pb, PRetCommon.Builder ret) {
 
 		if (StringUtils.isEmpty(pb.getPhone()) && StringUtils.isEmpty(pb.getUserName())) {
