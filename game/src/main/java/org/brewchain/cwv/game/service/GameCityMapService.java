@@ -69,8 +69,6 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 	 * 挡板
 	 */
 	private void baffle(PBGameMap pb,PRetRefGameMap.Builder ret){
-		ret.setRetCode("01");
-		ret.setRetMsg("SUCCESS");
 		
 		CWVGameMapExample mapExample = new CWVGameMapExample();
 		CWVGameMapExample.Criteria criteria = mapExample.createCriteria();
@@ -80,11 +78,11 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			criteria.andMapNameLikeInsensitive("%"+pb.getShotName()+"%");
 		}
 
-		PageUtil page = new PageUtil(null, pb.getPageSize());
+		PageUtil page = new PageUtil(pb.getPageIndex(), pb.getPageSize());
 		mapExample.setLimit(page.getLimit());
 		mapExample.setOffset(page.getOffset());
 		
-		ret.setTotalCount(dao.gameMapDao.countByExample(mapExample)+"");
+		page.setTotalCount(dao.gameMapDao.countByExample(mapExample));
 		
 		List<Object> maps = dao.gameMapDao.selectByExample(mapExample);
 		
@@ -95,6 +93,9 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			pMap.setMapName(map.getMapName());
 			pMap.setCityId(map.getGameCityId()+"");
 			pMap.setTamplate(map.getTemplate()+"");
+			pMap.setMapNameZh(map.getMapNameZh()+"");
+			pMap.setIsDisplay(Integer.parseInt(map.getIsDisplay()));
+			
 			//TODO 查询字段
 			CWVGamePropertyExample example = new CWVGamePropertyExample();
 			
@@ -123,5 +124,8 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			pMap.setAveragePrice(sellCount == 0 ? "0": sum.divide(new BigDecimal(sellCount)).intValue()+"");
 			ret.addMaps(pMap);
 		}
+		ret.setPage(page.getPageOut());
+		ret.setRetCode("01");
+		ret.setRetMsg("SUCCESS");
 	}
 }

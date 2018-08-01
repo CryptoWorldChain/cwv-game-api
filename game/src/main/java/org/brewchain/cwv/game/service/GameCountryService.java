@@ -89,7 +89,10 @@ public class GameCountryService extends SessionModules<PBGameCountry> {
 			PRetCountry.Builder pCountry = PRetCountry.newBuilder();
 			pCountry.setCountryId(country.getCountryId()+"");
 			pCountry.setCountryName(country.getCountryName());
+			pCountry.setCountryNameZh(country.getCountryNameZh());
 			pCountry.setMapNumber(country.getMapNum()+"");
+			pCountry.setIsDisplay(Integer.parseInt(country.getIsDisplay()));
+			
 			ret.addCountries(pCountry);
 		}
 	}

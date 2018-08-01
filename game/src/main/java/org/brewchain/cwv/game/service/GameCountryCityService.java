@@ -88,8 +88,10 @@ public class GameCountryCityService extends SessionModules<PBGameCity> {
 			PRetCity.Builder pCity = PRetCity.newBuilder();
 			pCity.setCountryId(city.getGameCountryId()+"");
 			pCity.setCityName(city.getCityName());
+			pCity.setCityNameZh(city.getCityNameCn());
 			pCity.setMapNumber(city.getMapNum()+"");
 			pCity.setCityId(city.getCityId()+"");
+			pCity.setIsDisplay(Integer.parseInt(city.getIsDisplay()));
 			ret.addCities(pCity);
 		}
 		
