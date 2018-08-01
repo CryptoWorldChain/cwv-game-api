@@ -762,7 +762,78 @@ public class UserHelper implements ActorService {
 			return true;
 		return false;
 	}
+	
+	
+	/**
+	 * 修改密码（需要先登陆）
+	 * 
+	 * @param pack
+	 * @param pb
+	 * @param ret
+	 */
+	public void setPwd(FramePacket pack, PSLogin pb, PRetCommon.Builder ret) {
+		
+		if (!StringUtils.isEmpty(pb.getPasswordOld()) && !ValidatorUtil.isPassword(pb.getPasswordOld())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+					.setRetMsg(ValidateEnum.PASSWORD.getVerifyMsg());
+			return;
+		}
 
+		
+		// 1 校验入参
+		// 1.1 格式校验
+		if (!ValidatorUtil.isPassword(pb.getPassword())) {
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode())
+					.setRetMsg(ValidateEnum.PASSWORD.getVerifyMsg());
+			return;
+		}
+
+		// 1.2查询当前用户
+		CWVAuthUser authUser = getCurrentUser(pack);
+
+		if (authUser == null) {
+			// TODO 次数限制 +1
+			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode()).setRetMsg("用户未登录");
+			return;
+		}
+
+		if (StringUtils.isEmpty(pb.getPhoneVerifyCode())) {
+			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PHONE_CODE.getRetMsg());
+			return;
+		} else {
+			HashMap<String, String> jsonMapPhone = new HashMap<>();
+			jsonMapPhone.put("phone", authUser.getPhone());
+			jsonMapPhone.put("code", pb.getPhoneVerifyCode());
+			jsonMapPhone.put("type", MsgCodeType.SPS.value); // 设置登陆密码
+			jsonMapPhone = InokeInterfaceHelper.checkMsgCode(jsonMapPhone, sender);
+
+			if (!ReturnCodeMsgEnum.SUCCESS.getRetCode().equals(jsonMapPhone.get("ret_code"))) {
+				ret.setRetCode(jsonMapPhone.get("ret_code")).setRetMsg(jsonMapPhone.get("ret_msg"));
+				return;
+			}
+		}
+		if (!getPwdMd5(pb.getPasswordOld(), authUser.getSalt()).equals(authUser.getPassword())) {
+			ret.setRetCode(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.SPS_ERROR_PWD_OLD.getRetMsg());
+			return;
+		}
+
+		// 校验重复密码
+		String pwdMd5 = getPwdMd5(pb.getPassword(), authUser.getSalt());
+		if (authUser.getPassword().equals(pwdMd5)) {
+			ret.setRetCode(ReturnCodeMsgEnum.SPS_DUPLICATE_PWD.getRetCode())
+					.setRetMsg(ReturnCodeMsgEnum.SPS_DUPLICATE_PWD.getRetMsg());
+			return;
+		}
+
+		// 2 更新密码
+		authUser.setPassword(pwdMd5);
+		dao.userDao.updateByPrimaryKeySelective(authUser);
+
+		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
+
+	}
 	/**
 	 * 修改密码（需要先登陆）
 	 * 
