@@ -89,6 +89,7 @@ longitude|string|经度|
 latitude|string|纬度|
 price_line|string|最近 10历史价格曲线 英文逗号分隔|
 chain_status|string|链上状态 0 未确定 1确定|
+is_display|string|是否开放 0未开放 1开放|
 exchange|object|数组中的交易对象|
 exchange_id|string|交易ID|
 price|string|卖出价格|
@@ -175,7 +176,11 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+price|string|价格|
+longitude|string|经度|
+latitude|string|纬度|
 chain_status|string|链上状态 0 进行中 1成功 -1失败|
+is_display|string|是否开放 0未开放 1开放|
 	
 	{
 	    "ret_code": "01",
@@ -241,12 +246,16 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+price|string|价格|
+longitude|string|经度|
+latitude|string|纬度|
 chain_status|string|链上状态|
 exchange|object|交易对象|
 exchange_id|string|交易ID|
 price|string|交易价格|
 status|string|交易状态0 出售中 1已售出 2撤销 |
 chain_status|string|链上状态 0 进行中 1成功 -1失败|
+is_display|string|是否开放 0未开放 1开放|
 
 	{
 	    "ret_code": "01",
@@ -360,7 +369,11 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+longitude|string|经度|
+latitude|string|纬度|
 price|string|价格|
+chain_status|string|链上状态|
+is_display|string|是否开放 0未开放 1开放|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -479,6 +492,11 @@ property_type|string|房产类型|
 property_status|string|房产状态|
 income_remark|string|收益说明|
 image_url|string|房产图片地址|
+price|string|价格|
+longitude|string|经度|
+latitude|string|纬度|
+chain_status|string|链上状态|
+is_display|string|是否开放 0未开放 1开放|
 bid|object|竞拍对象数组|
 max_price|string|竞拍价格|
 bidders_count|string|参与人数|
@@ -545,6 +563,8 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+chain_status|string|链上状态|
+is_display|string|是否开放 0未开放 1开放|
 bid_price|string|竞拍价格|
 auctionRank|object|竞拍人员对象数组|
 nick_name|string|昵称|
@@ -881,7 +901,12 @@ property_status|string|房产状态|
 price|string|价格|
 income_remark|string|收益说明|
 image_url|string|房产图片地址|
+price|string|价格|
+longitude|string|经度|
+latitude|string|纬度|
 chain_status|string|链上状态 0 未确定 1确定|
+is_display|string|是否开放 0未开放 1开放|
+
 	
 	{
 	    "ret_code": "01",
@@ -1159,6 +1184,11 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+longitude|string|经度|
+latitude|string|纬度|
+price|string|价格|
+chain_status|string|链上状态|
+is_display|string|是否开放 0未开放 1开放|
 gameInfo|object|数组中的游戏信息对象|
 game_id|string|交易ID|
 name|string|游戏名称|
@@ -1256,6 +1286,11 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
+longitude|string|经度|
+latitude|string|纬度|
+price|string|价格|
+chain_status|string|链上状态|
+is_display|string|是否开放 0未开放 1开放|
 gameDetail|object|游戏信息对象|
 game_id|string|交易ID|
 name|string|游戏名称|

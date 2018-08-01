@@ -30,33 +30,30 @@
 ### HTTP请求方式
 	POST
 ### 输入参数
+参数|类型|说明|示例
+:----|:----|:----|:----
+phone_code|string|手机号所属国家代码 86|
+code|string|图片验证码|
+phone|string|手机号|
+type|string|发送短信类型 <br/>1,注册验证！<br/>2,交易密码 <br/>3,重置密码校验<br/>4,修改登录密码|
 	     
 
 	{
-		"phone_code":"86", 
+		"phone_code":"86",
+		"code":"4444", 
 		"phone":"18512345678",
 		"type":"1"
 	}
 
-
-	phone_code 手机号所属国家代码 86
-	phone        手机号
-	type         1:注册验证
-			 2:交易密码
-			 3:重置密码验证
-			 4:设置登陆密码
-
-
 ### 输出参数
-
 参数|类型|说明|示例
 :----|:----|:----|:----
-ret_code|string|状态码<br/>01,发送成功！<br/>61,短信发送失败！ <br/>66,手机号错误！<br/>80,校验类错误信息<br/>99，未知异常|
+ret_code|string|状态码<br/>01,发送成功！<br/>02,图片验证码错误！<br/>03,手机号错误！<br/>61,短信发送失败！ <br/>62,没有短信验证记录，请重新发起短信验证！ <br/>63,有多条短信验证记录,请重新发起短信验证！ <br/>64,验证码已过期，请重新发起短信验证！<br/>65,短信验证码无效 <br/>80,校验类错误信息<br/>99，未知异常|
 ret_msg|string|状态说明|
 
 	{
-	"ret_code":"00", 
-	"ret_msg":"success"
+		"ret_code":"01", 
+		"ret_msg":"success"
 	}
 
 
@@ -242,7 +239,6 @@ ret_msg|string|状态说明|
 |phone|string|手机号|18512345678|
 |password|string|用户密码||
 |phone_verify_code|string|短信验证码|1234|
-|reg_verify_code|string|注册验证码||
 |country_code|number|国家编码||
 
 	{
@@ -251,7 +247,6 @@ ret_msg|string|状态说明|
 		"phone":"13161531208",
 		"password":"123456",
 		"phone_verify_code":"123456",
-		"reg_verify_code":"123456",
 		"country_code": "156"
 	}
 	
@@ -383,7 +378,7 @@ ret_msg|string|返回消息|
 参数|类型|说明|示例
 :----|:----|:----|:----
 password|string|新登录密码|
-password_old|string|旧登录密码|
+password_old|string|旧登录密码  非空， 校验旧密码 空，修改密码|
 phone_verify_code|string|短信验证码|
 
 	{
@@ -966,6 +961,66 @@ count|number|循环次数||
 	    ]
 	}
 
+
+## 更新登陆公告
+### 接口说明
+
+### URL
+	/cwv/gna/pblni.do
+### HTTP请求方式
+	POST
+### 输入参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+notice_content|string|公告内容|
+
+	{	
+		"notice_content":"notice_content"
+	}
+
+
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "SUCCESS"
+	}
+
+	
+## 获取登陆公告消息
+### 接口说明
+	公告栏展示公告消息。
+
+### URL
+	/cwv/gna/pblno.do
+### HTTP请求方式
+	POST
+### 输入参数
+	无
+### 输出参数
+
+参数|类型|说明|示例
+:----|:----|:----|:----
+ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
+ret_msg|String|返回消息|
+notices|array||
+notice_content|string|消息内容|
+	
+	{
+	    "ret_code": "01",
+	    "ret_msg": "SUCCESS",
+	    "notices": [
+	        {
+	            "notice_content": "登陆公告信息，登陆公告信息"
+	        }
+	    ]
+	}
 
 ## 手机用户名重复校验
 ### 接口说明
