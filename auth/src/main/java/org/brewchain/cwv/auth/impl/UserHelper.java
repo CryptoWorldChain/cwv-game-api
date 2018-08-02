@@ -191,7 +191,7 @@ public class UserHelper implements ActorService {
 		authUser.setUserName(pb.getUserName());
 		CWVCommonCountryExample countryExample = new CWVCommonCountryExample();
 		countryExample.createCriteria().andRegionCodeEqualTo(pb.getCountryCode());
-		CWVCommonCountry countryOb = (CWVCommonCountry) dao.commonCountryDao.selectOneByExample(countryExample);
+//		CWVCommonCountry countryOb = (CWVCommonCountry) dao.commonCountryDao.selectOneByExample(countryExample);
 //		authUser.setCountryId(countryOb.getCountryId());
 		authUser.setCountryCode(pb.getCountryCode());
 		// if(pb.getPhoneCode() !=null && pb.getPhoneCode().equals(""))

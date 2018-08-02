@@ -2173,10 +2173,10 @@ public class PropertyHelper implements ActorService {
 		String time = commonHelper.getSysSettingValue(CommonHelper.INCOMETIME);
 		ret.setNextIncomeTime(time);// 派息日期
 		switch (pb.getType()) {
-		case "1":
+		case "2":
 			ret.setIncomeTotal(userWallet.getIncomeOrdinary() + "");
 			break;
-		case "2":
+		case "1":
 			ret.setIncomeTotal(userWallet.getIncomeTypical() + "");
 			break;
 		case "3":
