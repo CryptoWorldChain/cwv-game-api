@@ -1152,7 +1152,7 @@ public class PropertyHelper implements ActorService {
 
 		CWVGamePropertyExample propertyExample = new CWVGamePropertyExample();
 		CWVGamePropertyExample.Criteria criteria = propertyExample.createCriteria();
-		criteria.andIsDisplayEqualTo("1").andGameMapIdEqualTo(Integer.parseInt(pb.getMapId()));
+		criteria.andGameMapIdEqualTo(Integer.parseInt(pb.getMapId()));
 
 		if (StringUtils.isNotBlank(pb.getPropertyName())) {
 			criteria.andPropertyNameEqualTo(pb.getPropertyName());

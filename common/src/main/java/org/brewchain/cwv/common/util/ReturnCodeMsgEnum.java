@@ -91,10 +91,10 @@ public enum ReturnCodeMsgEnum {
 	/**
 	 * 短信验证码
 	 */
-	VER_SUCCESS("01","验证码验证成功！"),
+	VER_SUCCESS("01","短信验证码验证成功！"),
 	VER_ERROR_EMPTY("62","没有短信验证记录，请重新发起短信验证！"),
 	VER_ERROR_DUPLICATE("63","有多条短信验证记录,请重新发起短信验证！"),
-	VER_ERROR_EXPIRED("64","验证码已过期，请重新发起短信验证！"),
+	VER_ERROR_EXPIRED("64","验证码已过期"),
 	VER_ERROR("65","短信验证码无效"),
 	VER_EXCEPTION("99","未知异常"),
 	

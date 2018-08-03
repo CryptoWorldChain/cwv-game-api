@@ -107,42 +107,37 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 		CWVCommonSmsVerifyExample exampleOld = new CWVCommonSmsVerifyExample();
 		exampleOld.createCriteria().andPhoneEqualTo(pb.getPhone()).andCountryCodeEqualTo(pb.getCountryCode())
 				.andVerifyTypeEqualTo(pb.getType()).andIsVerifyEqualTo("0");
-		List<Object> listOld = sysDaos.cwvcommonsmsverifyDao.selectByExample(exampleOld);
+		Object old = sysDaos.cwvcommonsmsverifyDao.selectOneByExample(exampleOld);
 		List<CWVCommonSmsVerify> listUpdate = new ArrayList<>();
 		String strMsg = null;
-		if (listOld != null && !listOld.isEmpty()) {
-			for (Object o : listOld) {
-				CWVCommonSmsVerify commonSmsVerify = (CWVCommonSmsVerify) listOld.get(0);
-				if (DateUtil.compare(commonSmsVerify.getExpires(), new Date()) > 0) {
-					// 判断是不是null 非null证明多个有效短信验证码 执行更新
-					if (strMsg == null) {
-						strMsg = String.format(msg, "加密世界", commonSmsVerify.getVerifyCode());
-						commonSmsVerify.setExpires(DateUtil.addMinute(new Date(), 5));
-						sysDaos.cwvcommonsmsverifyDao.updateByPrimaryKeySelective(commonSmsVerify);
-					} else {
-						listUpdate.add(commonSmsVerify);
-					}
-				} else {// 添加更新
-					listUpdate.add(commonSmsVerify);
-				}
-
+		if (old != null ) {
+			CWVCommonSmsVerify commonSmsVerify = (CWVCommonSmsVerify) old;
+			if (DateUtil.compare(commonSmsVerify.getExpires(), new Date()) > 0) {
+				strMsg = String.format(msg, "加密世界", commonSmsVerify.getVerifyCode());
+				sendMsg(pb, strMsg, ret);
+				if(!ret.getRetCode().equals(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode()))
+					return ;
+				commonSmsVerify.setExpires(DateUtil.addMinute(new Date(), 5));
+				sysDaos.cwvcommonsmsverifyDao.updateByPrimaryKeySelective(commonSmsVerify);
+			} else {// 添加更新
+				listUpdate.add(commonSmsVerify);
 			}
+
 		}
 		//更新旧短信验证码状态
 		if (!listUpdate.isEmpty()) {
 			CWVCommonSmsVerify record = new CWVCommonSmsVerify();
 			record.setIsVerify("1");
-
-			CWVCommonSmsVerifyExample example = new CWVCommonSmsVerifyExample();
-			example.createCriteria().andPhoneEqualTo(pb.getPhone()).andCountryCodeEqualTo(pb.getCountryCode())
-					.andVerifyTypeEqualTo(pb.getType()).andIsVerifyEqualTo("0");
-			sysDaos.cwvcommonsmsverifyDao.updateByExampleSelective(record, example);
+			sysDaos.cwvcommonsmsverifyDao.updateByExampleSelective(record, exampleOld);
 		}
 
 		// 验证码生成
 		String fixVer = RandomUtill.autoNumber(4);
 		if (strMsg == null) {
 			strMsg = String.format(msg, "加密世界", fixVer);
+			sendMsg(pb, strMsg, ret);
+			if(!ret.getRetCode().equals(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode()))
+				return ;
 			// 验证码入库
 			CWVCommonSmsVerify cWVCommonSmsVerify = new CWVCommonSmsVerify();
 			cWVCommonSmsVerify.setVerifyId(UUIDGenerator.generate());
@@ -157,9 +152,19 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 			sysDaos.cwvcommonsmsverifyDao.insertSelective(cWVCommonSmsVerify);
 		}
 		
+	}
+
+	public String deleteStartZero(String mobile) {
+		String strmobile = mobile;
+		BigDecimal bigNum = new BigDecimal(strmobile);
+		strmobile = "" + bigNum.toString();
+		return strmobile;
+	}
+	
+	public void sendMsg(PBSmsDeal pb, String strMsg, PRetMsgVerificationDeal.Builder ret){
+		
 		mobile = pb.getCountryCode() + pb.getPhone();
 		mobile = deleteStartZero(mobile.trim());
-
 		// 验证码入库
 
 		// 组装发送json
@@ -174,9 +179,8 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 		// 发送短信
 		val yearMeasureRet = sender.send(pp, 30000);
 		// 返回值处理
-		Map<String, Object> jsonRet = JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()),
+		Map<String, Object> jsonRet =  JsonSerializer.getInstance().deserialize(new String(yearMeasureRet.getBody()),
 				Map.class);
-
 		String code = jsonRet.get("code").toString();
 		String msgid = jsonRet.get("msgid").toString();
 		String error = jsonRet.get("error").toString();
@@ -185,18 +189,13 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 		if (!StringUtils.equals("0", code)) {
 			ret.setRetCode(ReturnCodeMsgEnum.AUT_ERROR.getRetCode());
 			ret.setRetMsg(ReturnCodeMsgEnum.AUT_ERROR.getRetMsg());
-			return;
+		}else{
+			ret.setRetCode(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.AUT_SUCCESS.getRetMsg());
 		}
-		ret.setRetCode(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode());
-		ret.setRetMsg(ReturnCodeMsgEnum.AUT_SUCCESS.getRetMsg());
+		
 
+		
+	}
 	
-	}
-
-	public String deleteStartZero(String mobile) {
-		String strmobile = mobile;
-		BigDecimal bigNum = new BigDecimal(strmobile);
-		strmobile = "" + bigNum.toString();
-		return strmobile;
-	}
 }

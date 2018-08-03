@@ -61,8 +61,8 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 		try {
 			verify(pack, pb, ret);
 		} catch (Exception e) {
-			ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
-			ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
+			ret.setRetCode(ReturnCodeMsgEnum.VER_EXCEPTION.getRetCode());
+			ret.setRetMsg(ReturnCodeMsgEnum.VER_EXCEPTION.getRetMsg());
 			log.warn("SmsVerificationService onPBPacket error...", e);
 		}
 		// 返回给客户端
@@ -92,6 +92,7 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 			example.createCriteria().andPhoneEqualTo(pb.getPhone())
 			.andVerifyTypeEqualTo(pb.getType())
 			.andIsVerifyEqualTo("0");
+			example.setOrderByClause("expires desc");
 			List<Object> list = sysDaos.cwvcommonsmsverifyDao.selectByExample(example);
 			if (list == null || list.isEmpty()) {
 				// 没有验证记录
@@ -115,12 +116,16 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 				} else {
 					// 获取对应用户的手机验证码
 					String strSmsVer = cWVCommonSmsVerify.getVerifyCode();
-					if (StringUtils.equals(strSmsVer, pb.getCode()) && !StringUtils.equals("3", pb.getType())) {//重置密码
+					if (StringUtils.equals(strSmsVer, pb.getCode())) {//重置密码
 						// 设置成已验证
 						cWVCommonSmsVerify.setIsVerify("1");
+						ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
+						ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
+					}else{
+						ret.setRetCode(ReturnCodeMsgEnum.VER_ERROR.getRetCode());
+						ret.setRetMsg(ReturnCodeMsgEnum.VER_ERROR.getRetMsg());
 					}
-					ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
-					ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
+					
 				}
 			}
 			

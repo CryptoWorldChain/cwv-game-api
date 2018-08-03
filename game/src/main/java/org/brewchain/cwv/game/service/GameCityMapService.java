@@ -72,7 +72,7 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 		
 		CWVGameMapExample mapExample = new CWVGameMapExample();
 		CWVGameMapExample.Criteria criteria = mapExample.createCriteria();
-		criteria.andStatusEqualTo("1").andIsDisplayEqualTo("1").andGameCityIdEqualTo(Integer.parseInt(pb.getCityId()));
+		criteria.andStatusEqualTo("1").andGameCityIdEqualTo(Integer.parseInt(pb.getCityId()));
 		
 		if(StringUtils.isNotBlank(pb.getShotName())){
 			criteria.andMapNameLikeInsensitive("%"+pb.getShotName()+"%");

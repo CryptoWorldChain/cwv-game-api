@@ -69,7 +69,7 @@ public class GameCountryCityService extends SessionModules<PBGameCity> {
 		
 		CWVGameCityExample cityExample = new CWVGameCityExample();
 		CWVGameCityExample.Criteria criteria = cityExample.createCriteria();
-		criteria.andStatusEqualTo("1").andIsDisplayEqualTo("1").andGameCountryIdEqualTo(Integer.parseInt(pb.getCountryId()));
+		criteria.andStatusEqualTo("1").andGameCountryIdEqualTo(Integer.parseInt(pb.getCountryId()));
 		
 		if(StringUtils.isNotBlank(pb.getShotName())){
 			criteria.andCityNameLikeInsensitive("%"+pb.getShotName()+"%");
