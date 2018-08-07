@@ -83,22 +83,17 @@ public class PropertyDrawTask implements Runnable {
 		
 		for(Object o : list) {
 			CWVMarketDraw draw = (CWVMarketDraw) o;
-			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHashRandom());
-			if(respGetTxByHash.getRetCode() == -1) {//失败
-				log.error("drawId:"+draw.getDrawId()+",chainTransHashRandom:"+draw.getChainTransHashRandom()+"==>查询异常");
-				continue;
-			}
-			String status = respGetTxByHash.getTransaction().getStatus();
+			String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHashRandom(), "");
 			
-			if( status == null || status.equals("") ) {
-				
+			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHashRandom());
+			
+			if(StringUtils.isEmpty(status)) {
 				continue;
 			}
 			
 			if(status.equals(ChainTransStatusEnum.DONE.getValue())){
 				//获取随机数
-				String random = "5";
-				
+				String random = respGetTxByHash.getTransaction().getResult();
 				String token = getTokenByRandom(random);
 				draw.setPropertyToken(token);
 				draw.setChainRandom(random);
@@ -129,7 +124,7 @@ public class PropertyDrawTask implements Runnable {
 				.andPropertyTypeEqualTo("2").addCriterion(
 						"property_id not in ( select property_id from cwv_market_draw where chain_status != '-1' or chain_status is null )");
 
-		example.setOffset(Integer.parseInt(random) - 1);
+		example.setOffset((int) Long.parseLong(random) - 1);
 		Object o = propertyHelper.getDao().gamePropertyDao.selectOneByExample(example);
 
 		final CWVGameProperty gameProperty = (CWVGameProperty) o;
