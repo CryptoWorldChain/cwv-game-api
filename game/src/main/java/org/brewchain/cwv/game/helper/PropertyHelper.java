@@ -20,13 +20,11 @@ import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCity;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDic;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameDicExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameMap;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGame;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyGameExample;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuctionExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
@@ -112,7 +110,6 @@ import org.brewchain.cwv.service.game.Game.RetData;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyIncome;
 import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo;
-import org.brewchain.cwv.service.game.User.PRetPropertyIncome.PropertyInfo.SubTypeInfo;
 import org.brewchain.cwv.service.game.User.PSPropertyIncome;
 import org.brewchain.cwv.service.game.User.PSPropertyIncomeClaim;
 import org.brewchain.wallet.service.Wallet.AccountCryptoTokenImpl;
@@ -869,15 +866,6 @@ public class PropertyHelper implements ActorService {
 		// 设置账户信息
 //		userWalletBuyer.setBalance(userWalletBuyer.getBalance().subtract(exchange.getSellPrice()));
 
-		// 设置交易记录
-		final CWVUserTransactionRecord recordBuy = new CWVUserTransactionRecord();
-		recordBuy.setCreateTime(new Date());
-		recordBuy.setCreateUser(exchange.getUserId());
-		recordBuy.setDetail("买入房产");
-		recordBuy.setGainCost(exchange.getSellPrice().negate());
-		recordBuy.setUserId(exchange.getUserId());
-		recordBuy.setMarketId(exchange.getExchangeId());
-		recordBuy.setType(MarketTypeEnum.EXCHANGE.getValue());
 
 		// 统一事务处理 暂时没有代码
 
@@ -898,8 +886,6 @@ public class PropertyHelper implements ActorService {
 				// 账户余额
 				userWalletBuyer.setUpdateTime(new Date());
 				dao.walletDao.updateByPrimaryKeySelective(userWalletBuyer);
-				// 账户交易记录
-				dao.userTransactionRecordDao.insert(recordBuy);
 
 				// 转到定时任务处理 start
 				// 更新房产
@@ -988,9 +974,9 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 		// 扣除手续费
-		double chargeRate = Double.parseDouble(PropertyJobHandle.EXCHANGE_CHARGE);
-		double charge = Arith.mul(pb.getPrice(), chargeRate) ;
-
+		
+		BigDecimal charge = chargeProcess(pb.getPrice());
+		
 		// 生成交易
 		// 调取卖出房产合约
 		CWVUserWallet account = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
@@ -1016,7 +1002,7 @@ public class PropertyHelper implements ActorService {
 
 		exchange.setPropertyId(Integer.parseInt(pb.getPropetyId()));
 		exchange.setSellPrice(new BigDecimal(pb.getPrice()));
-		exchange.setTax(new BigDecimal(charge).setScale(0, RoundingMode.HALF_UP));
+		exchange.setTax(charge);
 		exchange.setUserId(user.getUserId());
 		exchange.setCreateUser(user.getUserId()); // 卖出
 		exchange.setStatus((byte) 0);
@@ -1075,6 +1061,12 @@ public class PropertyHelper implements ActorService {
 		// 设置返回
 		ret.setRetCode(ReturnCodeMsgEnum.SPS_SUCCESS.getRetCode()).setRetMsg(ReturnCodeMsgEnum.SPS_SUCCESS.getRetMsg());
 
+	}
+
+	public BigDecimal chargeProcess(double price) {
+		double chargeRate = Double.parseDouble(PropertyJobHandle.EXCHANGE_CHARGE);
+		double charge = Arith.mul(price, chargeRate) ;
+		return new BigDecimal(charge).setScale(0, RoundingMode.HALF_UP);
 	}
 
 	/**
@@ -1331,12 +1323,7 @@ public class PropertyHelper implements ActorService {
 				@Override
 				public Object doInTransaction() {
 
-					CWVUserTransactionRecord recordAuction = new CWVUserTransactionRecord();
-					// 设置交易记录
-					recordAuction.setCreateTime(new Date());
-					recordAuction.setCreateUser(user.getUserId());
-					recordAuction.setDetail("竞拍房产");
-					recordAuction.setUserId(user.getUserId());
+					
 
 					CWVMarketAuction newAuction = new CWVMarketAuction();
 					newAuction.setBidId(bid.getBidId());
@@ -1360,7 +1347,6 @@ public class PropertyHelper implements ActorService {
 						}
 						auctionAccount.setBalance(balance);
 						// 交易记录
-						recordAuction.setGainCost(gainCost.negate());
 						newAuction.setLastBidPrice(old.getBidPrice());
 						newAuction.setBidPrice(new BigDecimal(pb.getPrice()));
 						// 更新参与人数数
@@ -1379,7 +1365,7 @@ public class PropertyHelper implements ActorService {
 						// 账户金额 ：查询余额时会同步链上余额，此处不做业务处理
 //						auctionAccount.setBalance(balance);
 						// 交易记录
-						recordAuction.setGainCost(gainCost.negate());
+						
 						// 更新参与人数
 						bid.setBiddersCount(bid.getBiddersCount() + 1);
 					}
@@ -1395,9 +1381,6 @@ public class PropertyHelper implements ActorService {
 //					auctionAccount.setUpdateTime(new Date());
 //					dao.walletDao.updateByPrimaryKeySelective(auctionAccount);
 					// 插入钱包操作记录
-					recordAuction.setMarketId(bid.getBidId());
-					recordAuction.setType(MarketTypeEnum.BID.getValue());
-					dao.userTransactionRecordDao.insert(recordAuction);
 					return null;
 				}
 			});
@@ -1432,7 +1415,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawPropertyBack(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -1532,7 +1515,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawPropertyBack(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		final CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -2436,9 +2419,17 @@ public class PropertyHelper implements ActorService {
 		propertyExample.setOrderByClause(" price_increase desc ");
 		RetData.Builder data = RetData.newBuilder();
 		MapPropertyDetail.Builder mapPropertyDetail = MapPropertyDetail.newBuilder();
-		mapPropertyDetail.setAveragePrice("");
-		mapPropertyDetail.setTotalValue("");
-		mapPropertyDetail.setRemainCount("");
+		long averagePrice = 0;
+		propertyExample.createCriteria().andPropertyStatusIn(
+				new ArrayList<String>(){{
+					this.add(PropertyStatusEnum.NOOWNER.getValue());
+					this.add(PropertyStatusEnum.BIDDING.getValue());
+				}});
+		int remainCount = dao.gamePropertyDao.countByExample(propertyExample);
+		
+		mapPropertyDetail.setTotalValue(pageUtil.getPageOut().getTotalCount());
+		mapPropertyDetail.setRemainCount(remainCount+"");
+		
 		for (Object o : list) {
 			CWVGameProperty gameProperty = (CWVGameProperty) o;
 
@@ -2446,7 +2437,10 @@ public class PropertyHelper implements ActorService {
 			propertyState.setPropertyId(gameProperty.getPropertyId() + "")
 					.setPropertyName(gameProperty.getPropertyName()).setPropertyStatus(Integer.parseInt(gameProperty.getPropertyStatus()))
 					.setPrice(gameProperty.getLastPrice() + "");
-
+			if(gameProperty.getLastPrice() != null) {
+				averagePrice += gameProperty.getLastPrice().longValue();
+			}
+			
 			CWVMarketExchangeExample exchangeExample = new CWVMarketExchangeExample();
 			exchangeExample.createCriteria().andPropertyIdEqualTo(gameProperty.getPropertyId())
 					.andStatusEqualTo(PropertyExchangeStatusEnum.SOLD.getValue());
@@ -2463,6 +2457,7 @@ public class PropertyHelper implements ActorService {
 
 			mapPropertyDetail.addPropertyState(propertyState);
 		}
+		mapPropertyDetail.setAveragePrice(averagePrice+"");
 		mapPropertyDetail.setPage(pageUtil.getPageOut());
 		data.setMapPropertyDetail(mapPropertyDetail);
 

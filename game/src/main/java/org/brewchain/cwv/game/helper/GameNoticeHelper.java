@@ -87,10 +87,12 @@ public class GameNoticeHelper implements ActorService {
 	public enum NoticeTradeTypeEnum{
 		DRAW_ERROR("1","抽奖未获取到房产%"),
 		BUY_ERROR("2","购买房产%失败"),
-		AUCTION_ERROR("3","房产%竞拍未拿到第一"),
-		AUCTION_DONE("4","竞拍第一拿到房产%"),
+		BID_ERROR("3","房产%竞拍未拿到第一"),
+		BID_DONE("4","竞拍第一拿到房产%"),
 		SELL_DONE("5","出售的房产%已被购买"),
-		BUY_DONE("6","成功购买房产%");
+		BUY_DONE("6","成功购买房产%"),
+		AUCTION_ERROR("7","竞价房产%失败"),
+		AUCTION_DONE("8","竞价房产%成功");
 		private String key;
 		private String value;
 		private NoticeTradeTypeEnum(String key, String value) {

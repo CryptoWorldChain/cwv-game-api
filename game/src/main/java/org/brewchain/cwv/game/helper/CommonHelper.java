@@ -6,6 +6,8 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDicExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketException;
+import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.game.dao.Daos;
@@ -83,6 +85,22 @@ public class CommonHelper implements ActorService {
 		txManage.setType(key);
 		txManage.setStatus(0);
 		dao.txManangeDao.insert(txManage);
+		
+	}
+	
+	/**
+	 * 添加交易异常记录
+	 * @param type
+	 * @param marketId
+	 * @param detail
+	 */
+	public void marketExceptionAdd(String type, Integer marketId, String detail) {
+		CWVMarketException exception = new CWVMarketException();
+		exception.setType(type);
+		exception.setMarketId(marketId);
+		exception.setDescription(detail);
+		exception.setStatus(0);
+		dao.marketExceptionDao.insert(exception);
 		
 	}
 

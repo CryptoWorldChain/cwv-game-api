@@ -66,7 +66,9 @@ public class PropertyExchangeBuyTask implements Runnable {
 		CWVMarketExchangeBuyExample buyExample = new CWVMarketExchangeBuyExample();
 		buyExample.createCriteria()
 		.andChainStatusGroupEqualTo(ChainTransStatusEnum.ERROR.getKey())
-		.andChainStatusGroupIsNotNull();//hash为null的情况，已在group执行失败时处理
+		.andChainTransHashGroupIsNotNull()
+		.andChainStatusRollbackIsNull()
+		;//hash为null的情况，已在group执行失败时处理
 		final List<Object> list = dao.exchangeBuyDao.selectByExample(buyExample);
 		
 		//返回参数
@@ -164,7 +166,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 		for(Object o : list) {
 			CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
 			
-			BigDecimal charge = buy.getAmount().multiply(new BigDecimal(PropertyJobHandle.EXCHANGE_CHARGE)).setScale(0, RoundingMode.HALF_UP);
+			BigDecimal charge = propertyHelper.chargeProcess(buy.getAmount().doubleValue());
 			//amount input
 			MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
 			input.setAddress(accountMap.getAddress());//发起方地址 *
@@ -270,6 +272,12 @@ public class PropertyExchangeBuyTask implements Runnable {
 		
 		for(Object o : list) {
 			
+			try {
+				Thread.currentThread().sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
 			
 			exchangeBuyRollBack(buy);

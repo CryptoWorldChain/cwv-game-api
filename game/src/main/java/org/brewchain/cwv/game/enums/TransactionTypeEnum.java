@@ -33,8 +33,9 @@ public enum TransactionTypeEnum {
 	EXCHANGE_BUY_GROUP("010104","exchange_buy_group"),//√
 	BID("0102","bid"),
 	BID_CREATE("010201","bid_create"),//√
-	BID_CREATE_CANCEL("010202","bid_create_cancel"),//√ 没有status
-	BID_AUCTION("010203","bid_auction"),//√ 没有status
+	BID_CREATE_CANCEL("010202","bid_create_cancel"),//√
+	BID_AUCTION("010203","bid_auction"),//√
+	BID_AUCTION_END("010204","bid_auction_end"),//
 	DRAW("0103","draw"),
 	DRAW_RANDOM("010301","draw_random"),//√ 没有status
 	DRAW_GROUP("010302","draw_group"),//√
@@ -43,6 +44,7 @@ public enum TransactionTypeEnum {
 	INCOME_CREATE("020101","income_create"),//√
 	INCOME_CLAIM("020102","income_claim"),//√
 	CONTRACT_CREATE("0301","contract_create");
+	
 	private final String key;
 	private final String value;
 	

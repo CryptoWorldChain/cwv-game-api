@@ -158,15 +158,15 @@ public class PropertyIncomeTask implements Runnable {
 		//单个普通房产收益
 //		double singleOrdinary = incomeDivided/((listTypical.size() * TYPICAL_TO_DIVIDED/ORDINARY_TO_DIVIDED) + listOrdinary.size());
 		
-		double singleOrdinary = Arith.div(incomeDivided, listOrdinary.size() );
+		double singleOrdinary = listOrdinary.size() == 0 ? 0:Arith.div(incomeDivided, listOrdinary.size() );
 		BigDecimal singleOrdinaryAmount = new BigDecimal(singleOrdinary).setScale(0, RoundingMode.FLOOR);
 		
 		//单个功能房产收益
-		double singleTypical = Arith.div(incomeDivided, listTypical.size() ); 
+		double singleTypical = listTypical.size() == 0 ? 0:Arith.div(incomeDivided, listTypical.size() ); 
 		BigDecimal singleTypicalAmount = new BigDecimal(singleTypical).setScale(0, RoundingMode.FLOOR);
 		
 		//单个功能房产收益
-		double singleFunctional = Arith.div(incomeDivided, listFunctional.size() );
+		double singleFunctional = listFunctional.size() == 0 ? 0:Arith.div(incomeDivided, listFunctional.size() );
 		BigDecimal singleFunctionalAmount = new BigDecimal(singleFunctional).setScale(0, RoundingMode.FLOOR);
 		
 		
