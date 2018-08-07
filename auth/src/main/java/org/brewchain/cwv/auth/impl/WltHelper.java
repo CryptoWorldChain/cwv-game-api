@@ -877,7 +877,7 @@ public class WltHelper implements ActorService {
 		return null;
 	}
 	
-	public CodeBuild.Result buildContract(String busi) {
+	public CodeBuild.Result buildContract(String busi, Object...args) {
 		
 		String contractFile = null;
 		if(ContractTypeEnum.EXCHANGE_CONTRACT.getName().equals(busi)){
@@ -902,7 +902,7 @@ public class WltHelper implements ActorService {
 	        
 	        CodeBuild.Build  cvm = CodeBuild.newBuild(CodeBuild.Type.SOLIDITY);
 	        
-	        CodeBuild.Result ret = cvm.build(code);
+	        CodeBuild.Result ret = cvm.build(code,args);
 	        return ret;
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -919,12 +919,4 @@ public class WltHelper implements ActorService {
         return encAPI.hexEnc(functionCallBytes);
 	}
 	
-	public String methodBuild(CodeBuild.Result res,String method, Object...objs){
-        CallTransaction.Contract contract = new CallTransaction.Contract(res.abi);
-        CallTransaction.Function inc = method == null || method.equals("") ? 
-        		contract.getConstructor() : contract.getByName(method);
-        byte[] functionCallBytes = inc.encode(objs);
-        
-        return encAPI.hexEnc(functionCallBytes);
-	}
 }
