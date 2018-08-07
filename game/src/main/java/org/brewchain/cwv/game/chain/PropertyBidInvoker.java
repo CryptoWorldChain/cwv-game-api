@@ -36,6 +36,15 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 		super();
 	}
 	
+	
+	public RespCreateTransaction.Builder getblocklow(String auctionAddress,String contractAddress) {
+		
+		String data = wltHelper.excuteContract(ContractTypeEnum.AUCTION_CONTRACT.getName(), "getblocklow");
+		
+		return wltHelper.excuteContract(new BigDecimal("0"), auctionAddress, contractAddress, data);
+		
+	}
+	
 	/**
 	 * 创建竞拍
 	 * @param buyAddress
@@ -60,18 +69,17 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 			return ret.setRetCode(80).setRetMsg("竞拍止期不能为空");
 		}
 		
-		CodeBuild.Result res = wltHelper.buildContract(ContractTypeEnum.AUCTION_CONTRACT.getName());
+		CodeBuild.Result res = wltHelper.buildContract(ContractTypeEnum.AUCTION_CONTRACT.getName(),token,bid.getAuctionStart().getTime(),
+				bid.getAuctionEnd().getTime(), getBlockTime() ,bid.getBidStart(),
+				bid.getIncreaseLadder());
 		if(res==null||StringUtils.isNotBlank(res.error)){
 			ret.setRetMsg("创建合约失败，请重新操作");
 			ret.setRetCode(-1);
 			log.debug("合约编译失败");
 			return ret;
 		}
-		String consData = wltHelper.methodBuild(res, null, token,bid.getAuctionStart().getTime(),
-				bid.getAuctionEnd().getTime(),bid.getAuctionEnd().getTime()-bid.getAuctionStart().getTime(),bid.getBidStart(),
-				bid.getIncreaseLadder());
 		
-		ret = wltHelper.createContract(address, new BigDecimal("0"), res.data+consData , ContractTypeEnum.AUCTION_CONTRACT.getName());
+		ret = wltHelper.createContract(address, new BigDecimal("0"), res.data , ContractTypeEnum.AUCTION_CONTRACT.getName());
 		
 		return ret.setRetCode(1);
 	}
@@ -83,14 +91,10 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 	 * @return
 	 */
 	public RespCreateTransaction.Builder auctionProperty(String auctionAddress, String contractAddress, Double bidAmount ){
-		
-		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
-		CodeBuild.Result res = wltHelper.buildContract(ContractTypeEnum.AUCTION_CONTRACT.getName());
-		
-		String data = wltHelper.methodBuild(res, "auctionBid", bidAmount.longValue());
-		
+//		RespCreateTransaction.Builder builder = getblocklow(auctionAddress, contractAddress);
+//		System.out.println(builder.getRetCode()+"=="+builder.getRetMsg());
+		String data = wltHelper.excuteContract(ContractTypeEnum.AUCTION_CONTRACT.getName(), "auctionBid", bidAmount.longValue());
 		return wltHelper.excuteContract(new BigDecimal("0"), auctionAddress, contractAddress, data);
-		
 	}
 	
 	
@@ -106,4 +110,15 @@ public class PropertyBidInvoker extends Invoker implements ActorService {
 		return ret.setRetCode(1);
 	}
 	
+	
+	/**
+	 * 结束竞拍
+	 * @param auctionAddress
+	 * @param contractAddress
+	 * @return
+	 */
+	public RespCreateTransaction.Builder auctionEnd(String auctionAddress, String contractAddress){
+		String data = wltHelper.excuteContract(ContractTypeEnum.AUCTION_CONTRACT.getName(), "auctionEnd");
+		return wltHelper.excuteContract(new BigDecimal("0"), auctionAddress, contractAddress, data);
+	}
 }

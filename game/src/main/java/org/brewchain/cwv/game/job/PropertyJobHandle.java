@@ -69,28 +69,31 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					try {
-						Thread.sleep(5000L);
-						log.info("waiting for loading the dao beans ....");
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					
+					while (propertyHelper == null ) {
+						try {
+							Thread.sleep(5000L);
+							log.info("waiting for loading the propertyHelper bean ....");
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
-					if(propertyHelper != null ) {
-						if(SYS_PROPERTY_ADDR == null)
-							SYS_PROPERTY_ADDR = propertyHelper.getCommonHelper().getSysSettingValue("sys_property_addr");
-						if(EXCHANGE_CHARGE == null)
-							EXCHANGE_CHARGE = propertyHelper.getCommonHelper().getSysSettingValue("exchange_charge");
-						if(SYS_INCOME_ADDRESS == null)
-							SYS_INCOME_ADDRESS = propertyHelper.getCommonHelper().getSysSettingValue("sys_income_address");
-						if(MARKET_EXCHANGE_AGENT == null)
-							MARKET_EXCHANGE_AGENT = propertyHelper.getCommonHelper().getSysSettingValue("market_exchange_agent");
-						
-						
-						log.info("the dao beans loading success....");
-						service = getService();
-						if (service != null) {
-							// 延迟0， 间隔1， 单位：SECONDS
+					
+					if(SYS_PROPERTY_ADDR == null)
+						SYS_PROPERTY_ADDR = propertyHelper.getCommonHelper().getSysSettingValue("sys_property_addr");
+					if(EXCHANGE_CHARGE == null)
+						EXCHANGE_CHARGE = propertyHelper.getCommonHelper().getSysSettingValue("exchange_charge");
+					if(SYS_INCOME_ADDRESS == null)
+						SYS_INCOME_ADDRESS = propertyHelper.getCommonHelper().getSysSettingValue("sys_income_address");
+					if(MARKET_EXCHANGE_AGENT == null)
+						MARKET_EXCHANGE_AGENT = propertyHelper.getCommonHelper().getSysSettingValue("market_exchange_agent");
+					
+					
+					log.info("the dao beans loading success....");
+					service = getService();
+					if (service != null) {
+						// 延迟0， 间隔1， 单位：SECONDS
 //								service.scheduleAtFixedRate(new Runnable() {
 //									public void run() {
 //										try {
@@ -101,23 +104,22 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 //									}
 //								}, numZero, numOne, TimeUnit.MINUTES);
 //								bool = false;
-							// 分发任务
+						// 分发任务
 //								ExecutorService es = Executors.newFixedThreadPool(POOL_SIZE);
 //								ExecutorService esSub = Executors.newFixedThreadPool(POOL_SIZE);
 //								 延迟0， 间隔1， 单位：SECONDS
-							log.info("job service start....");
-//							service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.SECONDS);
+						log.info("job service start....");
+						service.scheduleAtFixedRate(new PropertyBidTask(propertyHelper), numZero, numIntervalTime, TimeUnit.SECONDS);
 //							//任务开启时间 设置
-							service.scheduleAtFixedRate(new PropertyDrawTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
+						service.scheduleAtFixedRate(new PropertyDrawTask(propertyHelper), numZero, PropertyIncomeTask.DAY_PERIOD, TimeUnit.MINUTES);
 //							//任务开启时间 设置
-							
-							//任务开启时间 设置
+						
+						//任务开启时间 设置
 //							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-							service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-							service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-							service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
-							
-						}
+						service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+						service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+						service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+						
 					}
 				}
 			}).start();

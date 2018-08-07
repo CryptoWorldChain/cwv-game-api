@@ -65,4 +65,10 @@ public class Invoker {
 		
 		return wltHelper.createTx(new BigDecimal("0"), toAddress, fromAddress, "house", cryptoToken);
 	}
+	
+	
+	public long getBlockTime() {
+		
+		return Long.parseLong(commonHelper.getSysSettingValue("chain_block_time"));
+	}
 }

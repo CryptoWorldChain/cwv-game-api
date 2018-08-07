@@ -29,6 +29,7 @@ import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopupExample;
+import org.brewchain.cwv.game.chain.BidAuctionRetEnum;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.MarketTypeEnum;
@@ -42,6 +43,7 @@ import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.helper.GameNoticeHelper;
 import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTradeTypeEnum;
 import org.brewchain.cwv.game.helper.GameNoticeHelper.NoticeTypeEnum;
+import org.brewchain.cwv.game.service.GamePropertyChargeService;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.wallet.service.Wallet.RespGetTxByHash;
@@ -430,7 +432,7 @@ public class TransactionStatusTask implements Runnable {
 		String noticeSellContent = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.DRAW_ERROR,property.getPropertyName(), null );
 		Calendar c = Calendar.getInstance();
 		String startTime = DateUtil.getDayTime(c.getTime());
-		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.OFFICE.getValue(), draw.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeSellContent);
+		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.USER.getValue(), draw.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeSellContent);
 	
 	}
 
@@ -450,8 +452,10 @@ public class TransactionStatusTask implements Runnable {
 
 
 	private void drawRandomDone(CWVMarketDraw draw) {
+		RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHashRandom());
+		
 		//TODO: 获取随机数
-		String random = "5";
+		String random = respGetTxByHash.getTransaction().getResult();
 		
 		String token = getTokenByRandom(random);
 		draw.setPropertyToken(token);
@@ -501,7 +505,7 @@ public class TransactionStatusTask implements Runnable {
 	}
 
 	private void bidAuctionProcess(CWVGameTxManage manage) {
-		List<Object> list = getBidListByTxHash(manage.getTxHash());
+		List<Object> list = getAuctionListByTxHash(manage.getTxHash());
 		
 		if(manage.getChainStatus().byteValue()==ChainTransStatusEnum.DONE.getKey())
 			for(Object o : list) {
@@ -513,6 +517,15 @@ public class TransactionStatusTask implements Runnable {
 			}
 
 	}
+
+	private List<Object> getAuctionListByTxHash(String txHash) {
+		CWVMarketAuctionExample example = new CWVMarketAuctionExample();
+		example.createCriteria().andChainTransHashEqualTo(txHash);
+		
+		return propertyHelper.getDao().auctionDao.selectByExample(example);
+		
+	}
+
 
 	/**
 	 * 撤销创建竞拍
@@ -622,7 +635,7 @@ public class TransactionStatusTask implements Runnable {
 			String noticeSellContent = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.BUY_ERROR,exchange2.getPropertyName(), null );
 			Calendar c = Calendar.getInstance();
 			String startTime = DateUtil.getDayTime(c.getTime());
-			propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.OFFICE.getValue(), exchange.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeSellContent);
+			propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.USER.getValue(), exchange.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeSellContent);
 			
 		}
 		
@@ -670,32 +683,54 @@ public class TransactionStatusTask implements Runnable {
 				property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
 				
 				propertyHelper.getDao().gamePropertyDao.updateByPrimaryKeySelective(property);
-//				
 				
-				CWVUserWallet seller = propertyHelper.getWalletHelper().getUserAccount(exchange.getCreateUser(), CoinEnum.CWB);
+				// 买入房产记录
+				final CWVUserTransactionRecord recordBuy = new CWVUserTransactionRecord();
+				recordBuy.setCreateTime(new Date());
+				recordBuy.setUserId(exchange.getUserId());
+				recordBuy.setCreateUser(exchange.getUserId());
+				recordBuy.setDetail("买入房产");
+				recordBuy.setGainCost(exchange.getSellPrice().negate());
+				recordBuy.setMarketId(exchange.getExchangeId());
+				recordBuy.setType(MarketTypeEnum.EXCHANGE.getValue());
+				propertyHelper.getDao().userTransactionRecordDao.insert(recordBuy);
+				
+				//卖出房产记录
 				CWVUserTransactionRecord transactionRecord = new CWVUserTransactionRecord();
-				transactionRecord.setCreateUser(seller.getUserId());
+				transactionRecord.setCreateUser(exchange.getCreateUser());
+				transactionRecord.setUserId(exchange.getCreateUser());
 				transactionRecord.setCreateTime(new Date());
 				transactionRecord.setDetail("卖出房产");
 				transactionRecord.setMarketId(exchange.getExchangeId());
 				transactionRecord.setType(MarketTypeEnum.EXCHANGE.getValue());
 				transactionRecord.setStatus((byte)0);
-				transactionRecord.setGainCost(exchange.getSellPrice().subtract(exchange.getTax()));
+				transactionRecord.setGainCost(exchange.getSellPrice());
 				propertyHelper.getDao().userTransactionRecordDao.insert(transactionRecord);
+				//扣税
+				CWVUserTransactionRecord taxRecord = new CWVUserTransactionRecord();
+				taxRecord.setCreateUser(exchange.getCreateUser());
+				taxRecord.setUserId(exchange.getCreateUser());
+				taxRecord.setCreateTime(new Date());
+				taxRecord.setDetail("卖出扣税");
+				taxRecord.setMarketId(exchange.getExchangeId());
+				taxRecord.setType(MarketTypeEnum.EXCHANGE.getValue());
+				taxRecord.setStatus((byte)0);
+				taxRecord.setGainCost(exchange.getTax());
+				propertyHelper.getDao().userTransactionRecordDao.insert(taxRecord);
 				
 
 				//创建 卖出成功消息
 				String noticeSellContent = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.SELL_DONE,property.getPropertyName(), null );
 				Calendar c = Calendar.getInstance();
 				String startTime = DateUtil.getDayTime(c.getTime());
-				propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.OFFICE.getValue(), exchange.getCreateUser()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeSellContent);
+				propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.USER.getValue(), exchange.getCreateUser()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeSellContent);
 				//创建 买入成功消息
 				String noticeBuycontent = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.BUY_DONE,property.getPropertyName(), null );
-				propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.OFFICE.getValue(), exchange.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeBuycontent);
+				propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.USER.getValue(), exchange.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", noticeBuycontent);
 				
 				
 			} catch (Exception e) {
-				// TODO: handle exception
+				e.printStackTrace();
 			}
 			
 		}
@@ -1013,14 +1048,61 @@ public class TransactionStatusTask implements Runnable {
 
 	private void bidAuctionDone(final CWVMarketAuction auction) {
 		
+		RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(auction.getChainTransHash());
+		
+		String retCode = respGetTxByHash.getTransaction().getResult();
 		auction.setChainStatus(ChainTransStatusEnum.DONE.getKey());
-	
+		//用于生成记录
 		CWVMarketBid marketBid = new CWVMarketBid();
 		marketBid.setBidId(auction.getBidId());
 		final CWVMarketBid bid = propertyHelper.getDao().bidDao.selectByPrimaryKey(marketBid);
+		//用于生成消息通知
+		CWVGameProperty property = new CWVGameProperty();
+		property.setPropertyId(bid.getGamePropertyId());
+		property = propertyHelper.getDao().gamePropertyDao.selectByPrimaryKey(property);
+		
+		if(Long.parseLong(retCode)!=BidAuctionRetEnum.AUCTION_BID_SUCCESS.getRetCode()){
+			
+			auction.setStatus(Byte.parseByte(retCode));
+			propertyHelper.getDao().auctionDao.updateByPrimaryKeySelective(auction);
+			//竞价失败消息
+			String content = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.AUCTION_ERROR,property.getPropertyName(), null );
+			Calendar c = Calendar.getInstance();
+			String startTime = DateUtil.getDayTime(c.getTime());
+			propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.USER.getValue(), auction.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", content+":"+BidAuctionRetEnum.getValue(Long.parseLong(retCode)));
+		
+			//竞拍已结束
+			if(Long.parseLong(retCode) == BidAuctionRetEnum.AUCTION_BID_IS_END.getRetCode()) {
+				//更新竞拍信息
+				PropertyBidTask.noticeSetProcess(bid, propertyHelper);
+				
+				//调取竞拍结束方法
+				PropertyBidTask.auctionEnd(Integer.parseInt(bid.getCreateUser()), bid.getChainContract(), propertyHelper);
+			}
+			
+			return ;
+		}
+		
 		// 发起竞拍账户
 //		final CWVUserWallet bidAccount = propertyHelper.getWalletHelper().getUserAccount(Integer.parseInt(bid.getCreateUser()), CoinEnum.CWB);
 //		bidAccount.setBalance(bidAccount.getBalance().add(auction.getBidPrice()).subtract(auction.getLastBidPrice()));
+	
+		//竞价失败消息
+		String content = propertyHelper.getGameNoticeHelper().noticeTradeTpl(NoticeTradeTypeEnum.AUCTION_DONE,property.getPropertyName(), null );
+		Calendar c = Calendar.getInstance();
+		String startTime = DateUtil.getDayTime(c.getTime());
+		propertyHelper.getGameNoticeHelper().noticeCreate(NoticeTypeEnum.USER.getValue(), auction.getUserId()+"",startTime, DateUtil.getDayTime(c.getTime()), "5", "3", content);
+		
+		// 设置交易记录
+		CWVUserTransactionRecord recordAuction = new CWVUserTransactionRecord();
+		recordAuction.setCreateTime(new Date());
+		recordAuction.setCreateUser(auction.getUserId());
+		recordAuction.setDetail("竞价房产");
+		recordAuction.setUserId(auction.getUserId());
+		recordAuction.setGainCost(auction.getBidPrice().subtract(auction.getLastBidPrice()).negate());
+		recordAuction.setMarketId(auction.getBidId());
+		recordAuction.setType(MarketTypeEnum.BID.getValue());
+		propertyHelper.getDao().userTransactionRecordDao.insert(recordAuction);
 		
 		final CWVUserTransactionRecord recordBid = new CWVUserTransactionRecord();
 		// 设置交易记录
@@ -1030,7 +1112,6 @@ public class TransactionStatusTask implements Runnable {
 		recordBid.setUserId(Integer.parseInt(bid.getCreateUser()));
 		recordBid.setGainCost(auction.getBidPrice().subtract(auction.getLastBidPrice()));
 		//
-		recordBid.setMarketId(bid.getBidId());
 		recordBid.setMarketId(bid.getBidId());
 		recordBid.setType(MarketTypeEnum.BID.getValue());
 		
