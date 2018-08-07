@@ -118,7 +118,6 @@ public class SmsVerificationService extends SessionModules<PBVerificationDeal> {
 					String strSmsVer = cWVCommonSmsVerify.getVerifyCode();
 					if (StringUtils.equals(strSmsVer, pb.getCode())) {//重置密码
 						// 设置成已验证
-						cWVCommonSmsVerify.setIsVerify("1");
 						ret.setRetCode(ReturnCodeMsgEnum.VER_SUCCESS.getRetCode());
 						ret.setRetMsg(ReturnCodeMsgEnum.VER_SUCCESS.getRetMsg());
 					}else{
