@@ -70,30 +70,34 @@ public class PropertyIncomeTask implements Runnable {
 		log.info("PropertyIncomeTask execute time : "+DateUtil.getDayTime(new Date()));
 		//收益处理
 		//判断执行时间
-		CWVSysSetting setting = propertyHelper.getCommonHelper().getSysSettingEntity(PropertyIncomeTask.INCOME_TIME);
-		if(setting == null) {
-			return;
-		}
-		Date incomeTime = null;
 		try {
-			incomeTime = DateUtil.getDateTime(setting.getValue());
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		if(org.brewchain.cwv.auth.util.DateUtil.compare(new Date(), incomeTime)<0) {
-			return;
-		}
-	
-		incomeRecordCreate();
-		Calendar a = Calendar.getInstance();
-		a.setTime(incomeTime);
-		a.add(Calendar.DATE, DAY_PERIOD);
-		setting.setValue(DateUtil.getDayTime(a.getTime()));
-		propertyHelper.getDao().settingDao.updateByPrimaryKeySelective(setting);
-		log.info("PropertyIncomeTask execute next time : "+setting.getValue());
-		
-		userIncomeCreateProcess();
 			
+			CWVSysSetting setting = propertyHelper.getCommonHelper().getSysSettingEntity(PropertyIncomeTask.INCOME_TIME);
+			if(setting == null) {
+				return;
+			}
+			Date incomeTime = null;
+			try {
+				incomeTime = DateUtil.getDateTime(setting.getValue());
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			if(org.brewchain.cwv.auth.util.DateUtil.compare(new Date(), incomeTime)<0) {
+				return;
+			}
+			
+			incomeRecordCreate();
+			Calendar a = Calendar.getInstance();
+			a.setTime(incomeTime);
+			a.add(Calendar.DATE, DAY_PERIOD);
+			setting.setValue(DateUtil.getDayTime(a.getTime()));
+			propertyHelper.getDao().settingDao.updateByPrimaryKeySelective(setting);
+			log.info("PropertyIncomeTask execute next time : "+setting.getValue());
+			
+			userIncomeCreateProcess();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		log.info("PropertyIncomeTask ended ....");
 	}
 	
@@ -133,23 +137,28 @@ public class PropertyIncomeTask implements Runnable {
 //			}
 //			
 //		}
+		
+		String supperUser = propertyHelper.getCommonHelper().getSysSettingValue("supper_user");
 		//
 		//计算 普通房产+标志性房产的分工收益
 		CWVGamePropertyExample ordinaryExample = new CWVGamePropertyExample();
 		ordinaryExample.createCriteria().andPropertyTypeEqualTo(PropertyTypeEnum.ORDINARY.getValue())
-		.andCryptoTokenIsNotNull();
+		.andCryptoTokenIsNotNull()
+		.andUserIdNotEqualTo(Integer.parseInt(supperUser));
 //		criteria1.andUserIdIn(listUser);
 		List<Object> listOrdinary = propertyHelper.getDao().gamePropertyDao.selectByExample(ordinaryExample);
 	
 		CWVGamePropertyExample typicalExample = new CWVGamePropertyExample();
 		typicalExample.createCriteria().andPropertyTypeEqualTo(PropertyTypeEnum.TYPICAL.getValue())
-		.andCryptoTokenIsNotNull();
+		.andCryptoTokenIsNotNull()
+		.andUserIdNotEqualTo(Integer.parseInt(supperUser));
 //		criteria2.andUserIdIn(listUser);
 		List<Object> listTypical = propertyHelper.getDao().gamePropertyDao.selectByExample(typicalExample);
 		
 		CWVGamePropertyExample functionalExample = new CWVGamePropertyExample();
 		functionalExample.createCriteria().andPropertyTypeEqualTo(PropertyTypeEnum.FUNCTIONAL.getValue())
-		.andCryptoTokenIsNotNull();
+		.andCryptoTokenIsNotNull()
+		.andUserIdNotEqualTo(Integer.parseInt(supperUser));
 //		criteria2.andUserIdIn(listUser);
 		List<Object> listFunctional = propertyHelper.getDao().gamePropertyDao.selectByExample(functionalExample);
 		
