@@ -156,6 +156,9 @@ contract Auction{
       }
 
     }
+    function getMaxPriceAndAddress()public view returns(string){
+        return ""+highestBid+";"+highestBidder;
+    }
 
     function getMaxPrice() public view returns(uint256){
         return highestBid;
@@ -188,9 +191,6 @@ contract Auction{
     function getendTime() public view returns(uint256){
         return endTime;
     }
-
-
-
     function getTokenID() public view returns(string){
         return tokenID;
     }
