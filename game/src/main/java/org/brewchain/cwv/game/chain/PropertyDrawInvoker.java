@@ -46,7 +46,7 @@ public class PropertyDrawInvoker extends Invoker implements ActorService  {
 	 * @return
 	 */
 	
-	public RespCreateTransaction.Builder drawProperty(String address, int num){
+	public synchronized RespCreateTransaction.Builder drawProperty(String address, int num){
 		
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		try {
@@ -61,6 +61,7 @@ public class PropertyDrawInvoker extends Invoker implements ActorService  {
 			}
 			
 			ret = wltHelper.excuteContract(new BigDecimal(0), address, contractAddress,data);
+			Thread.currentThread().sleep(3000);
 			return ret;
 		} catch (Exception e) {
 			ret.setRetCode(-1);
