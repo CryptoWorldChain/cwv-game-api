@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.brewchain.cwv.auth.enums.ContractTypeEnum;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketDraw;
@@ -17,6 +18,7 @@ import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
+import org.brewchain.cwv.game.enums.CryptoTokenEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.TransHashTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
@@ -79,7 +81,7 @@ public class PropertyDrawTask implements Runnable {
 		drawExample.createCriteria().andChainStatusIsNull()
 		.andChainStatusRandomEqualTo(ChainTransStatusEnum.START.getKey())
 		.andChainTransHashIsNotNull();//		.andchainStatus;
-		List<Object> list = dao.bidDao.selectByExample(drawExample);
+		List<Object> list = dao.drawDao.selectByExample(drawExample);
 		
 		for(Object o : list) {
 			CWVMarketDraw draw = (CWVMarketDraw) o;
@@ -93,7 +95,14 @@ public class PropertyDrawTask implements Runnable {
 			
 			if(status.equals(ChainTransStatusEnum.DONE.getValue())){
 				//获取随机数
-				String random = respGetTxByHash.getTransaction().getResult();
+				
+				Object[] objs = propertyHelper.getDrawInvoker().getResult(ContractTypeEnum.RANDOM_CONTRACT.getName(),"getFixedRange",respGetTxByHash.getTransaction().getResult());
+				String random = "";
+				if(objs != null) {
+					
+					random = (String) objs[0];
+				}
+				
 				String token = getTokenByRandom(random);
 				draw.setPropertyToken(token);
 				draw.setChainRandom(random);
@@ -180,7 +189,7 @@ public class PropertyDrawTask implements Runnable {
 		.andChainStatusRandomEqualTo(ChainTransStatusEnum.DONE.getKey())
 		.andChainRandomIsNotNull()
 		.andPropertyTokenIsNotNull();
-		List<Object> list = dao.bidDao.selectByExample(drawExample);
+		List<Object> list = dao.drawDao.selectByExample(drawExample);
 		String outputAddress = "";
 //		for(Object o : list) {
 //			CWVMarketDraw draw = (CWVMarketDraw) o;
@@ -221,14 +230,14 @@ public class PropertyDrawTask implements Runnable {
 			inputToken.setAddress(accountMap.getAddress());//发起方地址 *
 			inputToken.setNonce(account.getNonce());//交易次数 *
 			inputToken.setCryptoToken(draw.getPropertyToken());
-			inputToken.setSymbol("house");
+			inputToken.setSymbol(CryptoTokenEnum.CYT_HOUSE.getValue());
 			inputs.add(inputToken);
 			
 			//token output
 			MultiTransactionOutputImpl.Builder outputToken = MultiTransactionOutputImpl.newBuilder();
 			outputToken.setAddress(draw.getUserAddress());//接收方地址 *
 			outputToken.setCryptoToken(draw.getPropertyToken());
-			outputToken.setSymbol("house");
+			outputToken.setSymbol(CryptoTokenEnum.CYT_HOUSE.getValue());
 			outputs.add(outputToken);
 		}
 		
