@@ -11,6 +11,7 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.CoinEnum;
+import org.brewchain.cwv.game.enums.CryptoTokenEnum;
 import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.game.helper.WalletHelper;
 import org.brewchain.cwv.game.job.PropertyJobHandle;
@@ -85,7 +86,7 @@ public class PropertyExchangeInvoker implements ActorService {
 	 */
 	
 	public RespCreateTransaction.Builder sellProperty(String sellAddress, String cryptoToken, double price){
-		return wltHelper.createTx(new BigDecimal(price), PropertyJobHandle.MARKET_EXCHANGE_AGENT, sellAddress, "house", cryptoToken);
+		return wltHelper.createTx(new BigDecimal(price), PropertyJobHandle.MARKET_EXCHANGE_AGENT, sellAddress, CryptoTokenEnum.CYT_HOUSE.getValue(), cryptoToken);
 	}
 
 
@@ -95,7 +96,7 @@ public class PropertyExchangeInvoker implements ActorService {
 		CWVGameProperty property = new CWVGameProperty();
 		property.setPropertyId(exchange.getPropertyId());
 		property = dao.gamePropertyDao.selectByPrimaryKey(property);
-		return wltHelper.createTx(new BigDecimal("0"), wallet.getAccount(), PropertyJobHandle.MARKET_EXCHANGE_AGENT, "house", property.getCryptoToken());
+		return wltHelper.createTx(new BigDecimal("0"), wallet.getAccount(), PropertyJobHandle.MARKET_EXCHANGE_AGENT, CryptoTokenEnum.CYT_HOUSE.getValue(), property.getCryptoToken());
 	}
 	
 	
