@@ -250,7 +250,8 @@ public class PropertyHelper implements ActorService {
 					return;
 				}
 				for (int j = 0; j < tokens.size(); j++) {
-					ids.add(ByteUtil.byteArrayToInt(Hex.decodeHex(tokens.get(j).getCode().toCharArray())));
+//					ids.add(ByteUtil.byteArrayToInt(Hex.decodeHex(tokens.get(j).getCode().toCharArray())));
+					ids.add(Integer.parseInt(tokens.get(j).getCode()));
 					// sb.append(tokens.get(j).getCode());
 					// if(j<tokens.size()-1){
 					// sb.append(",");
@@ -1415,7 +1416,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawPropertyBack(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -1515,7 +1516,7 @@ public class PropertyHelper implements ActorService {
 	 * @param pb
 	 * @param ret
 	 */
-	public void drawProperty(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
+	public void drawPropertyBack(FramePacket pack, PSCommonDraw pb, PRetPropertyDraw.Builder ret) {
 		// 校验
 		final CWVAuthUser authUser = userHelper.getCurrentUser(pack);
 		// 查询抽奖机会
@@ -2017,18 +2018,18 @@ public class PropertyHelper implements ActorService {
 		}
 
 		// 交易密码
-		CWVUserTradePwd userTradePwd = userHelper.getTradePwd(user.getUserId());
-		if (userTradePwd == null) {
-			ret.setRetCode(ReturnCodeMsgEnum.CPB_VALIDATE_PWD_SET.getRetCode())
-					.setRetMsg(ReturnCodeMsgEnum.CPB_VALIDATE_PWD_SET.getRetMsg());
-			return;
-		} else {
-			if (!userTradePwd.getTradePassword().equals(userHelper.getPwdMd5(pb.getTradePwd(), user.getSalt()))) {
-				ret.setRetCode(ReturnCodeMsgEnum.CPB_ERROR_TRADE_PWD.getRetCode())
-						.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_TRADE_PWD.getRetMsg());
-				return;
-			}
-		}
+//		CWVUserTradePwd userTradePwd = userHelper.getTradePwd(user.getUserId());
+//		if (userTradePwd == null) {
+//			ret.setRetCode(ReturnCodeMsgEnum.CPB_VALIDATE_PWD_SET.getRetCode())
+//					.setRetMsg(ReturnCodeMsgEnum.CPB_VALIDATE_PWD_SET.getRetMsg());
+//			return;
+//		} else {
+//			if (!userTradePwd.getTradePassword().equals(userHelper.getPwdMd5(pb.getTradePwd(), user.getSalt()))) {
+//				ret.setRetCode(ReturnCodeMsgEnum.CPB_ERROR_TRADE_PWD.getRetCode())
+//						.setRetMsg(ReturnCodeMsgEnum.CPB_ERROR_TRADE_PWD.getRetMsg());
+//				return;
+//			}
+//		}
 
 		final CWVMarketBid bid = new CWVMarketBid();
 
