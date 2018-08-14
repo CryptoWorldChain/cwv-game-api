@@ -154,3 +154,26 @@ message MultiTransactionNodeImpl {//交易节点信息
 	string bcuid = 3;//节点唯一标识
 };
 
+message CryptoTokenData {//交易节点信息
+	int64 total = 1;
+	string symbol = 2;
+	bytes extData = 3;
+	repeated string name = 4;
+	repeated string code = 5;
+};
+
+message AccountCryptoToken {
+    bytes hash = 1; // Token的hash，hash(index,total,code,name,timestamp)
+    int64 timestamp = 2; // Token创建时间
+    int64 index = 3; // 该Token发行时的索引
+    int64 total = 4; // 该Token的发行总数量
+    string code = 5; // Token的编号
+    string name = 6; // Token的名称
+    bytes owner = 7; // 所有人的账户地址
+    int32 nonce = 8; // 交易次数
+    int64 ownertime = 9; // 所有人获取时间
+    bytes extData = 10;
+}
+
+
+

@@ -8,9 +8,11 @@ import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddress;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.sys.dao.CWVSysUrlResourceDao;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysUrlResource;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 
@@ -57,6 +59,12 @@ public class Dao implements ActorService, IJPAClient {
 	
 	@StoreDAO
 	public OJpaDAO<CWVGameContractAddress> contractAddressDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVGameTxManage> txManageDao;
+	
+	@StoreDAO
+	public OJpaDAO<CWVUserPropertyIncome> incomeDao;
 	
 	@Override
 	public void onDaoServiceAllReady() {

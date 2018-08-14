@@ -67,6 +67,9 @@ message UserInfo
 	string is_supper = 15;//手机代码
 	string country_id = 16; //游戏国家
 	string country_name = 17; //游戏国家名称
+	string income_ordinary = 19; //普通房产收益
+	string income_typical = 20; //标志性房产收益
+	string income_functional = 21; //功能性房产收益
 }
 
 message PSSendMsgCode //SMC   短信验证码请求信息
@@ -74,6 +77,8 @@ message PSSendMsgCode //SMC   短信验证码请求信息
 	string phone_code = 1;// 手机号所属国家代码
 	string phone = 2;// 手机号
 	string type = 3;//1:注册验证 2,修改密码
+	string code = 4;// 图片验证码
+	
 }
 
 message PSCommon{

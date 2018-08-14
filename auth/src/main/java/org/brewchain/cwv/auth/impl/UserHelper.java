@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.auth.dao.Dao;
+import org.brewchain.cwv.auth.enums.PropertyTypeEnum;
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.filter.SessionManager;
 import org.brewchain.cwv.auth.util.DateUtil;
@@ -35,12 +35,14 @@ import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUserExample;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountry;
 import org.brewchain.cwv.dbgens.common.entity.CWVCommonCountryExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameCountry;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameCountryExample;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
+import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
+import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.wallet.service.Wallet.RetNewAddress;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
@@ -323,6 +325,36 @@ public class UserHelper implements ActorService {
 				userInfo.setCountryName(country.getCountryName());
 			}
 		}
+		
+		//收益状态红点处理
+		CWVUserPropertyIncomeExample incomeExample = new CWVUserPropertyIncomeExample();
+		CWVUserPropertyIncomeExample.Criteria criteria = incomeExample.createCriteria();
+		criteria.andUserIdEqualTo(authUser.getUserId()).andMasterEqualTo(1);
+		// criteria.andStatusEqualTo((byte) 0);// 新建收益
+		criteria.andPropertyIdIsNull();// property_id为null为统计数据
+		criteria.andChainStatusEqualTo((byte) 1);
+		example.setOrderByClause(" income_id desc ");
+
+		
+		// 根据类型查询房产
+		List<Object> list = dao.incomeDao.selectByExample(example);
+		// 未领取收益
+		for(Object o : list) {
+			CWVUserPropertyIncome income = (CWVUserPropertyIncome) o;
+			
+			if(income.getStatus().intValue()==0 && income.getChainStatus().intValue()==1 && income.getChainStatusClaim() == null)             {
+				if(income.getType().toString().equals(PropertyTypeEnum.ORDINARY.getValue())) {
+					userInfo.setIncomeOrdinary("1");
+				} else if(income.getType().toString().equals(PropertyTypeEnum.ORDINARY.getValue())) {
+					userInfo.setIncomeOrdinary("1");
+				} else if(income.getType().toString().equals(PropertyTypeEnum.ORDINARY.getValue())) {
+					userInfo.setIncomeOrdinary("1");
+				}
+			}
+			
+			
+		}
+		
 		
 		// 查询交易密码
 		CWVUserTradePwd tradePwd = getTradePwd(authUser.getUserId());

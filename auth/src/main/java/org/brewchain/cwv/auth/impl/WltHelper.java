@@ -3,14 +3,12 @@ package org.brewchain.cwv.auth.impl;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
@@ -20,13 +18,14 @@ import org.brewchain.cwv.auth.dao.Dao;
 import org.brewchain.cwv.auth.enums.ContractTypeEnum;
 import org.brewchain.cwv.auth.util.DESedeCoder;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddress;
-import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddressExample;
+import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.wallet.service.Wallet.AccountCryptoTokenImpl;
 import org.brewchain.wallet.service.Wallet.AccountCryptoValueImpl;
 import org.brewchain.wallet.service.Wallet.AccountTokenValueImpl;
 import org.brewchain.wallet.service.Wallet.AccountValueImpl;
+import org.brewchain.wallet.service.Wallet.CryptoTokenData;
 import org.brewchain.wallet.service.Wallet.MultiTransactionBodyImpl;
 import org.brewchain.wallet.service.Wallet.MultiTransactionImpl;
 import org.brewchain.wallet.service.Wallet.MultiTransactionInputImpl;
@@ -283,10 +282,20 @@ public class WltHelper implements ActorService {
 			ret.setContractAddress(map.get("contractAddress").toString());
 			ret.setRetCode(1);
 			
+			CWVGameTxManage manage = new CWVGameTxManage();
+			manage.setChainStatus(0);
+			manage.setTxHash(ret.getTxHash());
+			manage.setStatus(0);
+			manage.setType("0301");
+			daos.txManageDao.insert(manage);
+			
 			CWVGameContractAddress contractAddress = new CWVGameContractAddress();
 			contractAddress.setContractAddress(map.get("contractAddress").toString());
 			contractAddress.setContractState("0");
+			contractAddress.setChainStatus((byte)0);
+			contractAddress.setChainTransHash(ret.getTxHash());
 			contractAddress.setContractType(type);
+			contractAddress.setCreateTime(new Date());
 			int cou = daos.contractAddressDao.insert(contractAddress);
 			if(cou!=1){
 				ret.setRetCode(-1);
@@ -368,6 +377,80 @@ public class WltHelper implements ActorService {
 		
 		transaction.setTxBody(txBody);//交易内容体 *
 		
+		reqCreateMultiTransaction.setTransaction(transaction);//交易内容 *
+		reqCreateMultiTransaction.setTimestamp(new Date().getTime());
+		
+		FramePacket fposttx = send(reqCreateMultiTransaction.build(),WLT_NTS);
+//		FramePacket fposttx = PacketHelper.buildUrlFromJson(new JsonPBFormat().printToString(reqCreateMultiTransaction.build()),"POST", getWltUrl(WLT_NTS));
+		val retReg = sender.send(fposttx, 30000);
+		ret = JsonSerializer.getInstance().deserialize(new String(retReg.getBody()), Map.class);
+		if(ret.get("retCode")!=null&&ret.get("retCode").toString().equals("1")){
+			respCreateTransaction.setTxHash(ret.get("txHash").toString()).setRetCode(1);
+		}else{
+			if(ret.get("retMsg")!=null){
+				respCreateTransaction.setRetMsg(ret.get("retMsg").toString());
+			}else{
+				respCreateTransaction.setRetMsg("创建交易失败");
+			}
+			respCreateTransaction.setRetCode(-1);
+		}
+		
+		return respCreateTransaction;
+	}
+	
+	/**
+	 * 创建cryptoToken
+	 * @param amount
+	 * @param outputAddress
+	 * @param inputAddress
+	 * @return
+	 */
+	public RespCreateTransaction.Builder createCryptoTokenTx(String inputAddress,CryptoTokenData.Builder oCryptoTokenData) {
+		
+		//返回参数
+		RespCreateTransaction.Builder respCreateTransaction = RespCreateTransaction.newBuilder();
+		
+		if(StringUtils.isEmpty(inputAddress) || oCryptoTokenData == null) {
+			respCreateTransaction.setRetMsg("address 或者 oCryptoTokenData不能为空");
+			respCreateTransaction.setRetCode(-1);
+			log.debug("address or oCryptoTokenData is null ");
+			return respCreateTransaction;
+		}
+		
+		if(StringUtils.isEmpty(oCryptoTokenData.getSymbol())) {
+			respCreateTransaction.setRetMsg("oCryptoTokenData.Symbol不能为空");
+			respCreateTransaction.setRetCode(-1);
+			log.debug("oCryptoTokenData.Symbol is null ");
+			return respCreateTransaction;
+		}
+		
+		Map<String,Object> ret = new HashMap<>();
+		//创建交易请求
+		ReqCreateMultiTransaction.Builder reqCreateMultiTransaction = ReqCreateMultiTransaction.newBuilder();
+		MultiTransactionImpl.Builder transaction = MultiTransactionImpl.newBuilder();
+		//交易内容体详情
+		MultiTransactionBodyImpl.Builder txBody = MultiTransactionBodyImpl.newBuilder();
+		//获取发起发账户nonce
+		
+		RespGetAccount.Builder accountMap = getAccountInfo(inputAddress);
+		if(accountMap==null){
+			respCreateTransaction.setRetMsg("查询账户发生错误");
+			respCreateTransaction.setRetCode(-1);
+			log.debug("查询账户发生错误");
+			return respCreateTransaction;
+		}
+		AccountValueImpl account = accountMap.getAccount();
+		//发起方详情
+		MultiTransactionInputImpl.Builder input = MultiTransactionInputImpl.newBuilder();
+//		input.setAmount(0);//交易金额 *
+		input.setAddress(inputAddress);//发起方地址 *
+		input.setNonce(account.getNonce());//交易次数 *
+		//接收方详情
+		
+		txBody.addInputs(input);//发起方 *
+		txBody.setData(encAPI.hexEnc(oCryptoTokenData.build().toByteArray()));
+		
+		transaction.setTxBody(txBody);//交易内容体 *
 		reqCreateMultiTransaction.setTransaction(transaction);//交易内容 *
 		reqCreateMultiTransaction.setTimestamp(new Date().getTime());
 		
