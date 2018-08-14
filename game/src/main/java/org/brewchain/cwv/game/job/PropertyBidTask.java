@@ -12,11 +12,13 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketBidExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.game.dao.Daos;
+import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.enums.TransactionTypeEnum;
+import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
@@ -40,9 +42,14 @@ public class PropertyBidTask implements Runnable {
 	@Override
 	public void run() {
 		log.info("PropertyBidTask start ....");
-		biddingSet(propertyHelper.getDao());
-		noticeSet(propertyHelper.getDao());
-		
+		try {
+			biddingSet(propertyHelper.getDao());
+			noticeSet(propertyHelper.getDao());
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	
 		log.info("PropertyBidTask ended ....");
 	}
 	
@@ -78,8 +85,8 @@ public class PropertyBidTask implements Runnable {
 			for(Object o : list) {
 				final CWVMarketBid bid = (CWVMarketBid) o;
 				noticeSetProcess(bid,propertyHelper);
-				//调取合约结束方法
-				auctionEnd(Integer.parseInt(bid.getCreateUser()), bid.getChainContract(), propertyHelper);
+				//调取合约结束方法-
+				auctionEnd(bid, propertyHelper);
 			}
 //			dao.bidDao.updateByExampleSelective(record, bidExample);
 			
@@ -93,12 +100,21 @@ public class PropertyBidTask implements Runnable {
 	 * @param address
 	 * @param propertyHelper
 	 */
-	public static void auctionEnd(Integer userId, String address, PropertyHelper propertyHelper) {
-		CWVUserWallet wallet = propertyHelper.getWalletHelper().getUserAccount(userId, CoinEnum.CWB);
-		RespCreateTransaction.Builder ret = propertyHelper.getBidInvoker().auctionEnd(wallet.getAccount(), address);
+	public static void auctionEnd(CWVMarketBid bid, PropertyHelper propertyHelper) {
+		
+		CWVUserWallet wallet = propertyHelper.getWalletHelper().getUserAccount(Integer.parseInt(bid.getCreateUser()), CoinEnum.CWB);
+		RespCreateTransaction.Builder ret = propertyHelper.getBidInvoker().auctionEnd(wallet.getAccount(), bid.getChainContract());
 		if(ret.getRetCode() == 1) {
+			
+			bid.setChainTransHashEnd(ret.getTxHash());
+			bid.setChainStatusEnd(ChainTransStatusEnum.START.getKey());
+			propertyHelper.getDao().bidDao.updateByPrimaryKeySelective(bid);
 			//插入交易管理
 			propertyHelper.getCommonHelper().txManageAdd(TransactionTypeEnum.BID_AUCTION_END.getKey(),ret.getTxHash());
+			
+		}else{//异常管理
+			
+			propertyHelper.getCommonHelper().marketExceptionAdd(TransactionTypeEnum.BID_AUCTION_END.getKey(), bid.getBidId(), String.format("竞拍[%s]结束失败   [%s]",bid.getBidId(),ret.getRetMsg()));
 			
 		}
 		

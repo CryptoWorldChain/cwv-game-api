@@ -10,11 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
-import org.brewchain.bcvm.utils.ByteUtil;
 import org.brewchain.cwv.auth.impl.UserHelper;
 import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
@@ -38,7 +36,6 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncome;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
-import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletExample;
 import org.brewchain.cwv.game.chain.PropertyBidInvoker;
@@ -48,8 +45,6 @@ import org.brewchain.cwv.game.chain.PropertyIncomeInvoker;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
-import org.brewchain.cwv.game.enums.CryptoTokenEnum;
-import org.brewchain.cwv.game.enums.MarketTypeEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyExchangeStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyIncomeStatusEnum;
@@ -217,56 +212,53 @@ public class PropertyHelper implements ActorService {
 		criteria.andPropertyStatusNotEqualTo(PropertyStatusEnum.NOOWNER.getValue());
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
 		if (pb.getUserOnly() == 1 && StringUtils.isEmpty(pb.getExchangeStatus()) ) {
-			CWVUserWalletExample wltExample = new CWVUserWalletExample();
-			wltExample.createCriteria().andUserIdEqualTo(user.getUserId()).andCoinTypeEqualTo((byte) 0);
-			List<Object> wltList = dao.walletDao.selectByExample(wltExample);
-			if (wltList.isEmpty()) {
-				log.debug("未获取到账户信息");
-				return;
-			}
-			CWVUserWallet wallet = (CWVUserWallet) wltList.get(0);
-			RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(wallet.getAccount());
+			String superUser = commonHelper.getSysSettingValue("super_user");
+			if(Integer.parseInt(superUser) == user.getUserId()) {
+				criteria.andUserIdEqualTo(user.getUserId())
+				.andPropertyStatusEqualTo(PropertyStatusEnum.NOSALE.getValue());
+			}else{
+				CWVUserWallet wallet = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
+				RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(wallet.getAccount());
 
-			// 遍历判断账户是否有此房产，并获取cryptoToken
-			if (accInfo.getRetCode() != 1) {
-				log.error("未找到账户相关信息");
-				return;
-			}
-			List<AccountCryptoValueImpl> cryptosList = accInfo.getAccount().getCryptosList();
-			if (cryptosList.isEmpty()) {
-				log.error("未找到账户的erc721信息");
-				return;
-			}
-			List<AccountCryptoTokenImpl> tokens = new ArrayList<>();
-			// StringBuffer sb = new StringBuffer();
-			List<Integer> ids = new ArrayList<>();
-			for (int i = 0; i < cryptosList.size(); i++) {
-				if (!cryptosList.get(i).getSymbol().equals(CryptoTokenEnum.CYT_HOUSE.getValue())) {
-					continue;// 如果不是房产类型的erc721，跳出继续搜索
-				}
-				tokens = cryptosList.get(i).getTokensList();
-				if (tokens.isEmpty()) {
-					log.debug("该账户无房产");
+				// 遍历判断账户是否有此房产，并获取cryptoToken
+				if (accInfo.getRetCode() != 1) {
+					log.error("未找到账户相关信息");
 					return;
 				}
-				for (int j = 0; j < tokens.size(); j++) {
-//					ids.add(ByteUtil.byteArrayToInt(Hex.decodeHex(tokens.get(j).getCode().toCharArray())));
-					ids.add(Integer.parseInt(tokens.get(j).getCode()));
-					// sb.append(tokens.get(j).getCode());
-					// if(j<tokens.size()-1){
-					// sb.append(",");
-					// }
+				List<AccountCryptoValueImpl> cryptosList = accInfo.getAccount().getCryptosList();
+				if (cryptosList.isEmpty()) {
+					log.error("未找到账户的erc721信息");
+					return;
 				}
-			}
+				List<AccountCryptoTokenImpl> tokens = new ArrayList<>();
+				// StringBuffer sb = new StringBuffer();
+				List<Integer> ids = new ArrayList<>();
+				for (int i = 0; i < cryptosList.size(); i++) {
+					if (!cryptosList.get(i).getSymbol().equals(PropertyJobHandle.PROPERTY_SYMBOL)) {
+						continue;// 如果不是房产类型的erc721，跳出继续搜索
+					}
+					tokens = cryptosList.get(i).getTokensList();
+					if (tokens.isEmpty()) {
+						log.debug("该账户无房产");
+						return;
+					}
+					for (int j = 0; j < tokens.size(); j++) {
+//						ids.add(ByteUtil.byteArrayToInt(Hex.decodeHex(tokens.get(j).getCode().toCharArray())));
+						ids.add(Integer.parseInt(tokens.get(j).getCode()));
+						// sb.append(tokens.get(j).getCode());
+						// if(j<tokens.size()-1){
+						// sb.append(",");
+						// }
+					}
+				}
 
-			// criteria.andUserIdEqualTo(user.getUserId());
-			if (ids.size() > 0)
-				criteria.andPropertyIdIn(ids);
-			else
-				return;
-			if (StringUtils.isNotBlank(pb.getExchangeStatus())) {
-				criteria.andPropertyStatusEqualTo(pb.getExchangeStatus());
+				// criteria.andUserIdEqualTo(user.getUserId());
+				if (ids.size() > 0)
+					criteria.andPropertyIdIn(ids);
+				else
+					return;
 			}
+			
 			
 		} else if(pb.getUserOnly() == 1){//个人出售中房产
 		
@@ -827,9 +819,7 @@ public class PropertyHelper implements ActorService {
 		buy.setPropertyToken(property.getCryptoToken());
 		CWVUserWallet seller = walletHelper.getUserAccount(exchange.getCreateUser(), CoinEnum.CWB);
 		buy.setSellerAddress(seller.getAccount());
-		
-		dao.exchangeBuyDao.insert(buy);
-
+	
 		RespCreateTransaction.Builder exchangeRet = wltHelper.createTx(buy.getAmount(), PropertyJobHandle.MARKET_EXCHANGE_AGENT,
 				buy.getBuyerAddress());
 		// 添加调取合约日志 TODO
@@ -843,6 +833,8 @@ public class PropertyHelper implements ActorService {
 			dao.exchangeBuyDao.deleteByPrimaryKey(buy);
 			return;
 		}
+		
+		dao.exchangeBuyDao.insert(buy);
 
 		//插入交易管理
 		commonHelper.txManageAdd(TransactionTypeEnum.EXCHANGE_BUY_AMOUNT.getKey(),exchangeRet.getTxHash());
@@ -1470,7 +1462,6 @@ public class PropertyHelper implements ActorService {
 				
 //		wltHelper.excuteContract("", "", "");
 		//设置抽奖合约返回ID
-		gameProperty.setPropertyId(1);
 		gameProperty.setUserId(authUser.getUserId());
 		gameProperty.setPropertyStatus("0");
 		gameProperty.setLastPrice(new BigDecimal("1000"));
@@ -1540,7 +1531,7 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
-		RespCreateTransaction.Builder retStr = drawInvoker.drawProperty(walletCWB.getAccount(), count);
+		RespCreateTransaction.Builder retStr = drawInvoker.drawProperty(count);
 
 		if (retStr.getRetCode() != 1) {
 			ret.setRetCode(ReturnCodeMsgEnum.EXCEPTION.getRetCode()).setRetMsg(retStr.getRetMsg());
@@ -2421,11 +2412,8 @@ public class PropertyHelper implements ActorService {
 		RetData.Builder data = RetData.newBuilder();
 		MapPropertyDetail.Builder mapPropertyDetail = MapPropertyDetail.newBuilder();
 		long averagePrice = 0;
-		propertyExample.createCriteria().andPropertyStatusIn(
-				new ArrayList<String>(){{
-					this.add(PropertyStatusEnum.NOOWNER.getValue());
-					this.add(PropertyStatusEnum.BIDDING.getValue());
-				}});
+		String superUser = commonHelper.getSysSettingValue("super_user");
+		propertyExample.createCriteria().andUserIdEqualTo(Integer.parseInt(superUser));
 		int remainCount = dao.gamePropertyDao.countByExample(propertyExample);
 		
 		mapPropertyDetail.setTotalValue(pageUtil.getPageOut().getTotalCount());
@@ -2458,7 +2446,7 @@ public class PropertyHelper implements ActorService {
 
 			mapPropertyDetail.addPropertyState(propertyState);
 		}
-		mapPropertyDetail.setAveragePrice(averagePrice+"");
+		mapPropertyDetail.setAveragePrice(remainCount==0? "0" : new BigDecimal(averagePrice).subtract(new BigDecimal(remainCount)).toString());
 		mapPropertyDetail.setPage(pageUtil.getPageOut());
 		data.setMapPropertyDetail(mapPropertyDetail);
 

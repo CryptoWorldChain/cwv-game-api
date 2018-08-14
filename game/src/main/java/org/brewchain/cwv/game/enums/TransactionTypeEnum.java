@@ -43,7 +43,9 @@ public enum TransactionTypeEnum {
 	INCOME("0201","income"),
 	INCOME_CREATE("020101","income_create"),//√
 	INCOME_CLAIM("020102","income_claim"),//√
-	CONTRACT_CREATE("0301","contract_create");
+	CONTRACT_CREATE("0301","contract_create"),
+	CREATE_PROPERTY_TOKEN("1001","create_property_token"),
+	ACCOUNT_RECHARGE("1101","account_recharge");
 	
 	private final String key;
 	private final String value;
