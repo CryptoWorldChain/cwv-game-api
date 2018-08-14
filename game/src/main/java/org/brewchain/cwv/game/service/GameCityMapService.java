@@ -12,6 +12,7 @@ import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
+import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Game.PBGameMap;
 import org.brewchain.cwv.service.game.Game.PRetRefGameMap;
@@ -38,6 +39,10 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 //	@ActorRequire
 //	TransactionDetailHelper transactionDetailHelper;
 //	
+	
+	@ActorRequire(name = "Common_Helper")
+	CommonHelper commonHelper;
+	
 	@ActorRequire(name="Daos")
 	Daos dao;
 	
@@ -102,7 +107,7 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			CWVGamePropertyExample.Criteria criteria2 = example.createCriteria();
 					criteria2.andGameMapIdEqualTo(map.getMapId());
 			
-			
+			String superUser = commonHelper.getSysSettingValue("super_user");
 			int propertyCount = dao.gamePropertyDao.countByExample(example);
 			pMap.setPropertyCount(propertyCount+"");//假数据
 			criteria2.andPropertyStatusIn(
@@ -110,18 +115,18 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 						add(PropertyStatusEnum.NOSALE.getValue());
 						add(PropertyStatusEnum.ONSALE.getValue());
 						}}
-					);
+					).andUserIdNotEqualTo(Integer.parseInt(superUser));
 			
 			int sellCount = dao.gamePropertyDao.getDaosupport().countByExample(example);
 			pMap.setPropertySellCount(sellCount+"");
 			
-			List<Object> list = dao.gamePropertyDao.selectByExample(example);
-			BigDecimal sum = new BigDecimal(0);
-			for(Object o : list){
-				CWVGameProperty gameProperty = (CWVGameProperty) o;
-				sum = sum.add(gameProperty.getLastPrice());
-			}
-			pMap.setAveragePrice(sellCount == 0 ? "0": sum.divide(new BigDecimal(sellCount)).intValue()+"");
+//			List<Object> list = dao.gamePropertyDao.selectByExample(example);
+//			BigDecimal sum = new BigDecimal(0);
+//			for(Object o : list){
+//				CWVGameProperty gameProperty = (CWVGameProperty) o;
+//				sum = sum.add(gameProperty.getLastPrice());
+//			}
+//			pMap.setAveragePrice(sellCount == 0 ? "0": sum.divide(new BigDecimal(sellCount)).intValue()+"");
 			ret.addMaps(pMap);
 		}
 		ret.setPage(page.getPageOut());
