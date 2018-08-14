@@ -23,7 +23,9 @@ import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopup;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWalletTopupExample;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.CoinEnum;
+import org.brewchain.cwv.game.enums.MarketTypeEnum;
 import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
+import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.util.DateUtil;
 import org.brewchain.cwv.game.util.PageUtil;
 import org.brewchain.cwv.service.game.Exchange.ReqCreateTx;
@@ -79,6 +81,9 @@ public class WalletHelper implements ActorService {
 	
 	@ActorRequire(name="User_Helper", scope = "global")
 	UserHelper userHelper;
+	
+	@ActorRequire(name = "Common_Helper")
+	CommonHelper commonHelper;
 	
 	@ActorRequire(name="Wlt_Helper", scope = "global")
 	WltHelper wltHelper;
@@ -447,6 +452,8 @@ public class WalletHelper implements ActorService {
 			.setRetMsg("交易失败");
 			return;
 		}
+		//增加充值交易管理
+		commonHelper.txManageAdd(TransactionTypeEnum.ACCOUNT_RECHARGE.getKey(), mapData.getTxHash());
 		
 		topup.setTxHash(mapData.getTxHash());
 		dao.topupDao.doInTransaction(new TransactionExecutor() {
@@ -457,6 +464,7 @@ public class WalletHelper implements ActorService {
 				return null;
 			}
 		});
+		
 	}
 	
 	public CWVUserWallet getAccountByAddress(String address){

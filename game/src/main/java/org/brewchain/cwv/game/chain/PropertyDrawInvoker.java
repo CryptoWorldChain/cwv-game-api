@@ -46,7 +46,7 @@ public class PropertyDrawInvoker extends Invoker implements ActorService  {
 	 * @return
 	 */
 	
-	public synchronized RespCreateTransaction.Builder drawProperty(String address, int num){
+	public synchronized RespCreateTransaction.Builder drawProperty(int num){
 		
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		try {
@@ -59,7 +59,7 @@ public class PropertyDrawInvoker extends Invoker implements ActorService  {
 				ret.setRetMsg("随机合约地址为空，暂不支持抽奖");
 				return ret;
 			}
-			
+			String address = commonHelper.getSysSettingValue("random_own_address");
 			ret = wltHelper.excuteContract(new BigDecimal(0), address, contractAddress,data);
 			Thread.currentThread().sleep(3000);
 			return ret;
