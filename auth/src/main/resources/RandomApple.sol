@@ -38,11 +38,20 @@ constructor() public{
 }
 
 
-function fingerprintInfo(string result) public {
-  require(!randomInfo[msg.sender].isExist,"1");
-  require(!isExcuter,"2");
-  userAddrArray.push(msg.sender);
-  randomInfo[msg.sender] = RandomUser(result,0,false,true);
+function fingerprintInfo(string result) public returns (uint256){
+  /* require(!randomInfo[msg.sender].isExist,"1");
+  require(!isExcuter,"2"); */
+  if(!randomInfo[msg.sender].isExist){
+    if(!isExcuter){
+      userAddrArray.push(msg.sender);
+      randomInfo[msg.sender] = RandomUser(result,0,false,true);
+      return 0;
+    }else{
+      return 2;
+    }
+  }else{
+    return 1;
+  }
 }
 function getSize() public view returns(uint256){
   return userAddrArray.length;
@@ -52,67 +61,82 @@ function getInfo() public view returns(string){
   return temp.fingerprint;
 }
 
-
-function computerRandomNumber() public{
+function computerRandomNumber() public returns (uint256){
   isExcuter = true;
-  require(owner == msg.sender,"3");
-  if(randomNum.length==0 && userAddrArray.length < useNum){
-      rand_seed = autoRandom("cwv");
-      for(uint l=0;l<seedNum;l++){
-        uint256 templ = autoRandomSeed();
-        emit newRandomNumber_uint(templ);
-        randomNum.push(templ);
-    }
-  }else{
-    require(userAddrArray.length >= useNum,"4");
+  /* require(owner == msg.sender,"3"); */
+  if(owner == msg.sender){
+    if(randomNum.length==0 && userAddrArray.length < useNum){
+        rand_seed = autoRandom("cwv");
+        for(uint l=0;l<seedNum;l++){
+          uint256 templ = autoRandomSeed();
+          emit newRandomNumber_uint(templ);
+          randomNum.push(templ);
+      }
+    }else{
+      /* require(userAddrArray.length >= useNum,"4"); */
+      if(userAddrArray.length >= useNum){
+        for(uint i=0;i<useNum;i++){
+          address tempUserAddr = userAddrArray[i];
+          RandomUser storage tempUser = randomInfo[tempUserAddr];
 
-    for(uint i=0;i<useNum;i++){
-      address tempUserAddr = userAddrArray[i];
-      RandomUser storage tempUser = randomInfo[tempUserAddr];
+          emit userInfo(tempUserAddr,tempUser.fingerprint);
+          string memory userfinger = tempUser.fingerprint;
+          rand_seed = autoRandom(userfinger);
+          emit newRandomNumber_uint(rand_seed);
 
-      emit userInfo(tempUserAddr,tempUser.fingerprint);
-      string memory userfinger = tempUser.fingerprint;
-      rand_seed = autoRandom(userfinger);
-      emit newRandomNumber_uint(rand_seed);
-
-      for(uint k=0;k<seedNum;k++){
-          randomNum.push(autoRandomSeed());
+          for(uint k=0;k<seedNum;k++){
+              randomNum.push(autoRandomSeed());
+          }
+        }
+        for(uint m=0;m<useNum;m++){
+            address delUserAddr = userAddrArray[m];
+            withdrawalfzunds(delUserAddr,withdrawalfPrice);
+            deleteUserAt(0);
+            delete randomInfo[delUserAddr];
+        }
+        return 0;
+      }else{
+        return 4;
       }
     }
-    for(uint m=0;m<useNum;m++){
-        address delUserAddr = userAddrArray[m];
-        //withdrawalfzunds(delUserAddr,withdrawalfPrice);
-        deleteUserAt(0);
-        delete randomInfo[delUserAddr];
-    }
+  }else{
+    return 3;
   }
   isExcuter = false;
-
-
 }
 function getFixedRange(uint256 maxNum) public returns (uint256){
-    require(randomNum.length>0,"5");
-    uint256 numRand = randomNum[0];
-    rand_seed = numRand;
-    uint256 tempFix = nextInt(maxNum);
-    deleteStrAt(0);
-    return tempFix;
+    /* require(randomNum.length>0,"5"); */
+    if(randomNum.length==0){
+      computerRandomNumber();
+    }
+    if(randomNum.length>0){
+      uint256 numRand = randomNum[0];
+      rand_seed = numRand;
+      uint256 tempFix = nextInt(maxNum);
+      deleteStrAt(0);
+      return tempFix;
+    }else{
+      return 0;
+    }
 }
 
 function nextInt(uint256 n) public returns(uint256){
 
-    require(n>0,"6");
+    /* require(n>0,"6"); */
+    if(n>0){
+      if ((n & -n) == n)  // i.e., n is a power of 2
+          return uint256(((n * next(31)) >> 31));
 
-    if ((n & -n) == n)  // i.e., n is a power of 2
-        return uint256(((n * next(31)) >> 31));
-
-    uint256 bits;
-    uint256 val;
-    do {
-        bits = next(31);
-        val = bits % n;
-    } while (bits - val + (n-1) < 0);
-    return val;
+      uint256 bits;
+      uint256 val;
+      do {
+          bits = next(31);
+          val = bits % n;
+      } while (bits - val + (n-1) < 0);
+      return val;
+    }else{
+      return 6;
+    }
 }
 
 function next(uint256 bits) public returns (uint256) {
@@ -123,6 +147,9 @@ function next(uint256 bits) public returns (uint256) {
     return uint256(nextseed >> (48 - bits));
 }
 function getRandmon() public returns (uint256){
+  if(randomNum.length==0){
+    computerRandomNumber();
+  }
   uint numRand = randomNum[0];
   deleteStrAt(0);
   return numRand;
