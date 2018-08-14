@@ -17,6 +17,7 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeBuyExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchangeExample;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
+import org.brewchain.cwv.game.enums.MarketTypeEnum;
 import org.brewchain.cwv.game.enums.TransHashTypeEnum;
 import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
@@ -53,7 +54,12 @@ public class PropertyExchangeBuyTask implements Runnable {
 			System.out.println(e.getStackTrace());
 		}
 		
-		exchangeBuyRollbackGroupProcess(propertyHelper.getDao());
+		try {
+			exchangeBuyRollbackGroupProcess(propertyHelper.getDao());
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
 		log.info("PropertyExchangeBuyTask ended ....");
 	}
 	
@@ -172,7 +178,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			input.setAddress(accountMap.getAddress());//发起方地址 *
 			input.setNonce(account.getNonce());//交易次数 *
 			input.setAmount(buy.getAmount().toString() );
-			input.setSymbol("house");
+			input.setSymbol(PropertyJobHandle.PROPERTY_SYMBOL);
 			input.setCryptoToken(buy.getPropertyToken());
 			inputs.add(input);
 			
@@ -193,7 +199,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			MultiTransactionOutputImpl.Builder outputToken = MultiTransactionOutputImpl.newBuilder();
 			outputToken.setAddress(buy.getBuyerAddress());//接收方地址 *
 			outputToken.setCryptoToken(buy.getPropertyToken());
-			outputToken.setSymbol("house");
+			outputToken.setSymbol(PropertyJobHandle.PROPERTY_SYMBOL);
 			outputs.add(outputToken);
 		}
 		
@@ -246,8 +252,14 @@ public class PropertyExchangeBuyTask implements Runnable {
 					}
 				});
 			} catch (Exception e) {
-				// TODO: 加入日志管理
-				log.error("");
+				//加入日志管理
+				log.error(TransactionTypeEnum.EXCHANGE_BUY_GROUP.getValue()+"====>\n"+e.getStackTrace());
+				
+				for(Object o : list){
+					CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
+					propertyHelper.getCommonHelper().marketExceptionAdd(TransactionTypeEnum.EXCHANGE_BUY_GROUP.getKey(), buy.getExchangeId(), String.format("执行回退买家 [%s] 金额 [%s]",buy.getBuyerAddress(),buy.getAmount()));
+					
+				}
 			}
 			
 			

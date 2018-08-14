@@ -139,8 +139,6 @@ public class GameNoticeHelper implements ActorService {
 		jsonMap.put("topic", NoticeTopicEnum.NOTICE.value);
 		jsonMap.put("type", noticeType);
 		
-		
-		
 		ObjectNode timeMap = mapper.createObjectNode();
 		timeMap.put("starttime", startTime);
 		timeMap.put("endtime", endTime);

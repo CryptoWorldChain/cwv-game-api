@@ -47,10 +47,11 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 	 */
 	public static String EXCHANGE_CHARGE = null;
 	
-	public static String SYS_INCOME_ADDRESS = null ; //房產收益地址
+	public static String SYS_INCOME_ADDRESS = null ; //房产收益地址
 	
-	public static String MARKET_EXCHANGE_AGENT = null ; //房產收益地址
+	public static String MARKET_EXCHANGE_AGENT = null ; //房产收益地址
 	
+	public static String PROPERTY_SYMBOL = null ; //房产Symbol
 	
 	@ActorRequire(name="Daos", scope = "global")
 	Daos dao;
@@ -88,6 +89,8 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 						SYS_INCOME_ADDRESS = propertyHelper.getCommonHelper().getSysSettingValue("sys_income_address");
 					if(MARKET_EXCHANGE_AGENT == null)
 						MARKET_EXCHANGE_AGENT = propertyHelper.getCommonHelper().getSysSettingValue("market_exchange_agent");
+					if(PROPERTY_SYMBOL == null)
+						PROPERTY_SYMBOL = propertyHelper.getCommonHelper().getSysSettingValue("chain_property_symbol");
 					
 					
 					log.info("the dao beans loading success....");
@@ -115,7 +118,7 @@ public class PropertyJobHandle extends ActWrapper implements ActorService, IActo
 //							//任务开启时间 设置
 						
 						//任务开启时间 设置
-//							service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
+//						service.scheduleAtFixedRate(new RandomInitTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 						service.scheduleAtFixedRate(new TransactionStatusTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 						service.scheduleAtFixedRate(new PropertyExchangeBuyTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);
 						service.scheduleAtFixedRate(new PropertyIncomeTask(propertyHelper), numZero, 5, TimeUnit.SECONDS);

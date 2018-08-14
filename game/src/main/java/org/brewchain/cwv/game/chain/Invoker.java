@@ -12,8 +12,8 @@ import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddress;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameContractAddressExample;
 import org.brewchain.cwv.game.dao.Daos;
-import org.brewchain.cwv.game.enums.CryptoTokenEnum;
 import org.brewchain.cwv.game.helper.CommonHelper;
+import org.brewchain.cwv.game.job.PropertyJobHandle;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
 import lombok.Data;
@@ -68,7 +68,7 @@ public class Invoker {
 	
 	public RespCreateTransaction.Builder cryptoTransfer(String fromAddress, String toAddress, String cryptoToken ){
 		
-		return wltHelper.createTx(new BigDecimal("0"), toAddress, fromAddress, CryptoTokenEnum.CYT_HOUSE.getValue(), cryptoToken);
+		return wltHelper.createTx(new BigDecimal("0"), toAddress, fromAddress, PropertyJobHandle.PROPERTY_SYMBOL, cryptoToken);
 	}
 	
 	

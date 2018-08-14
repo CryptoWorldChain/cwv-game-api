@@ -18,7 +18,6 @@ import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
-import org.brewchain.cwv.game.enums.CryptoTokenEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.TransHashTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
@@ -98,7 +97,7 @@ public class PropertyDrawTask implements Runnable {
 				
 				Object[] objs = propertyHelper.getDrawInvoker().getResult(ContractTypeEnum.RANDOM_CONTRACT.getName(),"getFixedRange",respGetTxByHash.getTransaction().getResult());
 				String random = "";
-				if(objs != null) {
+				if(objs != null && objs.length>0) {
 					
 					random = (String) objs[0];
 				}
@@ -230,14 +229,14 @@ public class PropertyDrawTask implements Runnable {
 			inputToken.setAddress(accountMap.getAddress());//发起方地址 *
 			inputToken.setNonce(account.getNonce());//交易次数 *
 			inputToken.setCryptoToken(draw.getPropertyToken());
-			inputToken.setSymbol(CryptoTokenEnum.CYT_HOUSE.getValue());
+			inputToken.setSymbol(PropertyJobHandle.PROPERTY_SYMBOL);
 			inputs.add(inputToken);
 			
 			//token output
 			MultiTransactionOutputImpl.Builder outputToken = MultiTransactionOutputImpl.newBuilder();
 			outputToken.setAddress(draw.getUserAddress());//接收方地址 *
 			outputToken.setCryptoToken(draw.getPropertyToken());
-			outputToken.setSymbol(CryptoTokenEnum.CYT_HOUSE.getValue());
+			outputToken.setSymbol(PropertyJobHandle.PROPERTY_SYMBOL);
 			outputs.add(outputToken);
 		}
 		
