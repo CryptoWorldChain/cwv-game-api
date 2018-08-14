@@ -12,6 +12,9 @@ enum PWLTTestCommand {
 	QTS = 3;//查询交易；请求：ReqGetTxByHash；返回：RespGetTxByHash
 	NCR = 4;//创建合约；请求：ReqCreateContractTransaction；返回：RespCreateContractTransaction
 	DCR = 5;//执行合约；请求：ReqDoContractTransaction；返回：RespCreateTransaction
+	NCT = 6;//创建cryptotoken；请求：ReqCreateCryptoToken；返回：RespCreateTransaction
+	UPT = 7;//更新房产数据；请求：ReqUpdatePropertyToken；返回：RespCreateTransaction
+	
 };
 
 //game需要提供的参数 均标注 * 强调
@@ -78,10 +81,20 @@ message ReqExcuteContract {
 	string amount = 1;
 	string address = 2;
 	string contractAddress = 3;
-}
+};
+
+message ReqCreateCryptoToken {
+	string address = 1;
+	string symbol = 2;
+	string name = 3;
+	string code = 4;
+	int64 total = 5;
+	string txhash = 6;
+};
 
 message RespCreateTransaction {//创建交易返回;执行合约返回
     string txHash = 1;//交易hash
 	int32 retCode = 2;//返回码
 	string retMsg = 3;//返回信息
 };
+
