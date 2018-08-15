@@ -53,21 +53,19 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 		return PWLTTestModule.TTS.name();
 	}
 	
-	@Override
-	public void onPBPacket(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
+	
+	public void onPBPacketBack(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		CWVGamePropertyExample example = new CWVGamePropertyExample();
 		example.createCriteria().andCryptoTokenIsNull();
-		int remain = dao.gamePropertyDao.countByExample(example);
 		int total = (int) pb.getTotal();
 		int offset = 0;
 		int limit = 10000;
 		example.setLimit(limit);
-		while(remain>0) {
+		while(dao.gamePropertyDao.countByExample(example)>0) {
 			
 			try {
 				List<Object> list = dao.gamePropertyDao.selectByExample(example);
-				total -= limit;
 				RespCreateTransaction.Builder retCreate = createProcess(pb.getAddress(),pb.getSymbol(),total,list);
 				if(retCreate.getRetCode() == 1) {
 					
@@ -148,7 +146,7 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 		
 	}
 
-	public void onPBPacketBack(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		CryptoTokenData.Builder builder = CryptoTokenData.newBuilder();
 		builder

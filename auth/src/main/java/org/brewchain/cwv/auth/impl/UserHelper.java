@@ -42,7 +42,6 @@ import org.brewchain.cwv.dbgens.user.entity.CWVUserPropertyIncomeExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwd;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserTradePwdExample;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
-import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.wallet.service.Wallet.RetNewAddress;
 import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.hzq.service.sys.User.PRetCommon.Builder;
@@ -333,22 +332,22 @@ public class UserHelper implements ActorService {
 		// criteria.andStatusEqualTo((byte) 0);// 新建收益
 		criteria.andPropertyIdIsNull();// property_id为null为统计数据
 		criteria.andChainStatusEqualTo((byte) 1);
-		example.setOrderByClause(" income_id desc ");
+		incomeExample.setOrderByClause(" income_id desc ");
 
 		
 		// 根据类型查询房产
-		List<Object> list = dao.incomeDao.selectByExample(example);
+		List<Object> list = dao.incomeDao.selectByExample(incomeExample);
 		// 未领取收益
 		for(Object o : list) {
 			CWVUserPropertyIncome income = (CWVUserPropertyIncome) o;
 			
 			if(income.getStatus().intValue()==0 && income.getChainStatus().intValue()==1 && income.getChainStatusClaim() == null)             {
 				if(income.getType().toString().equals(PropertyTypeEnum.ORDINARY.getValue())) {
-					userInfo.setIncomeOrdinary("1");
+					userInfo.setIncomeOrdinary(1);
 				} else if(income.getType().toString().equals(PropertyTypeEnum.ORDINARY.getValue())) {
-					userInfo.setIncomeOrdinary("1");
+					userInfo.setIncomeOrdinary(1);
 				} else if(income.getType().toString().equals(PropertyTypeEnum.ORDINARY.getValue())) {
-					userInfo.setIncomeOrdinary("1");
+					userInfo.setIncomeOrdinary(1);
 				}
 			}
 			
