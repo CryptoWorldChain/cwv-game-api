@@ -103,6 +103,7 @@ public enum ReturnCodeMsgEnum {
 	 * 发送短信验证码
 	 */
 	AUT_SUCCESS("01","发送成功！"),
+	AUT_ERROR_TIME("66","短信发送时间间隔小于1分钟"),
 	AUT_ERROR("61","短信发送失败"),
 	AUT_EXCEPTION("99","未知异常"),
 	

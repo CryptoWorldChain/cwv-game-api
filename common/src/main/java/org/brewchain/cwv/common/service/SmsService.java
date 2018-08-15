@@ -112,7 +112,10 @@ public class SmsService extends SessionModules<PBSmsDeal> {
 		String strMsg = null;
 		if (old != null ) {
 			CWVCommonSmsVerify commonSmsVerify = (CWVCommonSmsVerify) old;
-			if (DateUtil.compare(commonSmsVerify.getExpires(), new Date()) > 0) {
+			if (DateUtil.compare(DateUtil.addMinute(commonSmsVerify.getExpires(),-4), new Date()) > 0) {
+				ret.setRetCode(ReturnCodeMsgEnum.AUT_ERROR_TIME.getRetCode()).setRetMsg(ReturnCodeMsgEnum.AUT_ERROR_TIME.getRetMsg());
+				return ;
+			}else if(DateUtil.compare(commonSmsVerify.getExpires(), new Date()) > 0){
 				strMsg = String.format(msg, "加密世界", commonSmsVerify.getVerifyCode());
 				sendMsg(pb, strMsg, ret);
 				if(!ret.getRetCode().equals(ReturnCodeMsgEnum.AUT_SUCCESS.getRetCode()))
