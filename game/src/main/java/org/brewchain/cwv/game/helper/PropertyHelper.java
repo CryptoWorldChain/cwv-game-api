@@ -212,56 +212,9 @@ public class PropertyHelper implements ActorService {
 		criteria.andPropertyStatusNotEqualTo(PropertyStatusEnum.NOOWNER.getValue());
 		CWVAuthUser user = userHelper.getCurrentUser(pack);
 		if (pb.getUserOnly() == 1 && StringUtils.isEmpty(pb.getExchangeStatus()) ) {
-			String superUser = commonHelper.getSysSettingValue("super_user");
-			if(Integer.parseInt(superUser) == user.getUserId()) {
 				criteria.andUserIdEqualTo(user.getUserId())
 				.andPropertyStatusEqualTo(PropertyStatusEnum.NOSALE.getValue());
-			}else{
-				CWVUserWallet wallet = walletHelper.getUserAccount(user.getUserId(), CoinEnum.CWB);
-				RespGetAccount.Builder accInfo = wltHelper.getAccountInfo(wallet.getAccount());
-
-				// 遍历判断账户是否有此房产，并获取cryptoToken
-				if (accInfo.getRetCode() != 1) {
-					log.error("未找到账户相关信息");
-					return;
-				}
-				List<AccountCryptoValueImpl> cryptosList = accInfo.getAccount().getCryptosList();
-				if (cryptosList.isEmpty()) {
-					log.error("未找到账户的erc721信息");
-					return;
-				}
-				List<AccountCryptoTokenImpl> tokens = new ArrayList<>();
-				// StringBuffer sb = new StringBuffer();
-				List<Integer> ids = new ArrayList<>();
-				for (int i = 0; i < cryptosList.size(); i++) {
-					if (!cryptosList.get(i).getSymbol().equals(PropertyJobHandle.PROPERTY_SYMBOL)) {
-						continue;// 如果不是房产类型的erc721，跳出继续搜索
-					}
-					tokens = cryptosList.get(i).getTokensList();
-					if (tokens.isEmpty()) {
-						log.debug("该账户无房产");
-						return;
-					}
-					for (int j = 0; j < tokens.size(); j++) {
-//						ids.add(ByteUtil.byteArrayToInt(Hex.decodeHex(tokens.get(j).getCode().toCharArray())));
-						ids.add(Integer.parseInt(tokens.get(j).getCode()));
-						// sb.append(tokens.get(j).getCode());
-						// if(j<tokens.size()-1){
-						// sb.append(",");
-						// }
-					}
-				}
-
-				// criteria.andUserIdEqualTo(user.getUserId());
-				if (ids.size() > 0)
-					criteria.andPropertyIdIn(ids);
-				else
-					return;
-			}
-			
-			
 		} else if(pb.getUserOnly() == 1){//个人出售中房产
-		
 			criteria.andUserIdEqualTo(user.getUserId());
 			if(StringUtils.isNotEmpty(pb.getExchangeStatus()))
 				criteria.addCriterion(" property_id in (select property_id from cwv_market_exchange where status ='"+pb.getExchangeStatus()+"')");
@@ -926,9 +879,9 @@ public class PropertyHelper implements ActorService {
 			return;
 		}
 
-		if (pb.getPrice() <= 0) {// 出售价格
+		if (pb.getPrice() < 1000 ) {// 出售价格
 			ret.setRetCode(ReturnCodeMsgEnum.ERROR_VALIDATION.getRetCode());
-			ret.setRetMsg("出售价格错误");
+			ret.setRetMsg("出售价格不能低于1000");
 			return;
 		}
 

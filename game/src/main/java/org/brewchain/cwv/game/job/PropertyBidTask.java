@@ -1,6 +1,7 @@
 package org.brewchain.cwv.game.job;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.brewchain.cwv.dbgens.auth.entity.CWVAuthUser;
@@ -9,16 +10,13 @@ import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuction;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketAuctionExample;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBid;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketBidExample;
-import org.brewchain.cwv.dbgens.user.entity.CWVUserTransactionRecord;
 import org.brewchain.cwv.dbgens.user.entity.CWVUserWallet;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.PropertyBidStatusEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
-import org.brewchain.cwv.game.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.game.enums.TransactionTypeEnum;
-import org.brewchain.cwv.game.helper.CommonHelper;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.wallet.service.Wallet.RespCreateTransaction;
 
@@ -34,7 +32,7 @@ import onight.tfw.ojpa.api.TransactionExecutor;
 public class PropertyBidTask implements Runnable {
 
 	private PropertyHelper propertyHelper ;
-	
+	private HashMap<Integer,Integer> auctionEndRecord ;
 	public PropertyBidTask(PropertyHelper propertyHelper) {
 		this.propertyHelper = propertyHelper;
 	}
@@ -113,7 +111,15 @@ public class PropertyBidTask implements Runnable {
 			propertyHelper.getCommonHelper().txManageAdd(TransactionTypeEnum.BID_AUCTION_END.getKey(),ret.getTxHash());
 			
 		}else{//异常管理
-			
+			if(bid.getChainStatusEnd() == ChainTransStatusEnum.ERROR.getKey() || bid.getChainStatusEnd() == null){
+				try {
+					Thread.currentThread().sleep(60*1000*5);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				auctionEnd(bid, propertyHelper);
+			}
 			propertyHelper.getCommonHelper().marketExceptionAdd(TransactionTypeEnum.BID_AUCTION_END.getKey(), bid.getBidId(), String.format("竞拍[%s]结束失败   [%s]",bid.getBidId(),ret.getRetMsg()));
 			
 		}
