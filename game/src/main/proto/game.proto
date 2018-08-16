@@ -242,9 +242,10 @@ message PropertyGameInfo {
 		string type = 3;//游戏类型
 		string status = 4; // 状态 0发起 1进行 2结束
 		string game_type = 5; // 游戏类型  h5, apk, ipa
-		string game_url = 6; // 调取游戏地址
+		string game_url = 6; // 下载游戏地址
 		string game_status = 7; // 游戏状态 new hot
 		string players = 8; // 玩家数量
+		string invoke_game = 9; // 调取游戏地址
 	}
 	GameInfo gameInfo = 4; //游戏信息
 	
@@ -266,8 +267,10 @@ message GameDetail{
 		string images = 8; // 图片多个以英文,分隔
 		
 		string game_type = 15; // 游戏类型  h5, apk, ipa
-		string game_url = 16; // 调取游戏地址
+		string game_url = 16; // 下载地址
 		string game_status = 17; // 游戏状态 new hot
+		
+		string invoke_game = 18; // 调取游戏地址
 }
 
 message RetCodeMsg

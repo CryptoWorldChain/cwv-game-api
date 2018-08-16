@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package org.brewchain.cwv.service.game;
+import "game.proto";
+
+enum PMarketEModule {
+	GMA = 0;//game-Exchange-api
+};
+enum PMarketECommand {
+	MES = 0; //交易异常列表查询-MarketExceptionService
+	MEC = 1; //异常交易执行-MarketExceptionCheckService
+	SSS = 2; //系统设置-GameSysSettingService
+};
+
+message PSMarketException	 //MES
+{
+	string id = 1; //主键
+	string type = 2;//币种类型
+	string page_index = 4;//页索引
+	string page_size = 5;//页大小
+}
+
+message PRetMarketException //MES
+{
+	RetCodeMsg codeMsg = 1;
+	message MarketException {
+		string id = 1;//记录ID
+		string type = 2;//类型
+		string market_id = 3; //交易ID
+		string description = 4; //描述
+		string remark = 5; //处理备注
+		string status = 6; //状态
+	}
+	repeated MarketException marketException=2;
+	PageOut page = 4;
+}
+
+message PSMarketExceptionCheck	 //MEC
+{
+	string id = 1;//记录ID
+	string remark = 5; //处理备注
+	string status = 6; //状态
+}
+
+
+
+
+
