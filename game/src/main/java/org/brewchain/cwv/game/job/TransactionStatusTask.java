@@ -574,7 +574,7 @@ public class TransactionStatusTask implements Runnable {
 	private void drawRandomDone(CWVMarketDraw draw) {
 		RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHashRandom());
 		
-		//TODO: 获取随机数
+		//获取随机数
 		String random = respGetTxByHash.getTransaction().getResult();
 		
 		String token = getTokenByRandom(random);
@@ -722,7 +722,7 @@ public class TransactionStatusTask implements Runnable {
 		//更新申请记录退款状态
 		exchangeBuyRollbackUpdateStatus(manage.getTxHash(),ChainTransStatusEnum.ERROR.getKey());
 		
-		//TODO 加入人工处理
+		//加入人工处理
 		List<Object> list = getExchangeRollbackListByTxhash(manage.getTxHash());
 		for(Object o : list) {
 			CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
@@ -1486,8 +1486,7 @@ public class TransactionStatusTask implements Runnable {
 		property.setPropertyId(exchange.getPropertyId());
 		property.setPropertyStatus(PropertyStatusEnum.ONSALE.getValue());// 出售中
 		property.setChainStatus(ChainTransStatusEnum.DONE.getKey());
-		
-		//TODO setChainStatus
+
 		propertyHelper.getDao().exchangeDao.doInTransaction(new TransactionExecutor() {
 			@Override
 			public Object doInTransaction() {
@@ -1554,10 +1553,10 @@ public class TransactionStatusTask implements Runnable {
 			if(count!=null ) {
 				if(count>=4) {//超过五次加入人工处理表
 					//TODO: 加入人工处理表
-//					CWVGameTxManage txManage = new CWVGameTxManage();
-//					txManage.setChainStatus((int)ChainTransStatusEnum.EXCEPTION.getKey());;
-//					txManage.setStatus(1);
-//					txManage.set
+					CWVGameTxManageExample example = new CWVGameTxManageExample();
+					CWVGameTxManage txManage = new CWVGameTxManage();
+					txManage.setChainStatus((int)ChainTransStatusEnum.EXCEPTION.getKey());;
+					propertyHelper.getDao().txManangeDao.updateByExample(txManage, example);
 					PropertyJobHandle.queryErrorTXMap.remove(hash);
 					//返回查询失败终止查询
 					return ChainTransStatusEnum.EXCEPTION.getValue();

@@ -101,7 +101,7 @@ public class GameCityMapService extends SessionModules<PBGameMap> {
 			pMap.setMapNameZh(map.getMapNameZh()+"");
 			pMap.setIsDisplay(Integer.parseInt(map.getIsDisplay()));
 			
-			//TODO 查询字段
+			// 查询字段
 			CWVGamePropertyExample example = new CWVGamePropertyExample();
 			
 			CWVGamePropertyExample.Criteria criteria2 = example.createCriteria();

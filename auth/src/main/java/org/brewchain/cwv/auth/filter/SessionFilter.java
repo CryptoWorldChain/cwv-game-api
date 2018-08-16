@@ -1,13 +1,15 @@
 package org.brewchain.cwv.auth.filter;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.ipojo.annotations.Provides;
-import org.brewchain.cwv.auth.dao.Dao;
 import org.brewchain.cwv.auth.enums.ReturnCodeMsgEnum;
 import org.brewchain.cwv.auth.util.jwt.CheckResult;
 import org.brewchain.cwv.auth.util.jwt.GsonUtil;
@@ -19,6 +21,7 @@ import org.fc.hzq.service.sys.User.PRetCommon;
 import org.fc.zippo.filter.FilterConfig;
 import org.fc.zippo.filter.exception.FilterException;
 
+import freemarker.template.utility.DateUtil;
 import io.jsonwebtoken.Claims;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +49,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 	public final static String STR_IS_SESSION = PackHeader.EXT_IGNORE_RESPONSE + "_issession";
 	public final static int SES_TIMTOUT = 60 * 20;// session超时时间
 	public static HashSet<String> noLoginUrlList ; // 可配置
+	public static HashMap<String,Integer>  userDayLimitUrl; // 可配置
 	public static HashMap<String,String> userMap = new HashMap<String,String>();
 	public final static boolean ischeckrole = false; // 测试使用，是否走url验证,可配置，临时添加到代码内
 
@@ -79,6 +83,31 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			for(Object o : list){
 				CWVSysUrlResource url = (CWVSysUrlResource) o;
 				noLoginUrlList.add(url.getUrlResourcePath());
+			}
+		}
+		
+//		if(urlPeriodLimitList == null || urlPeriodLimitList.isEmpty()) {
+//			urlPeriodLimitList = new HashMap<String,Integer>();
+//			CWVSysUrlResourceExample example = new CWVSysUrlResourceExample();
+//			example.createCriteria()
+//			.andStatusEqualTo("1").addCriterion("interval_time is not null");
+//			List<Object> list = filterHelper.dao.getUrlResouceDao().selectByExample(example);
+//			for(Object o : list){
+//				CWVSysUrlResource url = (CWVSysUrlResource) o;
+////				urlPeriodLimitList.add(url.getUrlResourcePath());
+//			}
+//		}
+		
+		if(userDayLimitUrl == null || userDayLimitUrl.isEmpty()) {
+			userDayLimitUrl = new HashMap<String,Integer>();
+			CWVSysUrlResourceExample example = new CWVSysUrlResourceExample();
+			example.createCriteria()
+			.andStatusEqualTo("1").addCriterion("user_day_limit is not null");
+			List<Object> list = filterHelper.dao.getUrlResouceDao().selectByExample(example);
+			for(Object o : list){
+				CWVSysUrlResource url = (CWVSysUrlResource) o;
+//				userSecureLimitRecord.add(url.getUrlResourcePath());
+				userDayLimitUrl.put(url.getUrlResourcePath(), url.getUserDayLimit());
 			}
 		}
 		
@@ -166,7 +195,7 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			pack.getExtHead().append(STR_IS_SESSION, "0");
 			return true;
 		}
-
+		
 		// TXSysUrlResourceExample resourceExample = new
 		// TXSysUrlResourceExample();
 		// resourceExample.createCriteria().andUrlResourcePathEqualTo(pathUrl);
@@ -226,12 +255,16 @@ public class SessionFilter extends SimplePacketFilter implements PacketFilter, A
 			handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 			return false ;
 		}
+		
 		pack.getExtHead().append(STR_IS_SESSION, "1");
 		pack.getExtHead().append(STR_SESSION_SMID, smid);
 		pack.getExtHead().append(STR_RECEIVE_TIME, new Date());
 
 		log.info(" 用户[" + usrInfo.getUty() + "]-访问[" + pathUrl + "] ");
 
+		
+//		periodLimit(usrInfo.getUid(),url);
+		
 		if (!ischeckrole) {
 			log.debug("不判断访问权限");
 			return true;

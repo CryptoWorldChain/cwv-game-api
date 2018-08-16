@@ -228,7 +228,6 @@ public class UserHelper implements ActorService {
 				CWVUserWallet userWallet = new CWVUserWallet();
 				userWallet.setAccount(address.getAddress());
 				userWallet.setIncomeAddress(incomeAddress.getAddress());
-				//TODO: 收益地址
 				userWallet.setBalance(new BigDecimal(0));
 				userWallet.setCoinIcon("http://cwc.icon");
 				userWallet.setCoinType(Byte.valueOf("0"));

@@ -54,7 +54,7 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 	}
 	
 	
-	public void onPBPacketBack(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
+	public void onPBPacket(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		CWVGamePropertyExample example = new CWVGamePropertyExample();
 		example.createCriteria().andCryptoTokenIsNull();
@@ -146,7 +146,7 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 		
 	}
 
-	public void onPBPacket(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
+	public void onPBPacketBack(final FramePacket pack, final ReqCreateCryptoToken pb, final CompleteHandler handler) {
 		RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		CryptoTokenData.Builder builder = CryptoTokenData.newBuilder();
 		builder

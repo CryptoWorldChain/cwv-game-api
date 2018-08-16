@@ -347,6 +347,8 @@ public class WalletHelper implements ActorService {
 			}
 		}
 		accountInfo.setTotalValueCNY(total);
+		String drawTrigger = commonHelper.getSysSettingValue("draw_trigger_amount");
+		accountInfo.setDrawTriggerAmount(Integer.parseInt(drawTrigger));
 		data.setAccountInfo(accountInfo);
 		builder.setRetCode(ReturnCodeMsgEnum.SUCCESS.getRetCode())
 		.setRetMsg(ReturnCodeMsgEnum.SUCCESS.getRetMsg());

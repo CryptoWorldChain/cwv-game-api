@@ -88,13 +88,13 @@ price|string|价格|
 longitude|string|经度|
 latitude|string|纬度|
 price_line|string|最近 10历史价格曲线 英文逗号分隔|
-chain_status|string|链上状态 0 未确定 1确定|
+chain_status|string|房产链上状态 0 未确定 1确定|
 is_display|string|是否开放 0未开放 1开放|
 exchange|object|数组中的交易对象|
 exchange_id|string|交易ID|
 price|string|卖出价格|
 status|string|交易状态  0 售出中 1已售出 2撤销|
-chain_status|string|链上状态 0 进行中 1成功 -1失败|
+chain_status|string|交易链上状态 0 进行中 1成功 -1失败|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -249,12 +249,12 @@ image_url|string|房产图片地址|
 price|string|价格|
 longitude|string|经度|
 latitude|string|纬度|
-chain_status|string|链上状态|
+chain_status|string|房产链上状态  0 未确定 1确定|
 exchange|object|交易对象|
 exchange_id|string|交易ID|
 price|string|交易价格|
 status|string|交易状态0 出售中 1已售出 2撤销 |
-chain_status|string|链上状态 0 进行中 1成功 -1失败|
+chain_status|string|交易链上状态 0 进行中 1成功 -1失败|
 is_display|string|是否开放 0未开放 1开放|
 
 	{
@@ -355,6 +355,7 @@ auction_start|string|开始时间|
 auction_end|string|结束时间|
 price|string|竞拍最终价格|
 status|string|竞拍状态  0发起，1竞拍中 ，2完成，3 撤销|
+chain_status|string|链上状态|
 property|object|数组中的房产对象|
 country_id|string|所属国家|
 map_id|string|所属地图|
@@ -405,7 +406,8 @@ total_count|string|总量|
 				"auction_start": "2018-05-16 18:00:00",
 				"auction_end": "2018-06-16 19:00:00",
 				"price": "0",
-				"status": "1" 
+				"status": "1",
+				"chain_status":"1"
 	            }
 	        }
 	    ],
@@ -495,7 +497,7 @@ image_url|string|房产图片地址|
 price|string|价格|
 longitude|string|经度|
 latitude|string|纬度|
-chain_status|string|链上状态|
+chain_status|string|房产链上状态 0未确定 1确定|
 is_display|string|是否开放 0未开放 1开放|
 bid|object|竞拍对象数组|
 max_price|string|竞拍价格|
@@ -504,6 +506,7 @@ auction_start|string|开始时间|
 auction_end|string|结束时间|
 announce_time|string|公布时间|
 bid_start|string|起拍价格|
+chain_status|string|竞价链上状态 0进行中 1成功 -1失败|
 	
 	{
 	    "ret_code": "01",
@@ -563,12 +566,13 @@ property_status|string|房产状态|
 income_remark|string|收益说明|
 income|string|收益|
 image_url|string|房产图片地址|
-chain_status|string|链上状态|
+chain_status|string|房产链上状态 0未确定 1确定|
 is_display|string|是否开放 0未开放 1开放|
 bid_price|string|竞拍价格|
 auctionRank|object|竞拍人员对象数组|
 nick_name|string|昵称|
 bid_amount|string|竞拍额度|
+chain_status|string|竞价链上状态 0进行中 1成功 -1失败|
 
 	{
 	    "ret_code": "01",
@@ -821,29 +825,22 @@ icon|string|币种缩略图|
 ### HTTP请求方式
 	POST
 ### 输入参数
-参数|类型|说明|示例
-:----|:----|:----|:----
-coin_type|string|币种类型|[01]
-amount|string|充值金额|
-
-	{
-		"amount":"1000",
-		"coin_type":"0"
-	}
+	空
 
 ### 输出参数
 参数|类型|说明|示例
 :----|:----|:----|:----
 ret_code|string|返回状态码<br/>01.成功<br/>99.未知异常|[01]
 ret_msg|string|返回消息|
+address|string|地址|
 amount|string|总额|
 
 	{
 	    "ret_code": "01",
 	    "ret_msg": "成功",
-	    "amount": 1000
+	    "address": "3deb1b7898419f31daac066cad227ed0f4178b13",
+	    "amount": 0
 	}
-	
 -----------
 
 ## 抽奖房产
@@ -1197,7 +1194,8 @@ status|string|状态，0发起，1进行，2结束|
 game_type|string|游戏运行类型  h5, apk, ipa|
 game_status|string|游戏状态 new hot|
 players|string|玩家数量|
-game_url|string|游戏地址|
+game_url|string|游戏下载地址|
+invoke_game|string|游戏启动地址|
 page|object|分页对象|
 page_index|string|页码|
 page_size|string|数量|
@@ -1236,6 +1234,7 @@ total_count|string|总量|
 	                    "status": "0",
 	                    "game_type": "h5",
 	                    "game_url": "you.youwin.io",
+	                    "invoke_game": "you.youwin.io",
 	                    "game_status": "new",
 	                    "players": "1005"
 	                }
@@ -1302,7 +1301,8 @@ developers|string|游戏类型  0 sports|
 images|string|图片信息|
 game_type|string|游戏运行类型  h5, apk, ipa|
 game_status|string|游戏状态 new hot|
-game_url|string|游戏地址|
+game_url|string|游戏下载地址|
+invoke_game|string|游戏启动地址|
 
 	{
 	    "codeMsg": {
@@ -1339,6 +1339,7 @@ game_url|string|游戏地址|
 	            "images": "image",
 	            "game_type": "h5",
 	            "game_url": "url",
+	            "invoke_game": "url",
 	            "game_status": "new"
 	        }
 	    }

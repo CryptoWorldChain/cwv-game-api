@@ -309,7 +309,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 			
 		RespCreateTransaction.Builder ret = propertyHelper.getWltHelper().createTx(buy.getAmount(), buy.getBuyerAddress(), PropertyJobHandle.SYS_PROPERTY_ADDR);
 		if(ret.getRetCode() == 1){
-			//TODO 回滚交易字段赋值
+			// 回滚交易字段赋值
 			buy.setChainStatusRollback(ChainTransStatusEnum.START.getKey());
 			buy.setChainTransHashRollback(ret.getTxHash());
 			propertyHelper.getDao().exchangeBuyDao.updateByPrimaryKeySelective(buy);
