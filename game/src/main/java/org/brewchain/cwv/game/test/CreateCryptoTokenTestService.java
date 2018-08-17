@@ -2,6 +2,7 @@ package org.brewchain.cwv.game.test;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.brewchain.cwv.auth.impl.WltHelper;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameProperty;
 import org.brewchain.cwv.dbgens.game.entity.CWVGamePropertyExample;
@@ -70,7 +71,7 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 				if(retCreate.getRetCode() == 1) {
 					
 					try {
-						Thread.currentThread().sleep(10000);
+						Thread.currentThread().sleep(20000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -78,14 +79,29 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 					RespGetTxByHash.Builder respGetTxByHash = wltHelper.getTxInfo(retCreate.getTxHash());
 					if(respGetTxByHash.getRetCode() == -1) {//失败
 						ret.setRetMsg(ret.getRetMsg()+"\n error :"+retCreate.getTxHash());
-						continue ;
-					}else{
-						ret.setRetMsg(ret.getRetMsg()+"\n success :"+retCreate.getTxHash());
+						break ;
 					}
+					int totalTime = 0;
+					while(totalTime<=20 * 60 * 1000 && StringUtils.isEmpty(wltHelper.getTxInfo(retCreate.getTxHash()).getTransaction().getStatus())){
+						Thread.currentThread().sleep(20000);
+						totalTime += 20000;
+					}
+					
+					RespGetTxByHash.Builder respTx = wltHelper.getTxInfo(retCreate.getTxHash());
+					
+					String status = respTx.getTransaction().getStatus();
+					if(StringUtils.isEmpty(status)) {
+						ret.setRetMsg(ret.getRetMsg()+"\n no status exception :"+retCreate.getTxHash());
+						break;
+					}
+					if(status.equals("error")) {
+						continue;
+					}
+					ret.setRetMsg(ret.getRetMsg()+"\n status success :"+retCreate.getTxHash());
+					
 					commonHelper.txManageAdd(TransactionTypeEnum.CREATE_PROPERTY_TOKEN.getKey(), retCreate.getTxHash());
-					RespCreateTransaction.Builder retUpdate = updatePropertyToken(total,respGetTxByHash.getTransaction(),list,ret);
+					RespCreateTransaction.Builder retUpdate = updatePropertyToken(total,respGetTxByHash.getTransaction(),list);
 					ret.setRetMsg(ret.getRetMsg()+retUpdate.getRetMsg());
-				
 				}
 			} catch (Exception e) {
 				ret.setRetMsg(ret.getRetMsg()+"==>error createProcess "+offset+","+limit);
@@ -97,7 +113,7 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 		// 返回给客户端
 		handler.onFinished(PacketHelper.toPBReturn(pack, ret.build()));
 	}
-
+	
 	private RespCreateTransaction.Builder createProcess(String address,String symbol, long total, List<Object> list) {
 		CryptoTokenData.Builder builder = CryptoTokenData.newBuilder();
 		builder
@@ -115,7 +131,8 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 	}
 	
 	
-	private RespCreateTransaction.Builder updatePropertyToken(long total,MultiTransactionImpl transaction, List<Object> list, RespCreateTransaction.Builder ret) {
+	private RespCreateTransaction.Builder updatePropertyToken(long total,MultiTransactionImpl transaction, List<Object> list) {
+		 RespCreateTransaction.Builder ret = RespCreateTransaction.newBuilder();
 		
 		long timestamp = transaction.getTxBody().getTimestamp();
 		String address = transaction.getTxBody().getInputs(0).getAddress();
@@ -142,7 +159,7 @@ public class CreateCryptoTokenTestService extends SessionModules<ReqCreateCrypto
 			
 		}
 		
-		return ret.setRetCode(1).setRetMsg("\n cryptoToken success :"+transaction.getTxHash());
+		return ret.setRetCode(1).setRetMsg("\n cryptoToken update success :"+transaction.getTxHash());
 		
 	}
 
