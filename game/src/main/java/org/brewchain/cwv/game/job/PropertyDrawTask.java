@@ -20,6 +20,7 @@ import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
 import org.brewchain.cwv.game.enums.CoinEnum;
 import org.brewchain.cwv.game.enums.PropertyStatusEnum;
 import org.brewchain.cwv.game.enums.TransHashTypeEnum;
+import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 import org.brewchain.cwv.game.helper.PropertyHelper;
 import org.brewchain.wallet.service.Wallet.AccountValueImpl;
 import org.brewchain.wallet.service.Wallet.MultiTransactionInputImpl;
@@ -84,9 +85,7 @@ public class PropertyDrawTask implements Runnable {
 		
 		for(Object o : list) {
 			CWVMarketDraw draw = (CWVMarketDraw) o;
-			String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHashRandom(), "");
-			
-			RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHashRandom());
+			String status = TransactionStatusTask.getTransStatus(propertyHelper, draw.getChainTransHashRandom(), TransactionTypeEnum.DRAW_RANDOM.getValue());
 			
 			if(StringUtils.isEmpty(status)) {
 				continue;
@@ -94,6 +93,7 @@ public class PropertyDrawTask implements Runnable {
 			
 			if(status.equals(ChainTransStatusEnum.DONE.getValue())){
 				//获取随机数
+				RespGetTxByHash.Builder respGetTxByHash = propertyHelper.getWltHelper().getTxInfo(draw.getChainTransHashRandom());
 				
 				Object[] objs = propertyHelper.getDrawInvoker().getResult(ContractTypeEnum.RANDOM_CONTRACT.getName(),"getFixedRange",respGetTxByHash.getTransaction().getResult());
 				String random = "";

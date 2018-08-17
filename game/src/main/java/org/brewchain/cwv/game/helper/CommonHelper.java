@@ -7,11 +7,11 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameDicExample;
 import org.brewchain.cwv.dbgens.game.entity.CWVGameTxManage;
 import org.brewchain.cwv.dbgens.market.entity.CWVMarketException;
-import org.brewchain.cwv.dbgens.market.entity.CWVMarketExchange;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSetting;
 import org.brewchain.cwv.dbgens.sys.entity.CWVSysSettingExample;
 import org.brewchain.cwv.game.dao.Daos;
 import org.brewchain.cwv.game.enums.ChainTransStatusEnum;
+import org.brewchain.cwv.game.enums.TransactionTypeEnum;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +35,20 @@ public class CommonHelper implements ActorService {
 	 */
 	public static String INCOMETIME = "income_time"; 
 
+	
+	enum LogTypeEnum{
+		TRANSCREATE(1,"transcreate"), //创建交易
+		TRANSSTATUS(2,"transstatus"), //交易状态
+		TRANSPROCESS(3,"transprocess"); //交易处理
+		private Integer key;
+		private String value;
+
+		private LogTypeEnum(Integer key, String value) {
+			this.key = key;
+			this.value = value;
+		}
+		
+	}
 	@ActorRequire(name="Daos")
 	Daos dao;
 	/**
@@ -94,15 +108,21 @@ public class CommonHelper implements ActorService {
 	 * @param marketId
 	 * @param detail
 	 */
-	public void marketExceptionAdd(String type, Integer marketId, String detail) {
+	public void marketExceptionAdd(TransactionTypeEnum type, Integer marketId, String detail) {
 		CWVMarketException exception = new CWVMarketException();
-		exception.setType(type);
+		exception.setType(type.getKey());
 		exception.setMarketId(marketId);
 		exception.setDescription(detail);
 		exception.setStatus(0);
 		dao.marketExceptionDao.insert(exception);
 		
 	}
-
+	
+	public void transExceptionLog(LogTypeEnum logType,TransactionTypeEnum typeEnum,String method, Integer id, String detail) {
+		
+		marketExceptionAdd(typeEnum, id, detail);
+		log.error(String.format("trans exception ::: [%s] trans type [%s] with method [%s] and market_id [%s] ==>[%s]", logType.value, typeEnum.getKey(), method, id, detail) );
+	}
+	
 
 }

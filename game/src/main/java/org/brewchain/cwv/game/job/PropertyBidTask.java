@@ -120,7 +120,7 @@ public class PropertyBidTask implements Runnable {
 				}
 				auctionEnd(bid, propertyHelper);
 			}
-			propertyHelper.getCommonHelper().marketExceptionAdd(TransactionTypeEnum.BID_AUCTION_END.getKey(), bid.getBidId(), String.format("竞拍[%s]结束失败   [%s]",bid.getBidId(),ret.getRetMsg()));
+			propertyHelper.getCommonHelper().marketExceptionAdd(TransactionTypeEnum.BID_AUCTION_END, bid.getBidId(), String.format("竞拍[%s]结束失败   [%s]",bid.getBidId(),ret.getRetMsg()));
 			
 		}
 		

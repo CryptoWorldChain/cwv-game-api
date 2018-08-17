@@ -7,6 +7,7 @@ package org.brewchain.cwv.game.enums;
  */
 public enum ReturnCodeMsgEnum {
 	
+	
 	/**
 	 * 交易
 	 */

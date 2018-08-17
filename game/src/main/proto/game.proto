@@ -308,6 +308,9 @@ message RetData {
 	
 	repeated PropertyGameType propertyGameType = 9; //
 	
+	//异常交易
+	repeated MarketException marketException = 10;
+	
 	PageOut page = 24;//分页对象
 }
 
@@ -356,4 +359,13 @@ message PropertyGameType
 		string income = 4; //收益
 	}
 	repeated GameType gameType = 2;
+}
+
+message MarketException {
+	int32 id = 1;//记录ID
+	string type = 2;//类型
+	int32 market_id = 3; //交易ID
+	string description = 4; //描述
+	string remark = 5; //处理备注
+	int32 status = 6; //状态
 }

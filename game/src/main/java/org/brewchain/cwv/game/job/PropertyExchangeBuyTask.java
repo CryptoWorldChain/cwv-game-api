@@ -257,7 +257,7 @@ public class PropertyExchangeBuyTask implements Runnable {
 				
 				for(Object o : list){
 					CWVMarketExchangeBuy buy = (CWVMarketExchangeBuy) o;
-					propertyHelper.getCommonHelper().marketExceptionAdd(TransactionTypeEnum.EXCHANGE_BUY_GROUP.getKey(), buy.getExchangeId(), String.format("执行回退买家 [%s] 金额 [%s]",buy.getBuyerAddress(),buy.getAmount()));
+					propertyHelper.getCommonHelper().marketExceptionAdd(TransactionTypeEnum.EXCHANGE_BUY_GROUP, buy.getExchangeId(), String.format("执行回退买家 [%s] 金额 [%s]",buy.getBuyerAddress(),buy.getAmount()));
 					
 				}
 			}
